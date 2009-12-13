@@ -1,0 +1,56 @@
+//      hosts_manager.h
+//      
+//      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
+//      
+//      This program is free software; you can redistribute it and/or modify
+//      it under the terms of the GNU General Public License as published by
+//      the Free Software Foundation; either version 2 of the License, or
+//      (at your option) any later version.
+//      
+//      This program is distributed in the hope that it will be useful,
+//      but WITHOUT ANY WARRANTY; without even the implied warranty of
+//      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//      GNU General Public License for more details.
+//      
+//      You should have received a copy of the GNU General Public License
+//      along with this program; if not, write to the Free Software
+//      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+//      MA 02110-1301, USA.
+
+# ifndef HOSTS_MANAGER_H
+# define HOSTS_MANAGER_H
+
+# include <map>
+
+# include "ev_cpp.h"
+
+class AbstractHost;
+
+class HostsManager
+{
+public:
+	void registerHost(int id, const AbstractHost* host);
+	void deregisterHost(int id);
+	const AbstractHost* getHost(int id);
+	void scheduleHostForDeletion(int id);
+
+// Singleton management	
+	static HostsManager* instance();
+	static void deleteInstance();
+
+private:
+	void idleCallback(ev::idle &watcher, int revents);
+
+	std::map<int, const AbstractHost*> *hosts;
+	std::map<int, AbstractHost*> *hostsScheduledForDeletion;
+
+	ev::idle *idleTimer;
+
+// Singleton management
+	HostsManager();
+	virtual ~HostsManager();
+	
+	static HostsManager* _instance;
+};
+
+# endif /*HOSTS_MANAGER_H*/

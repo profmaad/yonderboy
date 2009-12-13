@@ -1,0 +1,44 @@
+//      package_factories.cpp
+//      
+//      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
+//      
+//      This program is free software; you can redistribute it and/or modify
+//      it under the terms of the GNU General Public License as published by
+//      the Free Software Foundation; either version 2 of the License, or
+//      (at your option) any later version.
+//      
+//      This program is distributed in the hope that it will be useful,
+//      but WITHOUT ANY WARRANTY; without even the implied warranty of
+//      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//      GNU General Public License for more details.
+//      
+//      You should have received a copy of the GNU General Public License
+//      along with this program; if not, write to the Free Software
+//      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+//      MA 02110-1301, USA.
+
+# include <string>
+# include <map>
+# include <utility>
+
+# include "macros.h"
+# include "package.h"
+
+# include "package_factories.h"
+
+Package* constructAcknowledgementPackage(std::string identifier)
+{
+	Package *result = NULL;
+	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();
+	kvMap->insert(std::make_pair("type", "ack"));
+	kvMap->insert(std::make_pair("ack-id",identifier));
+
+	result = new Package(kvMap);
+
+	return result;
+}
+Package* constructAcknowledgementPackage(Package *packageToAcknowledge)
+{
+	if(packageToAcknowledge->hasID()) { return constructAcknowledgementPackage(packageToAcknowledge->getID()); }
+	else return NULL;
+}
