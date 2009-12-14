@@ -1,4 +1,4 @@
-//      macros.h
+//      abstract_persistence_manager.cpp
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,65 +17,18 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef MACROS_H
-# define MACROS_H
-
 # include <map>
 # include <string>
+# include <vector>
+# include <utility>
 
-// Typedefs
-typedef std::map<std::string, std::string> KeyValueMap;
-typedef long long KeyType;
+# include "macros.h"
 
-enum ConnectionState
+# include "abstract_persistence_manager.h"
+
+AbstractPersistenceManager::AbstractPersistenceManager()
 {
-	Uninitialized,
-	Disconnected,
-	Connecting,
-	Connected,
-	Established,
-	Disconnecting,
-	Bound,
-	Listening
-};
-
-enum PackageType
+}
+AbstractPersistenceManager::~AbstractPersistenceManager()
 {
-	Unknown,
-	Command,
-	StatusChange,
-	Signal,
-	Request,
-	Response,
-	Acknowledgement,
-	ConnectionManagement
-};
-
-enum Decision
-{
-	Invalid = -1,
-	Negative = 0,
-	Positive = 1,
-	CantDecide = -2
-};
-
-enum Entity
-{
-	Cookie,
-	SSLCertificate,
-	Download,
-	Login,
-	FormData,
-	Website,
-	HistoryEntry,
-	Bookmark
-};
-
-enum StorageType
-{
-	ListStorage,
-	KeyValueStorage,
-	TableStorage,
-};
-
-# endif /*MACROS_H*/
+}
