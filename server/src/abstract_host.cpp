@@ -120,7 +120,12 @@ void AbstractHost::parseReceivedData()
 {
 	size_t lastPosition = std::string::npos;
 
-	std::string buffer(receiveBuffer,strnlen(receiveBuffer,4096));
+	size_t receiveBufferLength = strlen(receiveBuffer);
+	if(receiveBufferLength > 4096)
+	{
+		receiveBufferLength = 4096;
+	}
+	std::string buffer(receiveBuffer,receiveBufferLength);
 
 	if(receivedNewline && buffer[0] == '\n') // we received the end of a package, lets process it
 	{

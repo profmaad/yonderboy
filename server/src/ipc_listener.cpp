@@ -21,6 +21,7 @@
 # include <string>
 # include <stdexcept>
 
+# include <sys/types.h>
 # include <sys/socket.h>
 # include <sys/un.h>
 # include <cerrno>
@@ -42,11 +43,33 @@ IPCListener::IPCListener(std::string path) : ipcSocket(-1), state(Uninitialized)
 	sockaddr_un listenerAddress;
 	memset(&listenerAddress,0,sizeof(sockaddr_un));
 
-	ipcSocket = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	ipcSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 	if(ipcSocket < 0)
 	{
 		strerror_r(errno,errorBuffer,128);
 		throw std::runtime_error("Failed to create IPC listener socket: "+std::string(errorBuffer));
+	}
+	// get current flags
+	int fileFlags = fcntl(ipcSocket, F_GETFL, 0);
+	if(fileFlags == -1)
+	{
+		close(ipcSocket);
+		strerror_r(errno,errorBuffer,128);
+		throw std::runtime_error("Failed to get/set socket flags: "+std::string(errorBuffer));
+	}
+	
+	// if the socket is blocking, set it to nonblocking
+	if(!(fileFlags & O_NONBLOCK))
+	{
+		fileFlags |= O_NONBLOCK;
+		
+		result = fcntl(ipcSocket, F_SETFL, fileFlags);
+		if(result == -1)
+		{
+			close(ipcSocket);
+			strerror_r(errno,errorBuffer,128);
+			throw std::runtime_error("Failed to get/set socket flags: "+std::string(errorBuffer));
+		}
 	}
 
 	listenerAddress.sun_family = AF_UNIX;

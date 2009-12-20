@@ -26,6 +26,7 @@
 // Typedefs
 typedef std::map<std::string, std::string> KeyValueMap;
 typedef long long KeyType;
+# define KEYTYPE_INVALID_VALUE -1
 
 enum ConnectionState
 {
@@ -73,6 +74,7 @@ enum Entity
 
 enum StorageType
 {
+	InvalidStorage = -1,
 	ListStorage,
 	KeyValueStorage,
 	TableStorage,

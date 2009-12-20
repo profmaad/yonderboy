@@ -1,4 +1,4 @@
-AM_CXXFLAGS = -I../../libev/ -g
+AM_CXXFLAGS = -I../../libev/ -g -lpthread
 
 bin_PROGRAMS = server
 server_SOURCES = main.cpp macros.h \
@@ -13,4 +13,5 @@ server_SOURCES = main.cpp macros.h \
 		server_controller.h server_controller.cpp \
 		abstract_decision_maker.h abstract_decision_maker.cpp \
 		meta_decision_maker.h meta_decision_maker.cpp \
-		abstract_persistence_manager.h abstract_persistence_manager.cpp \
+		abstract_persistence_manager.h abstract_persistence_manager.cpp abstract_persistence_manager_sync.cpp \
+		persistent_storage.h

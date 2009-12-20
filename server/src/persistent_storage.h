@@ -17,12 +17,17 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
+// this class should be both thread-safe and reentrant
+
+# ifndef PERSISTENT_STORAGE_H
+# define PERSISTENT_STORAGE_H
+
 # include <string>
 # include <map>
 # include <vector>
 # include <utility>
 
-# include "pthread.h"
+# include <pthread.h>
 
 # include "macros.h"
 
@@ -32,18 +37,23 @@ template<typename R>
 class PersistentStorage
 {
 public:
-	PersistentStorage(std::string group, std::string id, AbstractPersistenceManager *persistenceManager);
+	PersistentStorage(std::string group, std::string id, AbstractPersistenceManager *persistenceManager, StorageType type);
 	~PersistentStorage();
 
-	R retrieve(KeyType key, bool* notFound = NULL);
+	R retrieve(KeyType key, bool *notFound = NULL);
 	KeyType store(R record);
 	void modify(KeyType key, R record);
 	void remove(KeyType key);
 	bool containsRecord(R record);
 	bool containsKey(KeyType key);
 	
+	void lockForWriting();
+	
 	std::map<KeyType, R>* getRecordsToSync();
 	std::vector<KeyType>* getDeletedRecordsToSync();
+	
+	std::string getGroup() { return group; }
+	std::string getID() { return id; }
 
 private:
 	void swapRecordsForSyncing();
@@ -56,17 +66,22 @@ private:
 	std::vector<KeyType> *deletedRecords;
 	std::vector<KeyType> *syncingDeletedRecords;
 	
+	pthread_rwlock_t recordsLock;
 	pthread_mutex_t changedRecordsMutex;
 	pthread_mutex_t deletedRecordsMutex;
 
 	std::string group;
 	std::string id;
+	bool lockedForWriting;
 	AbstractPersistenceManager* persistenceManager;
+	StorageType type;
 };
 
 template<typename R>
-PersistentStorage<R>::PersistentStorage(std::string group, std::string id, AbstractPersistenceManager *persistenceManager) : group(group), id(id), persistenceManager(persistenceManager)
+PersistentStorage<R>::PersistentStorage(std::string group, std::string id, AbstractPersistenceManager *persistenceManager, StorageType type) : group(group), id(id), persistenceManager(persistenceManager), type(type)
 {
+	lockedForWriting = false;
+	
 	records = new std::map<KeyType, R>();
 	changedRecords = new std::map<KeyType, R>();
 	syncingRecords = new std::map<KeyType, R>();
@@ -74,6 +89,7 @@ PersistentStorage<R>::PersistentStorage(std::string group, std::string id, Abstr
 	deletedRecords = new std::vector<KeyType>();
 	syncingDeletedRecords = new std::vector<KeyType>();
 
+	pthread_rwlock_init(&recordsLock, NULL);
 	pthread_mutex_init(&changedRecordsMutex, NULL);
 	pthread_mutex_init(&deletedRecordsMutex, NULL);
 }
@@ -87,6 +103,7 @@ PersistentStorage<R>::~PersistentStorage()
 	delete deletedRecords;
 	delete syncingDeletedRecords;
 
+	pthread_rwlock_destroy(&recordsLock);
 	pthread_mutex_destroy(&changedRecordsMutex);
 	pthread_mutex_destroy(&deletedRecordsMutex);
 }
@@ -94,8 +111,6 @@ PersistentStorage<R>::~PersistentStorage()
 template<typename R>
 void PersistentStorage<R>::swapRecordsForSyncing()
 {
-	if(!persistenceManager->swapRequested(group,id)) { return; }
-
 	delete syncingRecords;
 	
 	pthread_mutex_lock(&changedRecordsMutex);
@@ -108,8 +123,6 @@ void PersistentStorage<R>::swapRecordsForSyncing()
 template<typename R>
 void PersistentStorage<R>::swapDeletedRecordsForSyncing()
 {
-	if(!persistenceManager->swapRequested(group,id)) { return; }
-
 	delete syncingDeletedRecords;
 	
 	pthread_mutex_lock(&deletedRecordsMutex);
@@ -122,29 +135,37 @@ void PersistentStorage<R>::swapDeletedRecordsForSyncing()
 template<typename R>
 std::map<KeyType, R>* PersistentStorage<R>::getRecordsToSync()
 {
+	if(!persistenceManager->swapRequested(group,id)) { return NULL; }
+	
 	swapRecordsForSyncing();
 	return syncingRecords;
 }
 template<typename R>
-std::map<KeyType, R>* PersistentStorage<R>::getDeletedRecordsToSync()
+std::vector<KeyType>* PersistentStorage<R>::getDeletedRecordsToSync()
 {
+	if(!persistenceManager->swapRequested(group,id)) { return NULL; }
+
 	swapDeletedRecordsForSyncing();
 	return syncingDeletedRecords;
 }
 
 template<typename R>
-R PersistentStorage<R>::retrieve(K key, bool* notFound)
+R PersistentStorage<R>::retrieve(KeyType key, bool *notFound)
 {
 	if(notFound) { *notFound = false; }
 
-	std::map<KeyType, R>::const_iterator iter = records->find(key);
-	if(iter == records->end())
+	pthread_rwlock_rdlock(&recordsLock);
+	typename std::map<KeyType, R>::const_iterator iter = records->find(key);
+	if(iter == records->end() && !lockedForWriting)
 	{
+		pthread_rwlock_unlock(&recordsLock);
 		void* voidRecordPointer = persistenceManager->retrieveRecord(group,id,key);
 		if(voidRecordPointer)
 		{
-			R* recordPointer = static_cast<R*>voidRecordPointer;
+			R* recordPointer = static_cast<R*>(voidRecordPointer);
+			pthread_rwlock_wrlock(&recordsLock);
 			records->insert(std::make_pair(key,*recordPointer));
+			pthread_rwlock_unlock(&recordsLock);
 			return *recordPointer;
 		}
 		else
@@ -153,12 +174,22 @@ R PersistentStorage<R>::retrieve(K key, bool* notFound)
 			return R();
 		}
 	}
+	else if (iter == records->end() && lockedForWriting)
+	{
+		if(notFound) { *notFound = true; }
+		return R();
+	}
 
-	return iter->second;
+	R result = iter->second;
+	pthread_rwlock_unlock(&recordsLock);
+	
+	return result;
 }
 template<typename R>
 KeyType PersistentStorage<R>::store(R record)
 {
+	if(lockedForWriting) { return KEYTYPE_INVALID_VALUE; }
+	
 	KeyType key = persistenceManager->nextKey(group,id);
 
 	modify(key,record);
@@ -168,50 +199,77 @@ KeyType PersistentStorage<R>::store(R record)
 template<typename R>
 void PersistentStorage<R>::modify(KeyType key, R record)
 {
+	if(lockedForWriting) { return KEYTYPE_INVALID_VALUE; }
+	
+	pthread_rwlock_wrlock(&recordsLock);
 	records->erase(key);
 	records->insert(std::make_pair(key,record));
+	pthread_rwlock_unlock(&recordsLock);
 
 	pthread_mutex_lock(&changedRecordsMutex);
 	changedRecords->erase(key);
 	changedRecords->insert(std::make_pair(key,record));
 	pthread_mutex_unlock(&changedRecordsMutex);
+	
+	persistenceManager->recordsChanged(this, type);
 }
 template<typename R>
 void PersistentStorage<R>::remove(KeyType key)
 {
+	if(lockedForWriting) { return KEYTYPE_INVALID_VALUE; }
+	
+	pthread_rwlock_wrlock(&recordsLock);
 	records->erase(key);
+	pthread_rwlock_unlock(&recordsLock);
 
 	pthread_mutex_lock(&changedRecordsMutex);
 	changedRecords->erase(key);
 	pthread_mutex_unlock(&changedRecordsMutex);
 	
-	pthread_mutex_locK(&deletedRecordsMutex);
+	pthread_mutex_lock(&deletedRecordsMutex);
 	deletedRecords->push_back(key);
 	pthread_mutex_unlock(&deletedRecordsMutex);
+	
+	persistenceManager->recordsChanged(this, type);
 }
 template<typename R>
 bool PersistentStorage<R>::containsRecord(R record)
 {
-	for(std::map<KeyType, R>::const_iterator iter = records->begin(); iter != records->end(); ++iter)
+	bool result = false;
+	
+	pthread_rwlock_rdlock(&recordsLock);
+	for(typename std::map<KeyType, R>::const_iterator iter = records->begin(); iter != records->end(); ++iter)
 	{
 		if(iter->second == record)
 		{
-			return true;
+			result = true;
+			break;
 		}
 	}
+	pthread_rwlock_unlock(&recordsLock);
 
-	return false;
+	return result;
 }
 template<typename R>
 bool PersistentStorage<R>::containsKey(KeyType key)
 {
-	std::map<KeyType, R>::const_iterator iter = records->find(key);
-	if(iter == records->end())
+	bool result = false;
+	
+	pthread_rwlock_rdlock(&recordsLock);
+	typename std::map<KeyType, R>::const_iterator iter = records->find(key);
+	if(iter != records->end())
 	{
-		return false;
+		result = true;
 	}
-	else
-	{
-		return true;
-	}
+	pthread_rwlock_unlock(&recordsLock);
+	
+	return result;
 }
+
+template<typename R>
+void PersistentStorage<R>::lockForWriting()
+{
+	lockedForWriting = true;
+}
+
+# endif /*PERSISTENT_STORAGE_H*/

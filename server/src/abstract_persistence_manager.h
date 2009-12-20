@@ -22,13 +22,26 @@
 
 # include <map>
 # include <vector>
+# include <deque>
+# include <set>
 # include <string>
 # include <utility>
+# include <pthread.h>
+
+# include "ev_cpp.h"
 
 # include "macros.h"
 
 template<typename R>
 class PersistentStorage;
+
+typedef std::string ListRecord;
+typedef std::pair<std::string, std::string> KeyValueRecord;
+typedef std::vector<std::string> TableRecord;
+
+typedef PersistentStorage<ListRecord> PersistentListStorage;
+typedef PersistentStorage<KeyValueRecord> PersistentKeyValueStorage;
+typedef PersistentStorage<TableRecord> PersistentTableStorage;
 
 class AbstractPersistenceManager
 {
@@ -37,20 +50,73 @@ public:
 	virtual ~AbstractPersistenceManager();
 
 	// PersistenceManager API
-	PersistentStorage<std::string>* retrieveListStorage(std::string group, std::string id);
-	PersistentStorage< std::pair<std::string, std:.string> >* retrieveKeyValueStorage(std::string group, std::string id);
-	PersistetnStorage< std::vector<std::string> >* retrieveTableStorage(std::string group, std:.string id);
+	PersistentListStorage* retrieveListStorage(std::string group, std::string id);
+	PersistentKeyValueStorage* retrieveKeyValueStorage(std::string group, std::string id);
+	PersistentTableStorage* retrieveTableStorage(std::string group, std::string id);
 	void releaseStorage(std::string group, std::string id);
 
 	// PersistentStorage API
 	bool swapRequested(std::string group, std::string id);
 	virtual void* retrieveRecord(std::string group, std::string id, KeyType key) = 0;
 	virtual KeyType nextKey(std::string group, std::string id) = 0;
+	void recordsChanged(void *storage, StorageType type);
 
 protected:
+	// Implementation API
+	virtual PersistentListStorage* createListStorage(std::string group, std::string id) = 0;
+	virtual PersistentKeyValueStorage* createKeyValueStorage(std::string group, std::string id) = 0;
+	virtual PersistentTableStorage* createTableStorage(std::string group, std::string id) = 0;
+	
+	virtual void destroyStorage(std::string group, std::string id) = 0;
+	
+	virtual void writeListRecord(std::string group, std::string id, KeyType key, ListRecord record) = 0;
+	virtual void writeKeyValueRecord(std::string group, std::string id, KeyType key, KeyValueRecord record) = 0;
+	virtual void writeTableRecord(std::string group, std::string id, KeyType key, TableRecord record) = 0;
+	
+	virtual void deleteRecord(std::string group, std::string id, KeyType key) = 0;
 
 private:
-
+	StorageType getStorageType(std::string group, std::string id);
+	PersistentListStorage* getListStorage(std::string group, std::string id);
+	PersistentKeyValueStorage* getKeyValueStorage(std::string group, std::string id);
+	PersistentTableStorage* getTableStorage(std::string group, std::string id);
+	template<typename R>
+	bool dequeContainsElement(std::deque<R>* queue, R element);
+	
+	static void* syncRecordsStartMethod(void* persistenceManagerPointer);
+	void* syncRecords();
+	
+	std::map<std::string, std::map<std::string, PersistentListStorage*> > *listStorages;
+	std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> > *keyValueStorages;
+	std::map<std::string, std::map<std::string, PersistentTableStorage*> > *tableStorages;
+	
+	std::deque<PersistentListStorage*> *changedListStorages;
+	std::deque<PersistentKeyValueStorage*> *changedKeyValueStorages;
+	std::deque<PersistentTableStorage*> *changedTableStorages;
+	std::set<void*> *releasedStorages;
+	
+	std::string syncingGroup;
+	std::string syncingID;
+	
+	pthread_t *syncingThread;
+	bool syncingShouldEnd;
+	
+	pthread_mutex_t syncingStorageMutex; // protects syncingGroup, syncingID
+	pthread_mutex_t changedStoragesMutex; // protects changedListStorages, changedKeyValueStorages, changedTableStorages, releasedStorages
+	pthread_cond_t changedStoragesAvailable; // gets signaled whenever entries where added to changedXStorages
+	pthread_mutex_t changedStoragesAvailableMutex; // protects changedStoragesAvailable
+	pthread_mutex_t syncingShouldEndMutex; // protects syncingShouldEnd;
 };
 
-# endif /*PERSISTENCE_MANAGER_H*/
+template<typename R>
+bool AbstractPersistenceManager::dequeContainsElement(std::deque<R>* queue, R element)
+{
+	for(typename std::deque<R>::const_iterator iter = queue->begin(); iter != queue->end(); ++iter)
+	{
+		if(*iter == element) { return true; }
+	}
+	
+	return false;
+}
+
+# endif /*ABSTRACT_PERSISTENCE_MANAGER_H*/
