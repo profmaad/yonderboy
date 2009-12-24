@@ -80,4 +80,24 @@ enum StorageType
 	TableStorage,
 };
 
+enum ServerState
+{
+	ServerStateUninitialized,		// binary was just executed, no work done yet - blocking not allowed
+	ServerStateInitializing,		// static initialization taking place - blocking allowed
+	ServerStateInitialized,			// all static init work done - blocking not allowed
+	ServerStateStarting,			// server was asked to start running, is about to do so  - blocking allowed
+	ServerStateRunning,				// server is fully up and running - during this state, no blocking and no crashing is alowed
+	ServerStateShuttingDown			// server is going down, doing deinitialization - blocking is allowed, crashing is not
+};
+
+enum LogLevel
+{
+	LogLevelDebug = 0,
+	LogLevelInfo = 10,
+	LogLevelWarning = 20,
+	LogLevelError = 30,
+	LogLevelFatal = 40
+};
+
+
 # endif /*MACROS_H*/

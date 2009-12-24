@@ -27,8 +27,7 @@
 # include <string>
 # include <utility>
 # include <pthread.h>
-
-# include "ev_cpp.h"
+# include <semaphore.h>
 
 # include "macros.h"
 
@@ -60,6 +59,7 @@ public:
 	virtual void* retrieveRecord(std::string group, std::string id, KeyType key) = 0;
 	virtual KeyType nextKey(std::string group, std::string id) = 0;
 	void recordsChanged(void *storage, StorageType type);
+	void close();
 
 protected:
 	// Implementation API
@@ -74,14 +74,20 @@ protected:
 	virtual void writeTableRecord(std::string group, std::string id, KeyType key, TableRecord record) = 0;
 	
 	virtual void deleteRecord(std::string group, std::string id, KeyType key) = 0;
+	
+	StorageType getStorageType(std::string group, std::string id);
 
 private:
-	StorageType getStorageType(std::string group, std::string id);
+	void releaseStorageButDontRemove(std::string group, std::string id);
+	
 	PersistentListStorage* getListStorage(std::string group, std::string id);
 	PersistentKeyValueStorage* getKeyValueStorage(std::string group, std::string id);
 	PersistentTableStorage* getTableStorage(std::string group, std::string id);
-	template<typename R>
-	bool dequeContainsElement(std::deque<R>* queue, R element);
+	
+	bool storageHasChanges(PersistentListStorage* storage) { return storageHasChanges(static_cast<void*>(storage)); }
+	bool storageHasChanges(PersistentKeyValueStorage* storage) { return storageHasChanges(static_cast<void*>(storage)); }
+	bool storageHasChanges(PersistentTableStorage* storage) { return storageHasChanges(static_cast<void*>(storage)); }
+	bool storageHasChanges(void* storage);
 	
 	static void* syncRecordsStartMethod(void* persistenceManagerPointer);
 	void* syncRecords();
@@ -90,9 +96,7 @@ private:
 	std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> > *keyValueStorages;
 	std::map<std::string, std::map<std::string, PersistentTableStorage*> > *tableStorages;
 	
-	std::deque<PersistentListStorage*> *changedListStorages;
-	std::deque<PersistentKeyValueStorage*> *changedKeyValueStorages;
-	std::deque<PersistentTableStorage*> *changedTableStorages;
+	std::deque<std::pair<void*, StorageType> > *changedStorages;
 	std::set<void*> *releasedStorages;
 	
 	std::string syncingGroup;
@@ -102,21 +106,9 @@ private:
 	bool syncingShouldEnd;
 	
 	pthread_mutex_t syncingStorageMutex; // protects syncingGroup, syncingID
-	pthread_mutex_t changedStoragesMutex; // protects changedListStorages, changedKeyValueStorages, changedTableStorages, releasedStorages
-	pthread_cond_t changedStoragesAvailable; // gets signaled whenever entries where added to changedXStorages
-	pthread_mutex_t changedStoragesAvailableMutex; // protects changedStoragesAvailable
+	pthread_mutex_t changedStoragesMutex; // protects changedStorages, releasedStorages
+	sem_t changedStoragesAvailable; // gets signaled whenever entries where added to changedXStorages
 	pthread_mutex_t syncingShouldEndMutex; // protects syncingShouldEnd;
 };
-
-template<typename R>
-bool AbstractPersistenceManager::dequeContainsElement(std::deque<R>* queue, R element)
-{
-	for(typename std::deque<R>::const_iterator iter = queue->begin(); iter != queue->end(); ++iter)
-	{
-		if(*iter == element) { return true; }
-	}
-	
-	return false;
-}
 
 # endif /*ABSTRACT_PERSISTENCE_MANAGER_H*/

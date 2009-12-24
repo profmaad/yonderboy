@@ -22,6 +22,8 @@
 
 # include "ev_cpp.h"
 
+# include "macros.h"
+
 class ControllerListener;
 
 class ServerController
@@ -32,6 +34,11 @@ public:
 
 	void start(); // runtime phase - once this is called, we are not supposed to quit until explicitely told so
 	void stop(); // and this is what tells us to: stop running + static shutdown
+	
+	// queries
+	bool allowedToBlock();
+	ServerState getState() { return state; };
+	LogLevel getLogLevel() { return logLevel; };
 
 private:
 	void sigintCallback(ev::sig &watcher, int revents);
@@ -39,6 +46,9 @@ private:
 	ControllerListener *controllerListener;
 
 	ev::sig *sigintWatcher;
+	
+	ServerState state;
+	LogLevel logLevel;
 };
 
 # endif /*SERVER_CONTROLLER_H*/

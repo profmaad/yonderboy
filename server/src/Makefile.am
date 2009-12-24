@@ -1,7 +1,7 @@
 AM_CXXFLAGS = -I../../libev/ -g -lpthread
 
 bin_PROGRAMS = server
-server_SOURCES = main.cpp macros.h \
+server_SOURCES = main.cpp macros.h log.h \
 		ev_cpp.h ev_cpp.cpp \
 		ipc_listener.h ipc_listener.cpp \
 		abstract_host.h abstract_host.cpp \
@@ -14,4 +14,5 @@ server_SOURCES = main.cpp macros.h \
 		abstract_decision_maker.h abstract_decision_maker.cpp \
 		meta_decision_maker.h meta_decision_maker.cpp \
 		abstract_persistence_manager.h abstract_persistence_manager.cpp abstract_persistence_manager_sync.cpp \
-		persistent_storage.h
+		persistent_storage.h \
+		file_persistence_manager.h file_persistence_manager.cpp

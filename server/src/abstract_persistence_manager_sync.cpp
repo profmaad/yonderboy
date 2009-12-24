@@ -22,6 +22,8 @@
 # include <vector>
 # include <utility>
 
+# include <cerrno>
+
 # include "macros.h"
 
 # include "abstract_persistence_manager.h"
@@ -35,158 +37,134 @@ void* AbstractPersistenceManager::syncRecordsStartMethod(void* persistenceManage
 }
 void* AbstractPersistenceManager::syncRecords()
 {
+	std::pair<void*, StorageType> storagePair;
+	
+	PersistentListStorage *listStorage = NULL;
+	PersistentKeyValueStorage *keyValueStorage = NULL;
+	PersistentTableStorage *tableStorage = NULL;
+
+	std::string storageGroup;
+	std::string storageID;
+	
+	std::map<KeyType, ListRecord> *changedListRecords = NULL;
+	std::map<KeyType, KeyValueRecord> *changedKeyValueRecords = NULL;
+	std::map<KeyType, TableRecord> *changedTableRecords = NULL;
+	
+	std::map<KeyType, ListRecord>::const_iterator listIter;
+	std::map<KeyType, KeyValueRecord>::const_iterator keyValueIter;
+	std::map<KeyType, TableRecord>::const_iterator tableIter;
+	
+	int changedStoragesAvailableValue = -1;
+	
 	while(true)
 	{
-		//iterate over changed storages queues until they are all empty
-		while(true)
+		pthread_mutex_lock(&changedStoragesMutex);
+		if(changedStorages->size() > 0)
 		{
-			bool allQueuesEmpty = true;
-			//alternatingly check lists, key-values and tables
-			
-			// check for list storage
+			storagePair = changedStorages->front();
+			changedStorages->pop_front();
+		}
+		pthread_mutex_unlock(&changedStoragesMutex);
+		
+		if(storagePair.first)
+		{
+			switch(storagePair.second)
 			{
-				PersistentListStorage *storage = NULL;
-				std::string storageGroup;
-				std::string storageID;
-			
-				pthread_mutex_lock(&changedStoragesMutex);
-				if(changedListStorages->size() > 0)
-				{
-					allQueuesEmpty = false;
+				case ListStorage:
+					listStorage = static_cast<PersistentListStorage*>(storagePair.first);
 					
-					storage = changedListStorages->front();
-					changedListStorages->pop_front();
-				}
-				pthread_mutex_unlock(&changedStoragesMutex);
+					storageGroup = listStorage->getGroup();
+					storageID = listStorage->getID();
+					break;
+				case KeyValueStorage:
+					keyValueStorage = static_cast<PersistentKeyValueStorage*>(storagePair.first);
+					
+					storageGroup = keyValueStorage->getGroup();
+					storageID = keyValueStorage->getID();
+					break;
+				case TableStorage:
+					tableStorage = static_cast<PersistentTableStorage*>(storagePair.first);
+					
+					storageGroup = tableStorage->getGroup();
+					storageID = tableStorage->getID();
+					break;
+			}
 				
-				if(storage)
-				{
-					storageGroup = storage->getGroup();
-					storageID = storage->getID();
-					
-					pthread_mutex_lock(&syncingStorageMutex);
-					syncingGroup = storageGroup;
-					syncingID = storageID;
-					pthread_mutex_unlock(&syncingStorageMutex);
-					
-					std::map<KeyType, std::string>* changedRecords = storage->getRecordsToSync();
-					
-					pthread_mutex_lock(&syncingStorageMutex);
-					syncingGroup = "";
-					syncingID = "";
-					pthread_mutex_unlock(&syncingStorageMutex);
-					
-					if(changedRecords)
+			pthread_mutex_lock(&syncingStorageMutex);
+			syncingGroup = storageGroup;
+			syncingID = storageID;
+			pthread_mutex_unlock(&syncingStorageMutex);
+			
+			switch(storagePair.second)
+			{
+				case ListStorage:
+					changedListRecords = listStorage->getRecordsToSync();
+					break;
+				case KeyValueStorage:
+					changedKeyValueRecords = keyValueStorage->getRecordsToSync();
+					break;
+				case TableStorage:
+					changedTableRecords = tableStorage->getRecordsToSync();
+					break;
+			}
+				
+			pthread_mutex_lock(&syncingStorageMutex);
+			syncingGroup = "";
+			syncingID = "";
+			pthread_mutex_unlock(&syncingStorageMutex);
+			
+			switch(storagePair.second)
+			{
+				case ListStorage:
+					if(changedListRecords)
 					{
-						for(std::map<KeyType, std::string>::const_iterator iter = changedRecords->begin(); iter != changedRecords->end(); ++iter)
+						
+						for(listIter = changedListRecords->begin(); listIter != changedListRecords->end(); ++listIter)
 						{
-							writeListRecord(storageGroup, storageID, iter->first, iter->second);
+							writeListRecord(storageGroup, storageID, listIter->first, listIter->second);
 						}
 					}
-				}
-			}
-			
-			// check for key-value storage
-			{
-				PersistentKeyValueStorage *storage = NULL;
-				std::string storageGroup;
-				std::string storageID;
-				
-				pthread_mutex_lock(&changedStoragesMutex);
-				if(changedKeyValueStorages->size() > 0)
-				{
-					allQueuesEmpty = false;
-					
-					storage = changedKeyValueStorages->front();
-					changedKeyValueStorages->pop_front();
-				}
-				pthread_mutex_unlock(&changedStoragesMutex);
-				
-				if(storage)
-				{
-					storageGroup = storage->getGroup();
-					storageID = storage->getID();
-					
-					pthread_mutex_lock(&syncingStorageMutex);
-					syncingGroup = storageGroup;
-					syncingID = storageID;
-					pthread_mutex_unlock(&syncingStorageMutex);
-					
-					std::map<KeyType, std::pair<std::string, std::string> >* changedRecords = storage->getRecordsToSync();
-					
-					pthread_mutex_lock(&syncingStorageMutex);
-					syncingGroup = "";
-					syncingID = "";
-					pthread_mutex_unlock(&syncingStorageMutex);
-					
-					if(changedRecords)
+					break;
+				case KeyValueStorage:
+					if(changedKeyValueRecords)
 					{
-						for(std::map<KeyType, std::pair<std::string, std::string> >::const_iterator iter = changedRecords->begin(); iter != changedRecords->end(); ++iter)
+						
+						for(keyValueIter = changedKeyValueRecords->begin(); keyValueIter != changedKeyValueRecords->end(); ++keyValueIter)
 						{
-							writeKeyValueRecord(storageGroup, storageID, iter->first, iter->second);
+							writeKeyValueRecord(storageGroup, storageID, keyValueIter->first, keyValueIter->second);
 						}
 					}
-				}
-			}
-			
-			// check for table storage
-			{
-				PersistentTableStorage *storage = NULL;
-				std::string storageGroup;
-				std::string storageID;
-				
-				pthread_mutex_lock(&changedStoragesMutex);
-				if(changedTableStorages->size() > 0)
-				{
-					allQueuesEmpty = false;
-					
-					storage = changedTableStorages->front();
-					changedTableStorages->pop_front();
-				}
-				pthread_mutex_unlock(&changedStoragesMutex);
-				
-				if(storage)
-				{
-					storageGroup = storage->getGroup();
-					storageID = storage->getID();
-					
-					pthread_mutex_lock(&syncingStorageMutex);
-					syncingGroup = storageGroup;
-					syncingID = storageID;
-					pthread_mutex_unlock(&syncingStorageMutex);
-					
-					std::map<KeyType, std::vector<std::string> >* changedRecords = storage->getRecordsToSync();
-					
-					pthread_mutex_lock(&syncingStorageMutex);
-					syncingGroup = "";
-					syncingID = "";
-					pthread_mutex_unlock(&syncingStorageMutex);
-					
-					if(changedRecords)
+					break;
+				case TableStorage:
+					if(changedTableRecords)
 					{
-						for(std::map<KeyType, std::vector<std::string> >::const_iterator iter = changedRecords->begin(); iter != changedRecords->end(); ++iter)
+						
+						for(tableIter = changedTableRecords->begin(); tableIter != changedTableRecords->end(); ++tableIter)
 						{
-							writeTableRecord(storageGroup, storageID, iter->first, iter->second);
+							writeTableRecord(storageGroup, storageID, tableIter->first, tableIter->second);
 						}
 					}
-				}
+					break;
 			}
-			
-			if(allQueuesEmpty) { break; }
 		}
 		
 		//sleep until there is more work to do
-		pthread_mutex_lock(&changedStoragesAvailableMutex);
-		pthread_cond_wait(&changedStoragesAvailable, &changedStoragesAvailableMutex);
-		pthread_mutex_unlock(&changedStoragesAvailableMutex);
+		LOG_DEBUG("sync thread waiting on semaphore")
+		int success = sem_wait(&changedStoragesAvailable);
+		LOG_DEBUG("sync thread passed semaphore: "<<errno)
 		
 		//check whether we are supposed to quit
 		pthread_mutex_lock(&syncingShouldEndMutex);
 		if(syncingShouldEnd)
 		{
-			pthread_mutex_unlock(&syncingShouldEndMutex);
-			break;
+			sem_getvalue(&changedStoragesAvailable, &changedStoragesAvailableValue);
+			if(changedStoragesAvailableValue == 0)
+			{
+				pthread_mutex_unlock(&syncingShouldEndMutex);
+				break;
+			}
 		}
 		pthread_mutex_unlock(&syncingShouldEndMutex);
 	}
+	LOG_DEBUG("sync thread quit")
 }

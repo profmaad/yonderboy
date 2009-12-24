@@ -26,6 +26,7 @@
 # include <unistd.h>
 
 # include "ev_cpp.h"
+# include "log.h"
 # include "controller_host.h"
 # include "hosts_manager.h"
 
@@ -53,6 +54,6 @@ void ControllerListener::callback(ev::io &watcher, int revents)
 	catch(std::runtime_error e)
 	{
 		delete host;
-		std::cerr<<"[ControllerListener] failed to accept controller connection: "<<e.what()<<std::endl;
+		LOG_ERROR("failed to accept controller connection: "<<e.what())
 	}
 }

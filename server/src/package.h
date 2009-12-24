@@ -40,13 +40,13 @@ public:
 	bool hasValue(std::string key);
 
 	std::string serialize();
+	
+	static std::string& trimString(std::string &line);
 
 private:
 	void initialize();
 	std::map<std::string, std::string>* constructKeyValueMap(std::string &serializedData);
 	PackageType extractType(std::map<std::string, std::string> *keyValueMap);
-
-	std::string& trimString(std::string &line);
 
 	PackageType type;
 	bool valid;

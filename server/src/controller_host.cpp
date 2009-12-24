@@ -25,7 +25,10 @@
 # include <sys/socket.h>
 
 # include "ev_cpp.h"
+
 # include "macros.h"
+# include "log.h"
+
 # include "package.h"
 # include "package_factories.h"
 
@@ -33,16 +36,16 @@
 
 ControllerHost::ControllerHost(int hostSocket) : AbstractHost(hostSocket), interactive(false), handlesSynchronousRequests(false)
 {
-	std::cout<<"[ControllerHost "<<hostSocket<<"] initialized"<<std::endl;
+	LOG_DEBUG("initialized with socket "<<hostSocket)
 }
 ControllerHost::~ControllerHost()
 {
-	std::cout<<"[ControllerHost] shut down"<<std::endl;
+	LOG_DEBUG("shutting down controller host")
 }
 
 void ControllerHost::handlePackage(Package* thePackage)
 {
-	std::cout<<"[ControllerHost] received package of type "<<thePackage->getType()<<std::endl;
+	LOG_INFO("received package of type "<<thePackage->getType())
 
 	if(state == Connected && thePackage->getType() == ConnectionManagement)
 	{
@@ -56,7 +59,7 @@ void ControllerHost::handlePackage(Package* thePackage)
 
 			state = Established;
 
-			std::cout<<"[ControllerHost] connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive and can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests"<<std::endl;
+			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive and can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests")
  		}
 	}
 	else if(state == Established)
@@ -64,7 +67,7 @@ void ControllerHost::handlePackage(Package* thePackage)
 		switch(thePackage->getType())
 		{
 		case Command:
-			std::cout<<"[ControllerHost] received command '"<<thePackage->getValue("command")<<"' from controller"<<std::endl;
+			LOG_INFO("received command '"<<thePackage->getValue("command")<<"' from controller")
 			sendPackage(constructAcknowledgementPackage(thePackage));
 			break;
 		}

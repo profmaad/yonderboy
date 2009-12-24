@@ -25,6 +25,7 @@
 # include <pthread.h>
 
 # include "macros.h"
+# include "log.h"
 
 # include "abstract_persistence_manager.h"
 # include "persistent_storage.h"
@@ -35,56 +36,26 @@ AbstractPersistenceManager::AbstractPersistenceManager()
 	keyValueStorages = new std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> >();
 	tableStorages = new std::map<std::string, std::map<std::string, PersistentTableStorage*> >();
 	
-	changedListStorages = new std::deque<PersistentListStorage*>();
-	changedKeyValueStorages = new std::deque<PersistentKeyValueStorage*>();
-	changedTableStorages = new std::deque<PersistentTableStorage*>();
+	changedStorages = new std::deque<std::pair<void*, StorageType> >();
+	releasedStorages = new std::set<void*>();
 	
 	pthread_mutex_init(&syncingStorageMutex, NULL);
 	pthread_mutex_init(&changedStoragesMutex, NULL);
-	pthread_mutex_init(&changedStoragesAvailableMutex, NULL);
 	pthread_mutex_init(&syncingShouldEndMutex, NULL);
-	pthread_cond_init(&changedStoragesAvailable, NULL);
+	sem_init(&changedStoragesAvailable, 0, 0);
 	
 	syncingShouldEnd = false;
 	pthread_t *syncingThread;
 	pthread_create(syncingThread,NULL,syncRecordsStartMethod,this);
 }
 AbstractPersistenceManager::~AbstractPersistenceManager()
-{
-	//release all storages
-	for(std::map<std::string, std::map<std::string, PersistentListStorage*> >::const_iterator groupIter = listStorages->begin(); groupIter != listStorages->end(); ++groupIter)
-	{
-		std::string group = groupIter->first;
-		for(std::map<std::string, PersistentListStorage*>::const_iterator iter = groupIter->second.begin(); iter != groupIter->second.end(); ++iter)
-		{
-			releaseStorage(group, iter->first);
-		}
-	}
-	for(std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> >::const_iterator groupIter = keyValueStorages->begin(); groupIter != keyValueStorages->end(); ++groupIter)
-	{
-		std::string group = groupIter->first;
-		for(std::map<std::string, PersistentKeyValueStorage*>::const_iterator iter = groupIter->second.begin(); iter != groupIter->second.end(); ++iter)
-		{
-			releaseStorage(group, iter->first);
-		}
-	}
-	for(std::map<std::string, std::map<std::string, PersistentTableStorage*> >::const_iterator groupIter = tableStorages->begin(); groupIter != tableStorages->end(); ++groupIter)
-	{
-		std::string group = groupIter->first;
-		for(std::map<std::string, PersistentTableStorage*>::const_iterator iter = groupIter->second.begin(); iter != groupIter->second.end(); ++iter)
-		{
-			releaseStorage(group, iter->first);
-		}
-	}
-	
+{	
 	//wait until all syncs are completed
 	pthread_mutex_lock(&syncingShouldEndMutex);
 	syncingShouldEnd = true;
 	pthread_mutex_unlock(&syncingShouldEndMutex);
 	
-	pthread_mutex_lock(&changedStoragesAvailableMutex);
-	pthread_cond_signal(&changedStoragesAvailable);
-	pthread_mutex_unlock(&changedStoragesAvailableMutex);
+	sem_post(&changedStoragesAvailable);
 	
 	pthread_join(*syncingThread, NULL);
 	
@@ -93,15 +64,43 @@ AbstractPersistenceManager::~AbstractPersistenceManager()
 	delete keyValueStorages;
 	delete tableStorages;
 	
-	delete changedListStorages;
-	delete changedKeyValueStorages;
-	delete changedTableStorages;
+	delete changedStorages;
+	delete releasedStorages;
 	
 	pthread_mutex_destroy(&syncingStorageMutex);
 	pthread_mutex_destroy(&changedStoragesMutex);
-	pthread_mutex_destroy(&changedStoragesAvailableMutex);
 	pthread_mutex_destroy(&syncingShouldEndMutex);
-	pthread_cond_destroy(&changedStoragesAvailable);
+	sem_destroy(&changedStoragesAvailable);
+}
+void AbstractPersistenceManager::close()
+{
+	if(!server->allowedToBlock()) { return; }
+	
+	//release all storages
+	for(std::map<std::string, std::map<std::string, PersistentListStorage*> >::const_iterator groupIter = listStorages->begin(); groupIter != listStorages->end(); ++groupIter)
+	{
+		std::string group = groupIter->first;
+		for(std::map<std::string, PersistentListStorage*>::const_iterator iter = groupIter->second.begin(); iter != groupIter->second.end(); ++iter)
+		{
+			releaseStorageButDontRemove(group, iter->first);
+		}
+	}
+	for(std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> >::const_iterator groupIter = keyValueStorages->begin(); groupIter != keyValueStorages->end(); ++groupIter)
+	{
+		std::string group = groupIter->first;
+		for(std::map<std::string, PersistentKeyValueStorage*>::const_iterator iter = groupIter->second.begin(); iter != groupIter->second.end(); ++iter)
+		{
+			releaseStorageButDontRemove(group, iter->first);
+		}
+	}
+	for(std::map<std::string, std::map<std::string, PersistentTableStorage*> >::const_iterator groupIter = tableStorages->begin(); groupIter != tableStorages->end(); ++groupIter)
+	{
+		std::string group = groupIter->first;
+		for(std::map<std::string, PersistentTableStorage*>::const_iterator iter = groupIter->second.begin(); iter != groupIter->second.end(); ++iter)
+		{
+			releaseStorageButDontRemove(group, iter->first);
+		}
+	}
 }
 
 PersistentListStorage* AbstractPersistenceManager::retrieveListStorage(std::string group, std::string id)
@@ -170,15 +169,12 @@ PersistentTableStorage* AbstractPersistenceManager::retrieveTableStorage(std::st
 		return storage;
 	}
 }
-void AbstractPersistenceManager::releaseStorage(std::string group, std::string id)
+void AbstractPersistenceManager::releaseStorageButDontRemove(std::string group, std::string id)
 {
+	bool wakeupSyncThread = false;
 	PersistentListStorage *listStorage = NULL;
 	PersistentKeyValueStorage *keyValueStorage = NULL;
 	PersistentTableStorage *tableStorage = NULL;
-	
-	std::map<std::string, std::map<std::string, PersistentListStorage*> >::iterator listIter;
-	std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> >::iterator keyValueIter;
-	std::map<std::string, std::map<std::string, PersistentTableStorage*> >::iterator tableIter;
 	
 	switch(getStorageType(group, id))
 	{
@@ -186,12 +182,9 @@ void AbstractPersistenceManager::releaseStorage(std::string group, std::string i
 			listStorage = getListStorage(group, id);
 			if(!listStorage) { return; }
 			
-			listIter = listStorages->find(group);
-			if(listIter != listStorages->end()) { listIter->second.erase(id); }
-			
 			listStorage->lockForWriting();
 			pthread_mutex_lock(&changedStoragesMutex);
-			if(!dequeContainsElement(changedListStorages, listStorage))
+			if(!storageHasChanges(listStorage))
 			{
 				destroyStorage(group, id);
 				delete listStorage;
@@ -199,6 +192,7 @@ void AbstractPersistenceManager::releaseStorage(std::string group, std::string i
 			else
 			{
 				releasedStorages->insert(static_cast<void*>(listStorage));
+				wakeupSyncThread = true;
 			}
 			pthread_mutex_unlock(&changedStoragesMutex);
 			break;
@@ -206,12 +200,9 @@ void AbstractPersistenceManager::releaseStorage(std::string group, std::string i
 			keyValueStorage = getKeyValueStorage(group, id);
 			if(!keyValueStorage) { return; }
 			
-			keyValueIter = keyValueStorages->find(group);
-			if(keyValueIter != keyValueStorages->end()) { keyValueIter->second.erase(id); }
-			
 			keyValueStorage->lockForWriting();
 			pthread_mutex_lock(&changedStoragesMutex);
-			if(!dequeContainsElement(changedKeyValueStorages, keyValueStorage))
+			if(!storageHasChanges(keyValueStorage))
 			{
 				destroyStorage(group, id);
 				delete keyValueStorage;
@@ -219,6 +210,7 @@ void AbstractPersistenceManager::releaseStorage(std::string group, std::string i
 			else
 			{
 				releasedStorages->insert(static_cast<void*>(keyValueStorage));
+				wakeupSyncThread = true;
 			}
 			pthread_mutex_unlock(&changedStoragesMutex);
 			break;
@@ -226,12 +218,9 @@ void AbstractPersistenceManager::releaseStorage(std::string group, std::string i
 			tableStorage = getTableStorage(group, id);
 			if(!tableStorage) { return; }
 			
-			tableIter = tableStorages->find(group);
-			if(tableIter != tableStorages->end()) { tableIter->second.erase(id); }
-			
 			tableStorage->lockForWriting();
 			pthread_mutex_lock(&changedStoragesMutex);
-			if(!dequeContainsElement(changedTableStorages, tableStorage))
+			if(!storageHasChanges(tableStorage))
 			{
 				destroyStorage(group, id);
 				delete tableStorage;
@@ -239,8 +228,38 @@ void AbstractPersistenceManager::releaseStorage(std::string group, std::string i
 			else
 			{
 				releasedStorages->insert(static_cast<void*>(tableStorage));
+				wakeupSyncThread = true;
 			}
 			pthread_mutex_unlock(&changedStoragesMutex);
+			break;
+	}
+	
+	if(wakeupSyncThread)
+	{
+		sem_post(&changedStoragesAvailable);
+	}
+}
+void AbstractPersistenceManager::releaseStorage(std::string group, std::string id)
+{
+	std::map<std::string, std::map<std::string, PersistentListStorage*> >::iterator listIter;
+	std::map<std::string, std::map<std::string, PersistentKeyValueStorage*> >::iterator keyValueIter;
+	std::map<std::string, std::map<std::string, PersistentTableStorage*> >::iterator tableIter;
+	
+	releaseStorageButDontRemove(group, id);
+	
+	switch(getStorageType(group, id))
+	{
+		case ListStorage:
+			listIter = listStorages->find(group);
+			if(listIter != listStorages->end()) { listIter->second.erase(id); }
+			break;
+		case KeyValueStorage:
+			keyValueIter = keyValueStorages->find(group);
+			if(keyValueIter != keyValueStorages->end()) { keyValueIter->second.erase(id); }
+			break;
+		case TableStorage:
+			tableIter = tableStorages->find(group);
+			if(tableIter != tableStorages->end()) { tableIter->second.erase(id); }
 			break;
 	}
 }
@@ -263,40 +282,26 @@ void AbstractPersistenceManager::recordsChanged(void *storage, StorageType type)
 	bool addedToDeque = false;
 	
 	pthread_mutex_lock(&changedStoragesMutex);
-	
-	switch(type)
+	if(!storageHasChanges(storage))
 	{
-		case ListStorage:
-			if(!dequeContainsElement(changedListStorages, static_cast<PersistentListStorage*>(storage)))
-			{
-				changedListStorages->push_back(static_cast<PersistentListStorage*>(storage));
-				addedToDeque = true;
-			}
-			break;
-		case KeyValueStorage:
-			if(!dequeContainsElement(changedKeyValueStorages, static_cast<PersistentKeyValueStorage*>(storage)))
-			{
-				changedKeyValueStorages->push_back(static_cast<PersistentKeyValueStorage*>(storage));
-				addedToDeque = true;
-			}
-			break;
-		case TableStorage:
-			if(!dequeContainsElement(changedTableStorages, static_cast<PersistentTableStorage*>(storage)))
-			{
-				changedTableStorages->push_back(static_cast<PersistentTableStorage*>(storage));
-				addedToDeque = true;
-			}
-			break;
+		changedStorages->push_back(std::make_pair(storage, type));
+		addedToDeque = true;
 	}
-	
 	pthread_mutex_unlock(&changedStoragesMutex);
 	
 	if(addedToDeque)
 	{
-		pthread_mutex_lock(&changedStoragesAvailableMutex);
-		pthread_cond_signal(&changedStoragesAvailable);
-		pthread_mutex_unlock(&changedStoragesAvailableMutex);
+		sem_post(&changedStoragesAvailable);
 	}
+}
+bool AbstractPersistenceManager::storageHasChanges(void* storage)
+{
+	for(std::deque<std::pair<void*, StorageType> >::const_iterator iter = changedStorages->begin(); iter != changedStorages->end(); ++iter)
+	{
+		if(iter->first == storage) { return true; }
+	}
+	
+	return false;
 }
 
 StorageType AbstractPersistenceManager::getStorageType(std::string group, std::string id)

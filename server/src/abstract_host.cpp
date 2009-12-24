@@ -30,6 +30,7 @@
 
 # include "ev_cpp.h"
 # include "macros.h"
+# include "log.h"
 # include "package.h"
 # include "hosts_manager.h"
 
@@ -94,7 +95,7 @@ void AbstractHost::closeSocket()
 	}
 	close(hostSocket);
 	state = Disconnected;
-	std::cout<<"[AbstractHost] closed connection"<<std::endl;
+	LOG_DEBUG("closed connection")
 }
 
 void AbstractHost::readCallback(ev::io &watcher, int revents)

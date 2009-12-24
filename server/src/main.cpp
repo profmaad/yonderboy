@@ -24,13 +24,17 @@
 
 # include "server_controller.h"
 
+ServerController *server = NULL;
+
 int main(int argc, char** argv)
 {
-	ServerController serverController;
+	server = new ServerController;
 
-	serverController.start();
+	server->start();
 
 	ev::default_loop().loop();
+	
+	delete server;
 
 	return 0;
 }

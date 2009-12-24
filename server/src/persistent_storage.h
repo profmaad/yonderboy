@@ -30,6 +30,7 @@
 # include <pthread.h>
 
 # include "macros.h"
+# include "log.h"
 
 class AbstractPersistenceManager;
 
@@ -41,13 +42,14 @@ public:
 	~PersistentStorage();
 
 	R retrieve(KeyType key, bool *notFound = NULL);
-	KeyType store(R record);
-	void modify(KeyType key, R record);
+	KeyType store(R record, bool isChange = true);
+	void modify(KeyType key, R record, bool isChange = true);
 	void remove(KeyType key);
 	bool containsRecord(R record);
 	bool containsKey(KeyType key);
 	
 	void lockForWriting();
+	void allRecordsMadeAvailable();
 	
 	std::map<KeyType, R>* getRecordsToSync();
 	std::vector<KeyType>* getDeletedRecordsToSync();
@@ -73,6 +75,7 @@ private:
 	std::string group;
 	std::string id;
 	bool lockedForWriting;
+	bool allRecordsAvailable;
 	AbstractPersistenceManager* persistenceManager;
 	StorageType type;
 };
@@ -81,6 +84,7 @@ template<typename R>
 PersistentStorage<R>::PersistentStorage(std::string group, std::string id, AbstractPersistenceManager *persistenceManager, StorageType type) : group(group), id(id), persistenceManager(persistenceManager), type(type)
 {
 	lockedForWriting = false;
+	allRecordsAvailable = false;
 	
 	records = new std::map<KeyType, R>();
 	changedRecords = new std::map<KeyType, R>();
@@ -186,20 +190,20 @@ R PersistentStorage<R>::retrieve(KeyType key, bool *notFound)
 	return result;
 }
 template<typename R>
-KeyType PersistentStorage<R>::store(R record)
+KeyType PersistentStorage<R>::store(R record, bool isChange)
 {
 	if(lockedForWriting) { return KEYTYPE_INVALID_VALUE; }
-	
+
 	KeyType key = persistenceManager->nextKey(group,id);
 
-	modify(key,record);
+	modify(key,record, isChange);
 
 	return key;
 }
 template<typename R>
-void PersistentStorage<R>::modify(KeyType key, R record)
+void PersistentStorage<R>::modify(KeyType key, R record, bool isChange)
 {
-	if(lockedForWriting) { return KEYTYPE_INVALID_VALUE; }
+	if(lockedForWriting) { return; }
 	
 	pthread_rwlock_wrlock(&recordsLock);
 	records->erase(key);
@@ -211,12 +215,12 @@ void PersistentStorage<R>::modify(KeyType key, R record)
 	changedRecords->insert(std::make_pair(key,record));
 	pthread_mutex_unlock(&changedRecordsMutex);
 	
-	persistenceManager->recordsChanged(this, type);
+	if(isChange) { persistenceManager->recordsChanged(this, type); }
 }
 template<typename R>
 void PersistentStorage<R>::remove(KeyType key)
 {
-	if(lockedForWriting) { return KEYTYPE_INVALID_VALUE; }
+	if(lockedForWriting) { return; }
 	
 	pthread_rwlock_wrlock(&recordsLock);
 	records->erase(key);
@@ -270,6 +274,12 @@ template<typename R>
 void PersistentStorage<R>::lockForWriting()
 {
 	lockedForWriting = true;
+}
+
+template<typename R>
+void PersistentStorage<R>::allRecordsMadeAvailable()
+{
+	allRecordsAvailable = true;
 }
 
 # endif /*PERSISTENT_STORAGE_H*/

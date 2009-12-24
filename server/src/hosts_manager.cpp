@@ -22,6 +22,7 @@
 # include <utility>
 
 # include "ev_cpp.h"
+# include "log.h"
 
 # include "hosts_manager.h"
 # include "abstract_host.h"
@@ -34,7 +35,7 @@ HostsManager::HostsManager() : hosts(NULL), hostsScheduledForDeletion(NULL), idl
 	idleTimer = new ev::idle();
 	idleTimer->set<HostsManager, &HostsManager::idleCallback>(this);
 
-	std::cout<<"[HostsManager] initialized"<<std::endl;
+	LOG_INFO("initialized")
 }
 HostsManager::~HostsManager()
 {
