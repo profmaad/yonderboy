@@ -106,8 +106,8 @@ private:
 	bool syncingShouldEnd;
 	
 	pthread_mutex_t syncingStorageMutex; // protects syncingGroup, syncingID
-	pthread_mutex_t changedStoragesMutex; // protects changedStorages, releasedStorages
-	sem_t changedStoragesAvailable; // gets signaled whenever entries where added to changedXStorages
+	pthread_mutex_t changedStoragesMutex; // protects changedStorages, releasedStorages, changedStoragesAvailable
+	pthread_cond_t changedStoragesAvailable; // gets signaled whenever entries where added to changedXStorages
 	pthread_mutex_t syncingShouldEndMutex; // protects syncingShouldEnd;
 };
 

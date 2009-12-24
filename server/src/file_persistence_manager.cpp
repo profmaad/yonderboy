@@ -440,6 +440,8 @@ void FilePersistenceManager::destroyStorage(std::string group, std::string id)
 	{
 		closeFile(iter->second);
 		files->erase(iter);
+		
+		LOG_DEBUG("destroyed storage "<<group<<"/"<<id)
 	}
 	pthread_mutex_unlock(&filesMutex);
 }
@@ -447,28 +449,18 @@ void FilePersistenceManager::destroyStorage(std::string group, std::string id)
 void FilePersistenceManager::writeRecord(std::string group, std::string id, KeyType key, std::string data)
 {
 	std::streampos newPosition = 0;
-	std::streampos oldPosition = 0;
 	FileInformation *file = NULL;
 	
 	pthread_mutex_lock(&filesMutex);
 	std::map<std::pair<std::string, std::string>, FileInformation*>::const_iterator fileIter = files->find(std::make_pair(group,id));
 	if(fileIter == files->end())
 	{
+		LOG_DEBUG("fileIter not found")
 		pthread_mutex_unlock(&filesMutex);
 		return;
 	}
 	file = fileIter->second;
 	pthread_mutex_unlock(&filesMutex);
-	
-	pthread_mutex_lock(&file->keysMutex);
-	std::map<KeyType, std::streampos>::iterator keyIter = file->keyPositions->find(key);
-	if(keyIter == file->keyPositions->end())
-	{
-		pthread_mutex_unlock(&file->keysMutex);
-		return;
-	}
-	oldPosition = keyIter->second;
-	pthread_mutex_unlock(&file->keysMutex);
 	
 	deleteRecord(group,id,key);
 	
@@ -482,9 +474,10 @@ void FilePersistenceManager::writeRecord(std::string group, std::string id, KeyT
 	
 	// store the new position
 	pthread_mutex_lock(&file->keysMutex);
-	file->keyPositions->erase(keyIter);
+	file->keyPositions->erase(key);
 	file->keyPositions->insert(std::make_pair(key, newPosition));
 	pthread_mutex_unlock(&file->keysMutex);
+	LOG_DEBUG("writeRecord(): "<<group<<", "<<id<<", "<<key<<", '"<<data<<"', "<<newPosition)
 }
 void FilePersistenceManager::writeListRecord(std::string group, std::string id, KeyType key, ListRecord record)
 {
@@ -538,15 +531,21 @@ void FilePersistenceManager::deleteRecord(std::string group, std::string id, Key
 	keyPosition = keyIter->second;
 	pthread_mutex_unlock(&file->keysMutex);
 	
+	LOG_DEBUG(group<<","<<id<<","<<key<<","<<keyPosition)
+	
 	
 	// extract the old data in order to determine its length
 	pthread_mutex_lock(&file->streamMutex);
 	file->stream->seekg(keyPosition);
+	LOG_DEBUG("good bit "<<std::boolalpha<<file->stream->good())
 	if(std::getline(*(file->stream),oldData))
 	{
 		// overwrite the old data with whitespace - this marks a line for removal upon compaction
 		file->stream->seekp(keyPosition);
-		file->stream->write(std::string(oldData.length(),' ').c_str(),oldData.length());	
+		LOG_DEBUG("tellp "<<file->stream->tellp())
+		file->stream->write(std::string(oldData.length(),' ').c_str(),oldData.length());
+		LOG_DEBUG("good bit "<<std::boolalpha<<file->stream->good())
+		LOG_DEBUG("wrote "<<oldData.length()<<" whitespaces")
 	}
 	pthread_mutex_unlock(&file->streamMutex);
 }
@@ -609,12 +608,13 @@ void* FilePersistenceManager::readRecordsIntoStorage(void *dataPointer)
 			case ListStorage:
 				listRecord = data->persistenceManager->parseListRecord(rawData);
 				lastKey = static_cast<PersistentListStorage*>(data->storage)->store(*listRecord, false);
-				LOG_INFO("retrieved record ("<<lastKey<<") "<<*listRecord)
+				LOG_INFO("retrieved record ("<<lastKey<<","<<recordStartPosition<<") "<<*listRecord)
 				delete listRecord;
 				break;
 			case KeyValueStorage:
 				keyValueRecord = data->persistenceManager->parseKeyValueRecord(rawData);
 				lastKey = static_cast<PersistentKeyValueStorage*>(data->storage)->store(*keyValueRecord, false);
+				LOG_INFO("retrieved record ("<<lastKey<<","<<recordStartPosition<<") "<<keyValueRecord->first<<"|"<<keyValueRecord->second)
 				delete keyValueRecord;
 				break;
 			case TableStorage:
@@ -630,6 +630,7 @@ void* FilePersistenceManager::readRecordsIntoStorage(void *dataPointer)
 		
 		pthread_mutex_lock(&file->streamMutex);
 	}
+	file->stream->clear();
 	pthread_mutex_unlock(&data->file->streamMutex);
 	
 	delete data;

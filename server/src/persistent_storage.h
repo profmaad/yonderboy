@@ -210,12 +210,15 @@ void PersistentStorage<R>::modify(KeyType key, R record, bool isChange)
 	records->insert(std::make_pair(key,record));
 	pthread_rwlock_unlock(&recordsLock);
 
-	pthread_mutex_lock(&changedRecordsMutex);
-	changedRecords->erase(key);
-	changedRecords->insert(std::make_pair(key,record));
-	pthread_mutex_unlock(&changedRecordsMutex);
+	if(isChange)
+	{
+		pthread_mutex_lock(&changedRecordsMutex);
+		changedRecords->erase(key);
+		changedRecords->insert(std::make_pair(key,record));
+		pthread_mutex_unlock(&changedRecordsMutex);
 	
-	if(isChange) { persistenceManager->recordsChanged(this, type); }
+		persistenceManager->recordsChanged(this, type);
+	}
 }
 template<typename R>
 void PersistentStorage<R>::remove(KeyType key)

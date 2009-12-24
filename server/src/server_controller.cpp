@@ -19,6 +19,7 @@
 
 # include <utility>
 # include <string>
+# include <vector>
 
 # include "ev_cpp.h"
 
@@ -69,18 +70,6 @@ void ServerController::start()
 	controllerListener->startListening(2); /*HC*/
 
 	sigintWatcher->start();
-	
-	/*TEMP BEGIN*/
-	FilePersistenceManager *filePersistenceManager = new FilePersistenceManager("/tmp/file-storage");
-	PersistentListStorage *listStorage = filePersistenceManager->retrieveListStorage("testgroup","test");
-	std::cout<<"record 1: "<<listStorage->retrieve(1, NULL)<<std::endl;
-	filePersistenceManager->releaseStorage("testgroup", "test");
-	
-	PersistentKeyValueStorage *kvStorage = filePersistenceManager->retrieveKeyValueStorage("group2", "kvtest");
-	kvStorage->store(std::make_pair("key", "value"));
-	kvStorage->store(std::make_pair("i and i", "rastafarian navy"));
-	filePersistenceManager->releaseStorage("group2", "kvtest");
-	/*TEMP END*/
 	
 	state = ServerStateRunning;
 }

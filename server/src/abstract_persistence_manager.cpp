@@ -42,7 +42,7 @@ AbstractPersistenceManager::AbstractPersistenceManager()
 	pthread_mutex_init(&syncingStorageMutex, NULL);
 	pthread_mutex_init(&changedStoragesMutex, NULL);
 	pthread_mutex_init(&syncingShouldEndMutex, NULL);
-	sem_init(&changedStoragesAvailable, 0, 0);
+	pthread_cond_init(&changedStoragesAvailable, NULL);
 	
 	syncingShouldEnd = false;
 	pthread_t *syncingThread;
@@ -55,7 +55,9 @@ AbstractPersistenceManager::~AbstractPersistenceManager()
 	syncingShouldEnd = true;
 	pthread_mutex_unlock(&syncingShouldEndMutex);
 	
-	sem_post(&changedStoragesAvailable);
+	pthread_mutex_lock(&changedStoragesMutex);
+	pthread_cond_signal(&changedStoragesAvailable);
+	pthread_mutex_unlock(&changedStoragesMutex);
 	
 	pthread_join(*syncingThread, NULL);
 	
@@ -70,7 +72,7 @@ AbstractPersistenceManager::~AbstractPersistenceManager()
 	pthread_mutex_destroy(&syncingStorageMutex);
 	pthread_mutex_destroy(&changedStoragesMutex);
 	pthread_mutex_destroy(&syncingShouldEndMutex);
-	sem_destroy(&changedStoragesAvailable);
+	pthread_cond_destroy(&changedStoragesAvailable);
 }
 void AbstractPersistenceManager::close()
 {
@@ -236,7 +238,9 @@ void AbstractPersistenceManager::releaseStorageButDontRemove(std::string group, 
 	
 	if(wakeupSyncThread)
 	{
-		sem_post(&changedStoragesAvailable);
+		pthread_mutex_lock(&changedStoragesMutex);
+		pthread_cond_signal(&changedStoragesAvailable);
+		pthread_mutex_unlock(&changedStoragesMutex);
 	}
 }
 void AbstractPersistenceManager::releaseStorage(std::string group, std::string id)
@@ -291,7 +295,9 @@ void AbstractPersistenceManager::recordsChanged(void *storage, StorageType type)
 	
 	if(addedToDeque)
 	{
-		sem_post(&changedStoragesAvailable);
+		pthread_mutex_lock(&changedStoragesMutex);
+		pthread_cond_signal(&changedStoragesAvailable);
+		pthread_mutex_unlock(&changedStoragesMutex);
 	}
 }
 bool AbstractPersistenceManager::storageHasChanges(void* storage)
