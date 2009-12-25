@@ -455,7 +455,6 @@ void FilePersistenceManager::writeRecord(std::string group, std::string id, KeyT
 	std::map<std::pair<std::string, std::string>, FileInformation*>::const_iterator fileIter = files->find(std::make_pair(group,id));
 	if(fileIter == files->end())
 	{
-		LOG_DEBUG("fileIter not found")
 		pthread_mutex_unlock(&filesMutex);
 		return;
 	}
@@ -477,7 +476,6 @@ void FilePersistenceManager::writeRecord(std::string group, std::string id, KeyT
 	file->keyPositions->erase(key);
 	file->keyPositions->insert(std::make_pair(key, newPosition));
 	pthread_mutex_unlock(&file->keysMutex);
-	LOG_DEBUG("writeRecord(): "<<group<<", "<<id<<", "<<key<<", '"<<data<<"', "<<newPosition)
 }
 void FilePersistenceManager::writeListRecord(std::string group, std::string id, KeyType key, ListRecord record)
 {
@@ -531,21 +529,14 @@ void FilePersistenceManager::deleteRecord(std::string group, std::string id, Key
 	keyPosition = keyIter->second;
 	pthread_mutex_unlock(&file->keysMutex);
 	
-	LOG_DEBUG(group<<","<<id<<","<<key<<","<<keyPosition)
-	
-	
 	// extract the old data in order to determine its length
 	pthread_mutex_lock(&file->streamMutex);
 	file->stream->seekg(keyPosition);
-	LOG_DEBUG("good bit "<<std::boolalpha<<file->stream->good())
 	if(std::getline(*(file->stream),oldData))
 	{
 		// overwrite the old data with whitespace - this marks a line for removal upon compaction
 		file->stream->seekp(keyPosition);
-		LOG_DEBUG("tellp "<<file->stream->tellp())
 		file->stream->write(std::string(oldData.length(),' ').c_str(),oldData.length());
-		LOG_DEBUG("good bit "<<std::boolalpha<<file->stream->good())
-		LOG_DEBUG("wrote "<<oldData.length()<<" whitespaces")
 	}
 	pthread_mutex_unlock(&file->streamMutex);
 }

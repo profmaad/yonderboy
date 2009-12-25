@@ -38,29 +38,17 @@ AbstractPersistenceManager::AbstractPersistenceManager()
 	
 	changedStorages = new std::deque<std::pair<void*, StorageType> >();
 	releasedStorages = new std::set<void*>();
+	currentlySyncingStorage = NULL;
 	
 	pthread_mutex_init(&syncingStorageMutex, NULL);
 	pthread_mutex_init(&changedStoragesMutex, NULL);
-	pthread_mutex_init(&syncingShouldEndMutex, NULL);
 	pthread_cond_init(&changedStoragesAvailable, NULL);
 	
 	syncingShouldEnd = false;
-	pthread_t *syncingThread;
-	pthread_create(syncingThread,NULL,syncRecordsStartMethod,this);
+	pthread_create(&syncingThread,NULL,syncRecordsStartMethod,this);
 }
 AbstractPersistenceManager::~AbstractPersistenceManager()
 {	
-	//wait until all syncs are completed
-	pthread_mutex_lock(&syncingShouldEndMutex);
-	syncingShouldEnd = true;
-	pthread_mutex_unlock(&syncingShouldEndMutex);
-	
-	pthread_mutex_lock(&changedStoragesMutex);
-	pthread_cond_signal(&changedStoragesAvailable);
-	pthread_mutex_unlock(&changedStoragesMutex);
-	
-	pthread_join(*syncingThread, NULL);
-	
 	//clear up
 	delete listStorages;
 	delete keyValueStorages;
@@ -71,7 +59,6 @@ AbstractPersistenceManager::~AbstractPersistenceManager()
 	
 	pthread_mutex_destroy(&syncingStorageMutex);
 	pthread_mutex_destroy(&changedStoragesMutex);
-	pthread_mutex_destroy(&syncingShouldEndMutex);
 	pthread_cond_destroy(&changedStoragesAvailable);
 }
 void AbstractPersistenceManager::close()
@@ -103,6 +90,14 @@ void AbstractPersistenceManager::close()
 			releaseStorageButDontRemove(group, iter->first);
 		}
 	}
+	
+	//wait until all syncs are completed
+	pthread_mutex_lock(&changedStoragesMutex);
+	syncingShouldEnd = true;
+	pthread_cond_signal(&changedStoragesAvailable);
+	pthread_mutex_unlock(&changedStoragesMutex);
+	
+	pthread_join(syncingThread, NULL);
 }
 
 PersistentListStorage* AbstractPersistenceManager::retrieveListStorage(std::string group, std::string id)
@@ -302,6 +297,8 @@ void AbstractPersistenceManager::recordsChanged(void *storage, StorageType type)
 }
 bool AbstractPersistenceManager::storageHasChanges(void* storage)
 {
+	if(currentlySyncingStorage == storage) { return true; }
+	
 	for(std::deque<std::pair<void*, StorageType> >::const_iterator iter = changedStorages->begin(); iter != changedStorages->end(); ++iter)
 	{
 		if(iter->first == storage) { return true; }

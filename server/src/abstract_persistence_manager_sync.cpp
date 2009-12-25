@@ -60,6 +60,8 @@ void* AbstractPersistenceManager::syncRecords()
 		if(changedStorages->size() > 0)
 		{
 			storagePair = changedStorages->front();
+			changedStorages->pop_front();
+			currentlySyncingStorage = storagePair.first;
 			pthread_mutex_unlock(&changedStoragesMutex);
 		
 			if(storagePair.first)
@@ -144,10 +146,9 @@ void* AbstractPersistenceManager::syncRecords()
 				}
 				
 				pthread_mutex_lock(&changedStoragesMutex);
-				changedStorages->pop_front();
-				
 				if(releasedStorages->count(storagePair.first) > 0)
 				{
+					releasedStorages->erase(storagePair.first);
 					destroyStorage(storageGroup, storageID);
 					switch(storagePair.second)
 					{
@@ -162,26 +163,25 @@ void* AbstractPersistenceManager::syncRecords()
 							break;
 					}
 				}
+				currentlySyncingStorage = NULL;
 				pthread_mutex_unlock(&changedStoragesMutex);
 			}
 		}
 		else
 		{
+			//check whether we are supposed to quit
+			if(syncingShouldEnd && changedStorages->size() == 0)
+			{
+				pthread_mutex_unlock(&changedStoragesMutex);
+				break;
+			}
+			
 			//sleep until there is more work to do
-			LOG_DEBUG("sync thread waiting on cond")
 			pthread_cond_wait(&changedStoragesAvailable,&changedStoragesMutex);
 			pthread_mutex_unlock(&changedStoragesMutex);
-			LOG_DEBUG("sync thread passed cond")
 		}
-		
-		//check whether we are supposed to quit
-		pthread_mutex_lock(&syncingShouldEndMutex);
-		if(syncingShouldEnd)
-		{
-			pthread_mutex_unlock(&syncingShouldEndMutex);
-			break;
-		}
-		pthread_mutex_unlock(&syncingShouldEndMutex);
 	}
-	LOG_DEBUG("sync thread quit")
+	LOG_DEBUG("syncing thread quit")
+	
+	return NULL;
 }
