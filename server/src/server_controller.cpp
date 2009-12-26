@@ -36,7 +36,7 @@
 
 ServerController::ServerController() : sigintWatcher(NULL), controllerListener(NULL), state(ServerStateUninitialized)
 {
-	logLevel = LogLevelDebug;
+	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
 	
 	sigintWatcher = new ev::sig();
