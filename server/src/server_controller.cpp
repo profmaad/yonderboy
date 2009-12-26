@@ -27,6 +27,7 @@
 # include "log.h"
 
 # include "controller_listener.h"
+# include "configuration_manager.h"
 # include "hosts_manager.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
@@ -41,7 +42,8 @@ ServerController::ServerController() : sigintWatcher(NULL), controllerListener(N
 	sigintWatcher = new ev::sig();
 	sigintWatcher->set(SIGINT);
 	sigintWatcher->set <ServerController, &ServerController::sigintCallback>(this);
-
+	
+	configurationManager = new ConfigurationManager("/tmp/cli-browser.conf"); /*HC*/
 	controllerListener = new ControllerListener("/tmp/cli-browser.ctl"); /*HC*/
 																			   
 	state = ServerStateInitialized;
@@ -51,6 +53,7 @@ ServerController::~ServerController()
 	state = ServerStateUninitialized;
 	
 	delete controllerListener;
+	delete configurationManager;
 	delete sigintWatcher;
 }
 

@@ -306,7 +306,7 @@ PersistentListStorage* FilePersistenceManager::createListStorage(std::string gro
 	threadData->file = infos;
 	threadData->type = ListStorage;
 	
-	if(!server->allowedToBlock())
+	if(server && !server->allowedToBlock())
 	{
 		pthread_t *thread;
 		int threadSuccess = pthread_create(thread,NULL,readRecordsIntoStorage,threadData);
@@ -356,7 +356,7 @@ PersistentKeyValueStorage* FilePersistenceManager::createKeyValueStorage(std::st
 	threadData->file = infos;
 	threadData->type = KeyValueStorage;
 	
-	if(!server->allowedToBlock())
+	if(server && !server->allowedToBlock())
 	{
 		pthread_t *thread;
 		int threadSuccess = pthread_create(thread,NULL,readRecordsIntoStorage,threadData);
@@ -406,7 +406,7 @@ PersistentTableStorage* FilePersistenceManager::createTableStorage(std::string g
 	threadData->file = infos;
 	threadData->type = TableStorage;
 	
-	if(!server->allowedToBlock())
+	if(server && !server->allowedToBlock())
 	{
 		pthread_t *thread;
 		int threadSuccess = pthread_create(thread,NULL,readRecordsIntoStorage,threadData);

@@ -1,4 +1,4 @@
-//      server_controller.h
+//      configuration_manager.h
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,41 +17,35 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef SERVER_CONTROLLER_H
-# define SERVER_CONTROLLER_H
+# ifndef CONFIGURATION_MANAGER_H
+# define CONFIGURATION_MANAGER_H
 
-# include "ev_cpp.h"
+# include <map>
+# include <string>
+# include <vector>
+# include <utility>
 
 # include "macros.h"
+# include "log.h"
 
-class ControllerListener;
-class ConfigurationManager;
+# include "file_persistence_manager.h"
+# include "persistent_storage.h"
 
-class ServerController
+class ConfigurationManager
 {
 public:
-	ServerController();  // static initialization phase
-	~ServerController();
-
-	void start(); // runtime phase - once this is called, we are not supposed to quit until explicitely told so
-	void stop(); // and this is what tells us to: stop running + static shutdown
+	ConfigurationManager(std::string configFile);
+	~ConfigurationManager();
 	
-	// queries
-	bool allowedToBlock();
-	ServerState getState() { return state; };
-	LogLevel getLogLevel() { return logLevel; };
-
 private:
-	void sigintCallback(ev::sig &watcher, int revents);
-
-	ControllerListener *controllerListener;
+	std::string getBasePath(std::string path);
+	std::string getFileName(std::string path);
 	
-	ConfigurationManager *configurationManager;
-
-	ev::sig *sigintWatcher;
+	std::string configBasePath;
+	std::string configFileName;
 	
-	ServerState state;
-	LogLevel logLevel;
+	FilePersistenceManager *persistenceManager;
+	PersistentKeyValueStorage *storage;
 };
 
-# endif /*SERVER_CONTROLLER_H*/
+# endif /*CONFIGURATION_MANAGER_H*/

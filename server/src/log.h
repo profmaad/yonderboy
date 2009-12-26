@@ -27,11 +27,13 @@
 
 extern ServerController *server;
 
-# define LOG_DEBUG(s) if(server->getLogLevel() <= LogLevelDebug){ std::clog<<"DEBUG: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
-# define LOG_INFO(s) if(server->getLogLevel() <= LogLevelInfo){ std::clog<<"INFO: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
-# define LOG_WARNING(s) if(server->getLogLevel() <= LogLevelWarning){ std::clog<<"WARNING: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
-# define LOG_ERROR(s) if(server->getLogLevel() <= LogLevelError){ std::clog<<"ERROR: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
-# define LOG_FATAL(s) if(server->getLogLevel() <= LogLevelFatal){ std::clog<<"FATAL: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
+# define DEFAULT_LOG_LEVEL LogLevelDebug
+
+# define LOG_DEBUG(s) if( (server && server->getLogLevel() <= LogLevelDebug) || DEFAULT_LOG_LEVEL <= LogLevelDebug) { std::clog<<"DEBUG: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
+# define LOG_INFO(s) if( (server && server->getLogLevel() <= LogLevelInfo) || DEFAULT_LOG_LEVEL <= LogLevelInfo) { std::clog<<"INFO: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
+# define LOG_WARNING(s) if( (server && server->getLogLevel() <= LogLevelWarning) || DEFAULT_LOG_LEVEL <= LogLevelWarning) { std::clog<<"WARNING: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
+# define LOG_ERROR(s) if( (server && server->getLogLevel() <= LogLevelError) || DEFAULT_LOG_LEVEL <= LogLevelError) { std::clog<<"ERROR: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
+# define LOG_FATAL(s) if( (server && server->getLogLevel() <= LogLevelFatal) || DEFAULT_LOG_LEVEL <= LogLevelFatal) { std::clog<<"FATAL: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
 
 # define LOG(s) std::clog<<s<<std::endl;
 

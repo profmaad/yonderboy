@@ -15,4 +15,5 @@ server_SOURCES = main.cpp macros.h log.h \
 		meta_decision_maker.h meta_decision_maker.cpp \
 		abstract_persistence_manager.h abstract_persistence_manager.cpp abstract_persistence_manager_sync.cpp \
 		persistent_storage.h \
-		file_persistence_manager.h file_persistence_manager.cpp
+		file_persistence_manager.h file_persistence_manager.cpp \
+		configuration_manager.h configuration_manager.cpp

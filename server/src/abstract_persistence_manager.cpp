@@ -63,7 +63,7 @@ AbstractPersistenceManager::~AbstractPersistenceManager()
 }
 void AbstractPersistenceManager::close()
 {
-	if(!server->allowedToBlock()) { return; }
+	if(server && !server->allowedToBlock()) { return; }
 	
 	//release all storages
 	for(std::map<std::string, std::map<std::string, PersistentListStorage*> >::const_iterator groupIter = listStorages->begin(); groupIter != listStorages->end(); ++groupIter)
