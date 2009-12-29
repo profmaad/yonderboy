@@ -47,6 +47,7 @@ public:
 	void remove(KeyType key);
 	bool containsRecord(R record);
 	bool containsKey(KeyType key);
+	std::vector<KeyType> listKeys();
 	
 	void lockForWriting();
 	void allRecordsMadeAvailable();
@@ -269,6 +270,18 @@ bool PersistentStorage<R>::containsKey(KeyType key)
 		result = true;
 	}
 	pthread_rwlock_unlock(&recordsLock);
+	
+	return result;
+}
+template<typename R>
+std::vector<KeyType> PersistentStorage<R>::listKeys()
+{
+	std::vector<KeyType> result;
+	
+	for(typename std::map<KeyType, R>::const_iterator iter = records->begin(); iter != records->end(); ++iter)
+	{
+		result.push_back(iter->first);
+	}
 	
 	return result;
 }

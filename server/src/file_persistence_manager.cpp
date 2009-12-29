@@ -39,7 +39,7 @@
 
 # include "file_persistence_manager.h"
 
-FilePersistenceManager::FilePersistenceManager(std::string folder) : baseFolder(folder)
+FilePersistenceManager::FilePersistenceManager(std::string folder, bool useCompaction) : baseFolder(folder), useCompaction(useCompaction)
 {
 	files = new std::map<std::pair<std::string, std::string>, FileInformation*>();
 	pthread_mutex_init(&filesMutex, NULL);
@@ -100,7 +100,7 @@ void FilePersistenceManager::closeFile(FileInformation* file, bool runCompaction
 	file->stream->close();
 	pthread_mutex_unlock(&file->streamMutex);
 	
-	if(runCompaction) { compactFile(file->path); }
+	if(runCompaction && useCompaction) { compactFile(file->path); }
 	
 	delete file->stream;
 	delete file->keyPositions;
@@ -593,6 +593,10 @@ void* FilePersistenceManager::readRecordsIntoStorage(void *dataPointer)
 		}
 		nextRecordPosition = file->stream->tellg();
 		pthread_mutex_unlock(&file->streamMutex);
+		
+		std::string rawDataCopy = std::string(rawData);
+		Package::trimString(rawDataCopy);
+		if(rawDataCopy.size() == 0 || rawDataCopy.at(0) == COMMENT_CHARACTER) { continue; }
 		
 		switch(data->type)
 		{

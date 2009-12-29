@@ -31,21 +31,39 @@
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
 
+typedef std::map<std::pair<std::string, std::string>, std::string> EntriesMap;
+
 class ConfigurationManager
 {
 public:
 	ConfigurationManager(std::string configFile);
 	~ConfigurationManager();
 	
+	std::string retrieve(std::string namespaceName, std::string identifier, std::string defaultValue = "");
+	bool retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue = false);
+	long long retrieveAsLongLong(std::string namespaceName, std::string identifier, long long defaultValue = 0);
+	double retrieveAsDouble(std::string namespaceName, std::string identifier, double defaultValue = 0.0);
+	LogLevel retrieveAsLogLevel(std::string namespaceName, std::string identifier, LogLevel defaultValue = DEFAULT_LOG_LEVEL);
+	
+	static bool valueAsBool(std::string value, bool defaultValue);
+	static long long valueAsLongLong(std::string value, long long defaultValue);
+	static double valueAsDouble(std::string value, double defaultValue);
+	static LogLevel valueAsLogLevel(std::string value, LogLevel defaultValue);
+	
 private:
+	void retrieveEntries();
+	
 	std::string getBasePath(std::string path);
 	std::string getFileName(std::string path);
+	std::pair<std::string, std::string> getKeyPair(std::string key);
 	
 	std::string configBasePath;
 	std::string configFileName;
 	
 	FilePersistenceManager *persistenceManager;
 	PersistentKeyValueStorage *storage;
+	
+	EntriesMap *entries; 
 };
 
 # endif /*CONFIGURATION_MANAGER_H*/

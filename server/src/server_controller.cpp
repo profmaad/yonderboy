@@ -21,6 +21,9 @@
 # include <string>
 # include <vector>
 
+/*TEMP*/
+# include <iostream>
+
 # include "ev_cpp.h"
 
 # include "macros.h"
@@ -45,6 +48,10 @@ ServerController::ServerController() : sigintWatcher(NULL), controllerListener(N
 	
 	configurationManager = new ConfigurationManager("/tmp/cli-browser.conf"); /*HC*/
 	controllerListener = new ControllerListener("/tmp/cli-browser.ctl"); /*HC*/
+	
+	logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", LogLevelWarning);
+	
+	std::clog<<"loglevel: "<<logLevel<<std::endl;
 																			   
 	state = ServerStateInitialized;
 }

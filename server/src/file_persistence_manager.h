@@ -32,10 +32,12 @@
 
 # include "abstract_persistence_manager.h"
 
+# define COMMENT_CHARACTER '#'
+
 class FilePersistenceManager : public AbstractPersistenceManager
 {
 public:
-	FilePersistenceManager(std::string folder);
+	FilePersistenceManager(std::string folder, bool useCompaction = true);
 	~FilePersistenceManager();
 	
 	void* retrieveRecord(std::string group, std::string id, KeyType key);
@@ -97,6 +99,7 @@ private:
 	pthread_mutex_t filesMutex; ///< Mutex to protect FilePersistenceManager::files
 	
 	std::string baseFolder;
+	bool useCompaction;
 };
 
 # endif /*FILE_PERSISTENCE_MANAGER_H*/

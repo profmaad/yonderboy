@@ -22,8 +22,7 @@
 # include <vector>
 # include <utility>
 # include <stdexcept>
-
-# include <iostream>
+# include <sstream>
 
 # include "macros.h"
 # include "log.h"
@@ -31,6 +30,7 @@
 # include "server_controller.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
+# include "package.h"
 
 # include "configuration_manager.h"
 
@@ -39,12 +39,13 @@ ConfigurationManager::ConfigurationManager(std::string configFile) : persistence
 	configBasePath = getBasePath(configFile);
 	configFileName = getFileName(configFile);
 	
-	persistenceManager = new FilePersistenceManager(configBasePath);
+	persistenceManager = new FilePersistenceManager(configBasePath, false);
 	if(!persistenceManager)
 	{
 		LOG_ERROR("failed to create file persistence manager for path "<<configBasePath)
 		throw std::runtime_error("failed to create file persistence manager");
 	}
+	
 	storage = persistenceManager->retrieveKeyValueStorage("", configFileName);
 	if(!storage)
 	{
@@ -53,12 +54,88 @@ ConfigurationManager::ConfigurationManager(std::string configFile) : persistence
 		LOG_ERROR("failed to retrieve storage for configuration file "<<configFile)
 		throw std::runtime_error("failed to retrieve storage for configuration file");
 	}
+	
+	entries = new EntriesMap();
+	retrieveEntries();
 }
 ConfigurationManager::~ConfigurationManager()
 {
 	persistenceManager->releaseStorage("", configFileName);
 	persistenceManager->close();
 	delete persistenceManager;
+}
+
+void ConfigurationManager::retrieveEntries()
+{
+	std::vector<KeyType> storageKeys = storage->listKeys();
+	
+	for(std::vector<KeyType>::const_iterator iter = storageKeys.begin(); iter != storageKeys.end(); ++iter)
+	{
+		KeyValueRecord record = storage->retrieve(*iter);
+		
+		entries->insert(std::make_pair(getKeyPair(record.first), record.second));
+	}
+}
+
+std::string ConfigurationManager::retrieve(std::string namespaceName, std::string identifier, std::string defaultValue)
+{
+	std::string result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = iter->second;
+	}
+	
+	return result;
+}
+bool ConfigurationManager::retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue)
+{
+	bool result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = valueAsBool(iter->second,defaultValue);
+	}
+	
+	return result;
+}
+long long ConfigurationManager::retrieveAsLongLong(std::string namespaceName, std::string identifier, long long defaultValue)
+{
+	long long result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = valueAsLongLong(iter->second,defaultValue);
+	}
+	
+	return result;
+}
+double ConfigurationManager::retrieveAsDouble(std::string namespaceName, std::string identifier, double defaultValue)
+{
+	double result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = valueAsDouble(iter->second,defaultValue);
+	}
+	
+	return result;
+}
+LogLevel ConfigurationManager::retrieveAsLogLevel(std::string namespaceName, std::string identifier, LogLevel defaultValue)
+{
+	LogLevel result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = valueAsLogLevel(iter->second,defaultValue);
+	}
+	
+	return result;
 }
 
 std::string ConfigurationManager::getBasePath(std::string path)
@@ -86,4 +163,68 @@ std::string ConfigurationManager::getFileName(std::string path)
 	{
 		return path.substr(lastSlash+1);
 	}
+}
+std::pair<std::string, std::string> ConfigurationManager::getKeyPair(std::string key)
+{
+	std::string namespacePart;
+	std::string identifierPart;
+	size_t firstDot = -1;
+	
+	firstDot = key.find_first_of('.');
+	
+	if(firstDot == std::string::npos)
+	{
+		return std::pair<std::string, std::string>("",key);
+	}
+	else
+	{
+		return std::pair<std::string, std::string>(key.substr(0,firstDot),key.substr(firstDot+1));
+	}
+}
+
+
+bool ConfigurationManager::valueAsBool(std::string value, bool defaultValue)
+{
+	bool result = defaultValue;
+	
+	Package::trimString(value);
+	
+	if(value == "true" || value == "t" || value == "1")
+	{
+		result = true;
+	}
+	
+	return result;
+}
+long long ConfigurationManager::valueAsLongLong(std::string value, long long defaultValue)
+{
+	long long result = defaultValue;
+	std::stringstream conversionStream(value);
+	
+	conversionStream >> result; 
+	
+	return result;
+}
+double ConfigurationManager::valueAsDouble(std::string value, double defaultValue)
+{
+	double result = defaultValue;
+	std::stringstream conversionStream(value);
+	
+	conversionStream >> result;
+	
+	return result;
+}
+LogLevel ConfigurationManager::valueAsLogLevel(std::string value, LogLevel defaultValue)
+{
+	LogLevel result = defaultValue;
+	
+	Package::trimString(value);
+	
+	if(value == "debug") { result = LogLevelDebug; }
+	else if(value == "info") { result = LogLevelInfo; }
+	else if(value == "warning") { result = LogLevelWarning; }
+	else if(value == "error") { result = LogLevelError; }
+	else if(value == "fatal") { result = LogLevelFatal; }
+	
+	return result;
 }
