@@ -20,6 +20,10 @@
 # ifndef SERVER_CONTROLLER_H
 # define SERVER_CONTROLLER_H
 
+# include <csignal>
+
+# include <pthread.h>
+
 # include "ev_cpp.h"
 
 # include "macros.h"
@@ -42,13 +46,23 @@ public:
 	LogLevel getLogLevel() { return logLevel; };
 
 private:
-	void sigintCallback(ev::sig &watcher, int revents);
+	void signalPipeCallback(ev::io &watcher, int revents);
+	static void* waitForSignals(void* arg);
+	void setupSignalWatching();
 
 	ControllerListener *controllerListener;
 	
 	ConfigurationManager *configurationManager;
 
-	ev::sig *sigintWatcher;
+	struct SignalThreadInfo
+	{
+		int pipeFD;
+		sigset_t signals;
+	};
+	
+	pthread_t signalThread;
+	ev::io *signalPipeWatcher;
+	int signalPipe;
 	
 	ServerState state;
 	LogLevel logLevel;

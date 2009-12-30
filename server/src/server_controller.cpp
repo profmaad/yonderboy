@@ -20,9 +20,11 @@
 # include <utility>
 # include <string>
 # include <vector>
-
-/*TEMP*/
 # include <iostream>
+
+# include <csignal>
+# include <unistd.h>
+# include <cerrno>
 
 # include "ev_cpp.h"
 
@@ -37,21 +39,17 @@
 
 # include "server_controller.h"
 
-ServerController::ServerController() : sigintWatcher(NULL), controllerListener(NULL), state(ServerStateUninitialized)
+ServerController::ServerController() : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized)
 {
 	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
 	
-	sigintWatcher = new ev::sig();
-	sigintWatcher->set(SIGINT);
-	sigintWatcher->set <ServerController, &ServerController::sigintCallback>(this);
+	setupSignalWatching();
 	
 	configurationManager = new ConfigurationManager("/tmp/cli-browser.conf"); /*HC*/
-	controllerListener = new ControllerListener("/tmp/cli-browser.ctl"); /*HC*/
+	controllerListener = new ControllerListener(configurationManager->retrieve("server", "controller-socket", "controller.sock"));
 	
 	logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", LogLevelWarning);
-	
-	std::clog<<"loglevel: "<<logLevel<<std::endl;
 																			   
 	state = ServerStateInitialized;
 }
@@ -61,16 +59,92 @@ ServerController::~ServerController()
 	
 	delete controllerListener;
 	delete configurationManager;
-	delete sigintWatcher;
+	delete signalPipeWatcher;
 }
 
-void ServerController::sigintCallback(ev::sig &watcher, int revents)
+void ServerController::signalPipeCallback(ev::io &watcher, int revents)
 {
-	LOG_INFO("received SIGINT, going down")
+	int signal = -1;
+	ssize_t bytesRead = -1;
+	
+	bytesRead = read(signalPipe, (void*)&signal, sizeof(int));
+	if(bytesRead != sizeof(int))
+	{
+		signal = -1;
+	}
+	close(signalPipe);
+	
+	LOG_INFO("received signal "<<signal<<", going down")
 	
 	stop();
 
 	ev::get_default_loop().unloop(ev::ALL);
+}
+void ServerController::setupSignalWatching()
+{
+	sigset_t blockSet;
+	sigset_t watchSet;
+	int pipeFDs[2] = { -1, -1 };
+	char errorBuffer[128] = { '\0' };
+	int result = -1;
+	
+	// block all signals - they are handled via sigwait in waitForSignals on signalThread
+	sigfillset(&blockSet);
+	result = pthread_sigmask(SIG_BLOCK, &blockSet, NULL);
+	if(result < 0)
+	{
+		strerror_r(result, errorBuffer, 128);
+		LOG_FATAL("failed to set signal mask, going down ("<<errorBuffer<<")");
+		exit(EXIT_FAILURE);
+	}
+	
+	// create a pipe for communication between this thread and the signalThread
+	result = pipe(pipeFDs);
+	if(result < 0)
+	{
+		strerror_r(result, errorBuffer, 128);
+		LOG_FATAL("failed to create pipe, going down ("<<errorBuffer<<")");
+		exit(EXIT_FAILURE);
+	}
+	signalPipe = pipeFDs[0];
+	
+	sigfillset(&watchSet);
+	SignalThreadInfo *infos = new SignalThreadInfo;
+		infos->pipeFD = pipeFDs[1];
+		infos->signals = watchSet;
+	
+	signalPipeWatcher = new ev::io();
+	signalPipeWatcher->set <ServerController, &ServerController::signalPipeCallback>(this);
+	signalPipeWatcher->start(signalPipe, ev::READ);
+	
+	pthread_create(&signalThread, NULL, waitForSignals, static_cast<void*>(infos));
+	pthread_detach(signalThread);
+}
+void* ServerController::waitForSignals(void* arg)
+{
+	if(!arg) { return NULL; }
+	
+	int result = -1;
+	int signal = -1;
+	char errorBuffer[128] = { '\0' };
+	
+	SignalThreadInfo *infos = static_cast<SignalThreadInfo*>(arg);
+	
+	result = sigwait(&infos->signals, &signal);
+	if(result < 0)
+	{
+		strerror_r(result, errorBuffer, 128);
+		LOG_FATAL("failed to wait for signals, going down ("<<errorBuffer<<")")
+		
+		exit(EXIT_FAILURE);
+	}
+	
+	write(infos->pipeFD, static_cast<void*>(&signal), sizeof(int));
+	close(infos->pipeFD);
+	
+	delete infos;
+	
+	return NULL;
 }
 
 void ServerController::start()
@@ -78,8 +152,6 @@ void ServerController::start()
 	state = ServerStateStarting;
 	
 	controllerListener->startListening(2); /*HC*/
-
-	sigintWatcher->start();
 	
 	state = ServerStateRunning;
 }
@@ -88,8 +160,6 @@ void ServerController::stop()
 	state = ServerStateShuttingDown;
 	
 	controllerListener->closeSocket();
-
-	sigintWatcher->stop();
 
 	HostsManager::deleteInstance();
 	

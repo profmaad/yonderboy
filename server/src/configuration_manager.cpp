@@ -77,6 +77,18 @@ void ConfigurationManager::retrieveEntries()
 	}
 }
 
+bool ConfigurationManager::isSet(std::string namespaceName, std::string identifier)
+{
+	bool result = false;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = true;
+	}
+	
+	return result;
+}
 std::string ConfigurationManager::retrieve(std::string namespaceName, std::string identifier, std::string defaultValue)
 {
 	std::string result = defaultValue;

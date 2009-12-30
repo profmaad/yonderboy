@@ -39,6 +39,8 @@ public:
 	ConfigurationManager(std::string configFile);
 	~ConfigurationManager();
 	
+	bool isSet(std::string namespaceName, std::string identifier);
+	
 	std::string retrieve(std::string namespaceName, std::string identifier, std::string defaultValue = "");
 	bool retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue = false);
 	long long retrieveAsLongLong(std::string namespaceName, std::string identifier, long long defaultValue = 0);
