@@ -108,7 +108,9 @@ void ServerController::setupSignalWatching()
 	}
 	signalPipe = pipeFDs[0];
 	
-	sigfillset(&watchSet);
+	sigemptyset(&watchSet);
+	sigaddset(&watchSet, SIGINT);
+	sigaddset(&watchSet, SIGTERM);
 	SignalThreadInfo *infos = new SignalThreadInfo;
 		infos->pipeFD = pipeFDs[1];
 		infos->signals = watchSet;
