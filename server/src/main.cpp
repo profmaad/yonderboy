@@ -56,7 +56,7 @@ void changeToWorkingDirectory(const char* workingDir)
 		exit(EXIT_FAILURE);
 	}
 }
-void daemonize()
+pid_t daemonize()
 {
 	int result = -1;
 	char errorBuffer[128] = { '\0' };
@@ -67,11 +67,10 @@ void daemonize()
 	{
 		strerror_r(errno, errorBuffer, 128);
 		LOG_ERROR("failed to fork daemon process, continuing in foreground ("<<errorBuffer<<")")
-		return;
+		return daemonPid;
 	}
 	else if(daemonPid == 0) // child
 	{
-		LOG_INFO("successfully forked into background")
 	}
 	else if(daemonPid > 0) // parent
 	{
@@ -87,30 +86,41 @@ void daemonize()
 		exit(EXIT_FAILURE);
 	}
 	
-	//switchFileDescriptorToDevNull(STDIN_FILENO, O_RDONLY);
-	//switchFileDescriptorToDevNull(STDOUT_FILENO, O_WRONLY);
-	//switchFileDescriptorToDevNull(STDERR_FILENO, O_WRONLY);
+	switchFileDescriptorToDevNull(STDIN_FILENO, O_RDONLY);
+	switchFileDescriptorToDevNull(STDOUT_FILENO, O_WRONLY);
+	switchFileDescriptorToDevNull(STDERR_FILENO, O_WRONLY);
+	
+	return getpid();
 }
 
 int main(int argc, char** argv)
 {
 	std::streambuf * const originalCLogStreambuf = std::clog.rdbuf();
 	std::ofstream *logfileStream = NULL;
+	pid_t daemonPid = -1;
+	
+	// values extracted from configuration
+	bool forkDaemon = false;
+	const char *workingDir = NULL;
+	const char *logfilePath = NULL;
 	
 	ConfigurationManager *configurationManager = new ConfigurationManager("/tmp/cli-browser.conf"); /*HC*/
+		forkDaemon = configurationManager->retrieveAsBool("server", "daemonize", false);
+		if(configurationManager->isSet("server", "working-dir")) { workingDir = configurationManager->retrieve("server", "working-dir", "~/.cli-browser/").c_str(); }
+		if(configurationManager->isSet("server", "logfile")) { logfilePath = configurationManager->retrieve("server", "logfile", "server.log").c_str(); }
+	delete configurationManager;
 	
-	if(configurationManager->retrieveAsBool("server", "daemonize", false))
+	if(forkDaemon)
 	{
-		daemonize();
+		daemonPid = daemonize();
 	}
-	if(configurationManager->isSet("server", "working-dir"))
+	if(workingDir)
 	{
-		changeToWorkingDirectory(configurationManager->retrieve("server", "working-dir", "~/.cli-browser/").c_str());
+		changeToWorkingDirectory(workingDir);
 	}
 	
-	if(configurationManager->isSet("server", "logfile"))
+	if(logfilePath)
 	{
-		const char *logfilePath = configurationManager->retrieve("server", "logfile", "server.log").c_str();
 		logfileStream = new std::ofstream(logfilePath, std::ios_base::out | std::ios_base::app);
 		if(logfileStream->fail())
 		{
@@ -124,7 +134,8 @@ int main(int argc, char** argv)
 			std::clog.rdbuf(logfileStream->rdbuf());
 		}
 	}
-	delete configurationManager;
+	
+	LOG_INFO("successfully forked into background with pid "<<daemonPid)
 	
 	server = new ServerController;
 
