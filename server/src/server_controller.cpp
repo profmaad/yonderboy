@@ -39,14 +39,17 @@
 
 # include "server_controller.h"
 
-ServerController::ServerController() : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized)
+ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized)
 {
 	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
 	
 	setupSignalWatching();
 	
-	configurationManager = new ConfigurationManager("/tmp/cli-browser.conf"); /*HC*/
+	
+	configFilePath = std::string(configFile);
+	configurationManager = new ConfigurationManager(configFilePath);
+	
 	controllerListener = new ControllerListener(configurationManager->retrieve("server", "controller-socket", "controller.sock"));
 	
 	logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", LogLevelWarning);

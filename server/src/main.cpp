@@ -23,13 +23,20 @@
 
 # include <cerrno>
 # include <unistd.h>
+# include <getopt.h>
 
 # include "config.h"
+# include "defaults.h"
 
 # include "server_controller.h"
 # include "configuration_manager.h"
 
 ServerController *server = NULL;
+
+void switchFileDescriptorToDevNull(int fileDescriptor, int mode);
+void changeToWorkingDirectory(const char* workingDir);
+void printHelpMessage(const char *executable);
+void printVersion(bool onOneLine = false);
 
 void switchFileDescriptorToDevNull(int fileDescriptor, int mode)
 {
@@ -56,6 +63,33 @@ void changeToWorkingDirectory(const char* workingDir)
 		exit(EXIT_FAILURE);
 	}
 }
+
+void printHelpMessage(const char *executable)
+{
+	printVersion(true);
+	std::cout<<std::endl;
+	
+	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] -c/--config <file>"<<std::endl;
+	
+	std::cout<<"options:"<<std::endl;
+	std::cout<<" -h/--help\t\tshow this help"<<std::endl;
+	std::cout<<" -v/--version\t\tshow version"<<std::endl;
+	std::cout<<" -c/--config <file>\tfilename of the config-file"<<std::endl;
+}
+void printVersion(bool onOneLine)
+{
+	if(onOneLine)
+	{
+		std::cout<<PROJECT_NAME<<"-"<<PROJECT_VERSION<<" ("<<__DATE__<<" "<<__TIME__<<") - "<<PROJECT_BRIEF_DESCRIPTION<<std::endl;
+	}
+	else
+	{
+		std::cout<<PROJECT_NAME<<"-"<<PROJECT_VERSION<<" - "<<PROJECT_BRIEF_DESCRIPTION;
+		std::cout<<std::endl;
+		std::cout<<"Build Date: "<<__DATE__<<" "<<__TIME__<<std::endl;
+	}
+}
+
 pid_t daemonize()
 {
 	int result = -1;
@@ -95,6 +129,49 @@ pid_t daemonize()
 
 int main(int argc, char** argv)
 {
+	// extract command line options
+	char *configFilePath = NULL;
+	int option = -1;
+	struct option longOptions[] = {
+		{"config", required_argument, NULL, 'c'},
+		{"help", no_argument, NULL, 'h'},
+		{"version", no_argument, NULL, 'v'},
+		{NULL, 0, NULL, 0}
+	};
+	
+	opterr = 0;
+	while( (option = getopt_long(argc, argv, ":c:hv", longOptions, NULL)) != -1 )
+	{
+		switch(option)
+		{
+			case '?':
+				LOG_WARNING("unknown option '"<<optopt<<"' encountered, ignoring")
+				break;
+			case ':':
+				LOG_FATAL("missing argument for option '"<<optopt<<"'")
+				printHelpMessage(argv[0]);
+				exit(EXIT_FAILURE);
+				break;
+			case 'c':
+				configFilePath = optarg;
+				break;
+			case 'v':
+				printVersion();
+				exit(EXIT_SUCCESS);
+				break;
+			case 'h':
+			default:
+				printHelpMessage(argv[0]);
+				exit(EXIT_SUCCESS);
+		}
+	}
+	if(!configFilePath)
+	{
+		printHelpMessage(argv[0]);
+		std::cerr<<std::endl<<"missing required argument '-c/--config <file>'"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
 	std::streambuf * const originalCLogStreambuf = std::clog.rdbuf();
 	std::ofstream *logfileStream = NULL;
 	pid_t daemonPid = -1;
@@ -104,7 +181,7 @@ int main(int argc, char** argv)
 	const char *workingDir = NULL;
 	const char *logfilePath = NULL;
 	
-	ConfigurationManager *configurationManager = new ConfigurationManager("/tmp/cli-browser.conf"); /*HC*/
+	ConfigurationManager *configurationManager = new ConfigurationManager(configFilePath);
 		forkDaemon = configurationManager->retrieveAsBool("server", "daemonize", false);
 		if(configurationManager->isSet("server", "working-dir")) { workingDir = configurationManager->retrieve("server", "working-dir", "~/.cli-browser/").c_str(); }
 		if(configurationManager->isSet("server", "logfile")) { logfilePath = configurationManager->retrieve("server", "logfile", "server.log").c_str(); }
@@ -137,7 +214,7 @@ int main(int argc, char** argv)
 	
 	LOG_INFO("successfully forked into background with pid "<<daemonPid)
 	
-	server = new ServerController;
+	server = new ServerController(configFilePath);
 
 	server->start();
 

@@ -20,6 +20,10 @@
 # ifndef DEFAULTS_H
 # define DEFAULTS_H
 
+# define PROJECT_NAME "cli-browser"
+# define PROJECT_VERSION "0 [devel build]"
+# define PROJECT_BRIEF_DESCRIPTION "a browser framework"
+
 # define DEFAULT_LOG_LEVEL LogLevelDebug
 
 # endif /*DEFAULTS_H*/

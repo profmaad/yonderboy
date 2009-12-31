@@ -34,7 +34,7 @@ class ConfigurationManager;
 class ServerController
 {
 public:
-	ServerController();  // static initialization phase
+	ServerController(const char *configFile);  // static initialization phase
 	~ServerController();
 
 	void start(); // runtime phase - once this is called, we are not supposed to quit until explicitely told so
@@ -53,6 +53,7 @@ private:
 	ControllerListener *controllerListener;
 	
 	ConfigurationManager *configurationManager;
+	std::string configFilePath;
 
 	struct SignalThreadInfo
 	{
