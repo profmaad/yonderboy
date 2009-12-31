@@ -87,9 +87,9 @@ void daemonize()
 		exit(EXIT_FAILURE);
 	}
 	
-	switchFileDescriptorToDevNull(STDIN_FILENO, O_RDONLY);
-	switchFileDescriptorToDevNull(STDOUT_FILENO, O_WRONLY);
-	switchFileDescriptorToDevNull(STDERR_FILENO, O_WRONLY);
+	//switchFileDescriptorToDevNull(STDIN_FILENO, O_RDONLY);
+	//switchFileDescriptorToDevNull(STDOUT_FILENO, O_WRONLY);
+	//switchFileDescriptorToDevNull(STDERR_FILENO, O_WRONLY);
 }
 
 int main(int argc, char** argv)

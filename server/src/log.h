@@ -23,11 +23,10 @@
 # include <iostream>
 
 # include "macros.h"
+# include "defaults.h"
 # include "server_controller.h"
 
 extern ServerController *server;
-
-# define DEFAULT_LOG_LEVEL LogLevelDebug
 
 # define LOG_DEBUG(s) if( (server && server->getLogLevel() <= LogLevelDebug) || DEFAULT_LOG_LEVEL <= LogLevelDebug) { std::clog<<"DEBUG: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }
 # define LOG_INFO(s) if( (server && server->getLogLevel() <= LogLevelInfo) || DEFAULT_LOG_LEVEL <= LogLevelInfo) { std::clog<<"INFO: "<<"["<<__FILE__<<":"<<__LINE__<<"] ("<<__FUNCTION__<<") "<<s<<std::endl; }

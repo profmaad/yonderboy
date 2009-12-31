@@ -1,7 +1,7 @@
 AM_CXXFLAGS = -I../../libev/ -g -lpthread
 
 bin_PROGRAMS = server
-server_SOURCES = main.cpp macros.h log.h \
+server_SOURCES = main.cpp macros.h log.h defaults.h \
 		ev_cpp.h ev_cpp.cpp \
 		ipc_listener.h ipc_listener.cpp \
 		abstract_host.h abstract_host.cpp \
