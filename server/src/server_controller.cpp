@@ -24,6 +24,8 @@
 
 # include <csignal>
 # include <unistd.h>
+# include <cstring>
+# include <cstdlib>
 # include <cerrno>
 
 # include "ev_cpp.h"

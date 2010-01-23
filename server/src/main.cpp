@@ -23,6 +23,9 @@
 
 # include <cerrno>
 # include <unistd.h>
+# include <cstdlib>
+# include <fcntl.h>
+# include <cstring>
 # include <getopt.h>
 
 # include "config.h"

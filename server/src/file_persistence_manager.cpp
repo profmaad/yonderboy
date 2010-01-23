@@ -26,6 +26,7 @@
 
 # include <cerrno>
 # include <cstdio>
+# include <cstring>
 # include <sys/stat.h>
 
 # include <pthread.h>
