@@ -94,9 +94,12 @@ void ViewerHost::handlePackage(Package* thePackage)
 			if(thePackage->isSet("view-id"))
 			{
 				View *theView = new View(this, thePackage);
-				views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
-
-				sendPackage(constructAcknowledgementPackage(thePackage));
+				if(theView->isValid())
+				{
+					views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
+					
+					sendPackage(constructAcknowledgementPackage(thePackage));
+				}
 			}
 		}
 		else if(command == "unregister-view")

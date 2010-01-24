@@ -12,6 +12,7 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		controller_host.h controller_host.cpp \
 		viewer_listener.h viewer_listener.cpp \
 		viewer_host.h viewer_host.cpp \
+		renderer_host.h renderer_host.cpp \
 		server_controller.h server_controller.cpp \
 		abstract_decision_maker.h abstract_decision_maker.cpp \
 		meta_decision_maker.h meta_decision_maker.cpp \
@@ -19,4 +20,5 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		persistent_storage.h \
 		file_persistence_manager.h file_persistence_manager.cpp \
 		configuration_manager.h configuration_manager.cpp \
-		view.h view.cpp
+		view.h view.cpp \
+		display_manager.h display_manager.cpp

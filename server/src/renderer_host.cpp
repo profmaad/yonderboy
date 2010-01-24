@@ -1,4 +1,4 @@
-//      view.cpp
+//      renderer_host.cpp
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,35 +17,52 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
+# include <stdexcept>
 # include <string>
 
-# include "log.h"
+# include <cerrno>
+# include <cstring>
+# include <sys/socket.h>
+
+# include "ev_cpp.h"
+
 # include "macros.h"
+# include "log.h"
 
-# include "viewer_host.h"
 # include "package.h"
+# include "package_factories.h"
 
-# include "view.h"
+# include "renderer_host.h"
 
-View::View(ViewerHost *host, Package *infos) : host(host), reassignable(false), popup(false), assigned(false)
+RendererHost::RendererHost(int hostSocket) : AbstractHost(hostSocket)
 {
-	reassignable = infos->isSet("can-be-reassigned");
-	popup = infos->isSet("is-popup");
-	id = infos->getValue("view-id");
-	displayInformation = infos->getValue("display-information");
-	displayInformationType = infos->getValue("display-information-type");
-
-	LOG_INFO("new view '"<<id<<"' created for viewer "<<host<<", its "<<(popup?"":"not ")<<"a popup and its "<<(reassignable?"":"not ")<<"reassignable");
-
-	//TODO: register with DisplayManager
+	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
-View::~View()
+RendererHost::~RendererHost()
 {
-	LOG_INFO("view '"<<id<<"' destroyed");
-	//TODO: deregister with DisplayManager
+	LOG_DEBUG("shutting down renderer host");
 }
 
-bool View::isValid()
+void RendererHost::handlePackage(Package* thePackage)
 {
-	return !id.empty() && !displayInformation.empty() && !displayInformationType.empty() && host;
+	LOG_INFO("received package of type "<<thePackage->getType());
+
+	if(state == Connected)
+	{
+		// check for init packages and handle them
+		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
+		{
+			sendPackage(constructAcknowledgementPackage(thePackage));
+
+			state = Established;
+
+			LOG_INFO("connection successfully established");
+		}
+	}
+	else if(state == Established)
+	{
+		switch(thePackage->getType())
+		{
+		}
+	}
 }
