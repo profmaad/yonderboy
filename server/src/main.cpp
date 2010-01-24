@@ -62,7 +62,7 @@ void changeToWorkingDirectory(const char* workingDir)
 	if(result < 0)
 	{
 		strerror_r(errno, errorBuffer, 128);
-		LOG_FATAL("failed to chdir to working directory "<<workingDir<<", going down ("<<errorBuffer<<")")
+		LOG_FATAL("failed to chdir to working directory "<<workingDir<<", going down ("<<errorBuffer<<")");
 		exit(EXIT_FAILURE);
 	}
 }
