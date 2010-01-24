@@ -29,6 +29,7 @@
 # include "macros.h"
 
 class ControllerListener;
+class ViewerListener;
 class ConfigurationManager;
 
 class ServerController
@@ -51,6 +52,7 @@ private:
 	void setupSignalWatching();
 
 	ControllerListener *controllerListener;
+	ViewerListener *viewerListener;
 	
 	ConfigurationManager *configurationManager;
 	std::string configFilePath;

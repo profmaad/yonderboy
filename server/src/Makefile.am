@@ -10,6 +10,8 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		package_factories.h package_factories.cpp \
 		controller_listener.h controller_listener.cpp \
 		controller_host.h controller_host.cpp \
+		viewer_listener.h viewer_listener.cpp \
+		viewer_host.h viewer_host.cpp \
 		server_controller.h server_controller.cpp \
 		abstract_decision_maker.h abstract_decision_maker.cpp \
 		meta_decision_maker.h meta_decision_maker.cpp \

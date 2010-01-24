@@ -34,6 +34,7 @@
 # include "log.h"
 
 # include "controller_listener.h"
+# include "viewer_listener.h"
 # include "configuration_manager.h"
 # include "hosts_manager.h"
 # include "file_persistence_manager.h"
@@ -41,7 +42,7 @@
 
 # include "server_controller.h"
 
-ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized)
+ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized)
 {
 	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
@@ -53,9 +54,10 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	configurationManager = new ConfigurationManager(configFilePath);
 	
 	controllerListener = new ControllerListener(configurationManager->retrieve("server", "controller-socket", "controller.sock"));
+	viewerListener = new ViewerListener(configurationManager->retrieve("server", "viewer-socket", "viewer.sock"));
 	
 	logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", LogLevelWarning);
-																			   
+
 	state = ServerStateInitialized;
 }
 ServerController::~ServerController()
@@ -63,6 +65,7 @@ ServerController::~ServerController()
 	state = ServerStateUninitialized;
 	
 	delete controllerListener;
+	delete viewerListener;
 	delete configurationManager;
 	delete signalPipeWatcher;
 }
@@ -159,6 +162,7 @@ void ServerController::start()
 	state = ServerStateStarting;
 	
 	controllerListener->startListening(2); /*HC*/
+	viewerListener->startListening(2); /*HC*/
 	
 	state = ServerStateRunning;
 }
@@ -167,6 +171,7 @@ void ServerController::stop()
 	state = ServerStateShuttingDown;
 	
 	controllerListener->closeSocket();
+	viewerListener->closeSocket();
 
 	HostsManager::deleteInstance();
 	
