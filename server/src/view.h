@@ -1,4 +1,4 @@
-//      viewer_host.h
+//      view.h
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,33 +17,33 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef VIEWER_HOST_H
-# define VIEWER_HOST_H
+# ifndef VIEW_H
+# define VIEW_H
 
-# include <map>
 # include <string>
 
-# include "ev_cpp.h"
-# include "abstract_host.h"
+class ViewerHost;
+class Package;
 
-class View;
-
-class ViewerHost : public AbstractHost
+class View
 {
 public:
-	ViewerHost(int hostSocket);
-	~ViewerHost();
+	View(ViewerHost *host, Package *infos);
+	~View();
 
-protected:
-	void handlePackage(Package *thePackage);
+	std::string getID() { return id; }
+	bool isReassignable() { return reassignable; }
+	bool isPopup() { return popup; }
+	bool isAssigned() {  return assigned; }
+	ViewerHost* getHost() { return host; }
 
 private:
-	View* retrieveView(std::string viewID);
+	ViewerHost *host;
+	
+	std::string id;
+	bool reassignable;
+	bool popup;
+	bool assigned;
+};       
 
-	bool displaysStati;
-	bool displaysPopups;
-
-	std::map<std::string, View*> *views;
-};
-
-# endif /*VIEWER_HOST_H*/
+#endif /*VIEW_H*/

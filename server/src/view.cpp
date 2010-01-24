@@ -1,4 +1,4 @@
-//      viewer_host.h
+//      view.cpp
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,33 +17,29 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef VIEWER_HOST_H
-# define VIEWER_HOST_H
-
-# include <map>
 # include <string>
 
-# include "ev_cpp.h"
-# include "abstract_host.h"
+# include "log.h"
+# include "macros.h"
 
-class View;
+# include "viewer_host.h"
+# include "package.h"
 
-class ViewerHost : public AbstractHost
+# include "view.h"
+
+View::View(ViewerHost *host, Package *infos) : host(host), reassignable(false), popup(false), assigned(false)
 {
-public:
-	ViewerHost(int hostSocket);
-	~ViewerHost();
+	reassignable = infos->isSet("can-be-reassigned");
+	popup = infos->isSet("is-popup");
+	id = infos->getValue("view-id");
 
-protected:
-	void handlePackage(Package *thePackage);
+	LOG_INFO("new view '"<<id<<"' created for viewer "<<host<<", its "<<(popup?"":"not ")<<"a popup and its "<<(reassignable?"":"not ")<<"reassignable");
 
-private:
-	View* retrieveView(std::string viewID);
+	//TODO: register with DisplayManager
+}
+View::~View()
+{
+	LOG_INFO("view '"<<id<<"' destroyed");
+	//TODO: deregister with DisplayManager
+}
 
-	bool displaysStati;
-	bool displaysPopups;
-
-	std::map<std::string, View*> *views;
-};
-
-# endif /*VIEWER_HOST_H*/

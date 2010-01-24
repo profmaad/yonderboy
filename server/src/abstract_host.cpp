@@ -95,6 +95,9 @@ void AbstractHost::closeSocket()
 	}
 	close(hostSocket);
 	state = Disconnected;
+
+	HostsManager::instance()->scheduleHostForDeletion(hostSocket);
+
 	LOG_DEBUG("closed connection")
 }
 

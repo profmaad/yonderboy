@@ -17,8 +17,9 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# include <iostream>
 # include <stdexcept>
+# include <map>
+# include <string>
 
 # include <cerrno>
 # include <cstring>
@@ -31,23 +32,47 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "view.h"
 
 # include "viewer_host.h"
 
-ViewerHost::ViewerHost(int hostSocket) : AbstractHost(hostSocket)
+ViewerHost::ViewerHost(int hostSocket) : AbstractHost(hostSocket), views(NULL)
 {
-	LOG_DEBUG("initialized with socket "<<hostSocket)
+	views = new std::map<std::string, View*>();
+
+	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
 ViewerHost::~ViewerHost()
 {
-	LOG_DEBUG("shutting down viewer host")
+	for(std::map<std::string, View*>::const_iterator iter = views->begin(); iter != views->end(); ++iter)
+	{
+		delete iter->second;
+	}
+	delete views;
+
+	LOG_DEBUG("shutting down viewer host");
+}
+
+View* ViewerHost::retrieveView(std::string viewID)
+{
+	View *result = NULL;
+
+	std::map<std::string, View*>::const_iterator iter = views->find(viewID);
+	if(iter != views->end())
+	{
+		result = iter->second;
+	}
+
+	return result;
 }
 
 void ViewerHost::handlePackage(Package* thePackage)
 {
-	LOG_INFO("received package of type "<<thePackage->getType())
+	LOG_INFO("received package of type "<<thePackage->getType());
 
-	if(state == Connected && thePackage->getType() == ConnectionManagement)
+	if(thePackage->getType() != ConnectionManagement) { return; }
+
+	if(state == Connected)
 	{
 		// check for init packages and handle them
 		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
@@ -58,13 +83,35 @@ void ViewerHost::handlePackage(Package* thePackage)
 
 			state = Established;
 
-			LOG_INFO("connection successfully established");
+			LOG_INFO("connection successfully established, viewer can"<<(displaysStati?"":"'t")<<" display status messages and can"<<(displaysPopups?"":"'t")<<" display popups");
 		}
 	}
 	else if(state == Established)
 	{
-		switch(thePackage->getType())
+		std::string command = thePackage->getValue("command");
+		if(command == "register-view")
 		{
+			if(thePackage->isSet("view-id"))
+			{
+				View *theView = new View(this, thePackage);
+				views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
+
+				sendPackage(constructAcknowledgementPackage(thePackage));
+			}
+		}
+		else if(command == "unregister-view")
+		{
+			if(thePackage->isSet("view-id"))
+			{
+				View *theView = retrieveView(thePackage->getValue("view-id"));
+				if(theView)
+				{
+					views->erase(thePackage->getValue("view-id"));
+					delete theView;
+
+					sendPackage(constructAcknowledgementPackage(thePackage));
+				}
+			}
 		}
 	}
 }
