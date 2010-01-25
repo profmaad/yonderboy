@@ -24,6 +24,7 @@
 # include <map>
 
 class View;
+class ViewerHost;
 class RendererHost;
 class Package;
 
@@ -36,15 +37,15 @@ public:
 	void registerView(View *theView);
 	void registerRenderer(RendererHost *theRenderer);
 
-	void unregisterView(std::string viewID);
+	void unregisterView(std::string viewID, ViewerHost *host);
 	void unregisterRenderer(std::string rendererID);
 	void unregisterView(View *theView);
 	void unregisterRenderer(RendererHost *theRenderer);
 
 	void connect(View *theView, RendererHost *theRenderer);
-	void parsePackage(Package *thePackage);
+	void parsePackage(Package *thePackage, ViewerHost *host);
 
-	void disconnectView(std::string viewID);
+	void disconnectView(std::string viewID, ViewerHost *host);
 	void disconnectRenderer(std::string rendererID);
 	void disconnectView(View *theView);
 	void disconnectRenderer(RendererHost *theRenderer);
@@ -62,13 +63,13 @@ private:
 	Package* constructViewConnectPackage(View *theView, RendererHost *theRenderer);
 	Package* constructRendererConnectPackage(RendererHost *theRenderer, View *theView);
 
-	std::map<std::string, View*> *views;
+	std::map<std::pair<std::string, ViewerHost*>, View*> *views;
 	std::map<std::string, RendererHost*> *renderers;
 
 	std::map<View*, RendererHost*> *rendererByView;
 	std::map<RendererHost*, View*> *viewByRenderer;
 
-	unsigned int nextRendererID;
+	unsigned int nextRendererNumber;
 };
 
 # endif /*DISPLAY_MANAGER_H*/

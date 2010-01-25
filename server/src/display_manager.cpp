@@ -19,6 +19,8 @@
 
 # include <string>
 # include <map>
+# include <sstream>
+# include <iomanip>
 
 # include "log.h"
 # include "macros.h"
@@ -32,7 +34,7 @@
 
 DisplayManager::DisplayManager() : views(NULL), renderers(NULL), viewByRenderer(NULL), rendererByView(NULL)
 {
-	views = new std::map<std::string, View*>();
+	views = new std::map<std::pair<std::string, ViewerHost*>, View*>();
 	renderers = new std::map<std::string, RendererHost*>();
 
 	viewByRenderer = new std::map<RendererHost*, View*>();
@@ -40,7 +42,7 @@ DisplayManager::DisplayManager() : views(NULL), renderers(NULL), viewByRenderer(
 }
 DisplayManager::~DisplayManager()
 {
-	for(std::map<std::string, View*>::iterator iter = views->begin(); iter != views->end(); ++iter)
+	for(std::map<std::pair<std::string, ViewerHost*>, View*>::iterator iter = views->begin(); iter != views->end(); ++iter)
 	{
 		disconnectView(iter->second);
 	}
@@ -59,7 +61,7 @@ void DisplayManager::registerView(View *theView)
 {
 	if(theView)
 	{
-		views->insert(std::make_pair(theView->getID(), theView));
+		views->insert(std::make_pair(std::make_pair(theView->getID(), theView->getHost()), theView));
 	}
 }
 void DisplayManager::registerRenderer(RendererHost *theRenderer)
@@ -70,11 +72,11 @@ void DisplayManager::registerRenderer(RendererHost *theRenderer)
 	}
 }
 
-void DisplayManager::unregisterView(std::string viewID)
+void DisplayManager::unregisterView(std::string viewID, ViewerHost* host)
 {
 	View *theView = NULL;
 
-	std::map<std::string, View*>::iterator viewIter = views->find(viewID);
+	std::map<std::pair<std::string, ViewerHost*>, View*>::iterator viewIter = views->find(std::make_pair(viewID, host));
 	if(viewIter == views->end()) { return; }
 
 	theView = viewIter->second;
@@ -94,7 +96,7 @@ void DisplayManager::unregisterRenderer(std::string rendererID)
 }
 void DisplayManager::unregisterView(View *theView)
 {
-	if(theView) { unregisterView(theView->getID()); }
+	if(theView) { unregisterView(theView->getID(), theView->getHost()); }
 }
 void DisplayManager::unregisterRenderer(RendererHost *theRenderer)
 {
@@ -114,14 +116,14 @@ void DisplayManager::connect(View *theView, RendererHost *theRenderer)
 	rendererByView->insert(std::make_pair(theView, theRenderer));
 	viewByRenderer->insert(std::make_pair(theRenderer, theView));
 }
-void DisplayManager::parsePackage(Package *thePackage)
+void DisplayManager::parsePackage(Package *thePackage, ViewerHost *host)
 {
 	View *theView = NULL;
 	RendererHost *theRenderer = NULL;
 
 	if(thePackage->getType() == Command && thePackage->getValue("command") == "connect-view" && thePackage->isSet("view-id") && thePackage->isSet("renderer-id"))
 	{
-		std::map<std::string, View*>::const_iterator viewIter = views->find(thePackage->getValue("view-id"));
+		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(thePackage->getValue("view-id"), host));
 		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(thePackage->getValue("renderer-id"));
 
 		if(viewIter != views->end() && rendererIter != renderers->end())
@@ -131,9 +133,9 @@ void DisplayManager::parsePackage(Package *thePackage)
 	}
 }
 
-void DisplayManager::disconnectView(std::string viewID)
+void DisplayManager::disconnectView(std::string viewID, ViewerHost *host)
 {
-	std::map<std::string, View*>::const_iterator iter = views->find(viewID);
+	std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator iter = views->find(std::make_pair(viewID, host));
 	if(iter != views->end())
 	{
 		disconnectView(iter->second);
@@ -238,3 +240,12 @@ Package* DisplayManager::constructRendererDisconnectPackage(RendererHost *theRen
 	return result;
 }
 
+std::string DisplayManager::getNextRendererID()
+{
+	std::ostringstream conversionStream("renderer");
+	conversionStream<<std::setfill('0')<<std::setw(5)<<nextRendererNumber;
+
+	nextRendererNumber++;
+
+	return conversionStream.str();
+}
