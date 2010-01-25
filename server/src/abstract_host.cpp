@@ -61,7 +61,7 @@ void AbstractHost::shutdownHost()
 {
 	disconnect();
 
-	HostsManager::instance()->scheduleHostForDeletion(hostSocket);
+	server->hostsManagerInstance()->scheduleHostForDeletion(hostSocket);
 }
 void AbstractHost::disconnect()
 {
@@ -96,7 +96,7 @@ void AbstractHost::closeSocket()
 	close(hostSocket);
 	state = Disconnected;
 
-	HostsManager::instance()->scheduleHostForDeletion(hostSocket);
+	server->hostsManagerInstance()->scheduleHostForDeletion(hostSocket);
 
 	LOG_DEBUG("closed connection")
 }

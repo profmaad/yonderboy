@@ -29,14 +29,13 @@ class AbstractHost;
 class HostsManager
 {
 public:
+	HostsManager();
+	virtual ~HostsManager();
+
 	void registerHost(int id, const AbstractHost* host);
 	void deregisterHost(int id);
 	const AbstractHost* getHost(int id);
 	void scheduleHostForDeletion(int id);
-
-// Singleton management	
-	static HostsManager* instance();
-	static void deleteInstance();
 
 private:
 	void idleCallback(ev::idle &watcher, int revents);
@@ -45,12 +44,6 @@ private:
 	std::map<int, AbstractHost*> *hostsScheduledForDeletion;
 
 	ev::idle *idleTimer;
-
-// Singleton management
-	HostsManager();
-	virtual ~HostsManager();
-	
-	static HostsManager* _instance;
 };
 
 # endif /*HOSTS_MANAGER_H*/

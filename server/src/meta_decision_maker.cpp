@@ -105,22 +105,3 @@ void MetaDecisionMaker::resetDecisionStack(Entity entity)
 		iter->second.pop();
 	}
 }
-
-// Singleton management
-MetaDecisionMaker* MetaDecisionMaker::_instance = NULL;
-
-MetaDecisionMaker* MetaDecisionMaker::instance()
-{
-	if(_instance == NULL)
-	{
-		_instance = new MetaDecisionMaker();
-	}
-
-	return _instance;
-}
-void MetaDecisionMaker::deleteInstance()
-{
-	delete _instance;
-	_instance = NULL;
-}
-

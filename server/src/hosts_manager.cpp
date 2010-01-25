@@ -110,21 +110,3 @@ void HostsManager::idleCallback(ev::idle &watcher, int revents)
 		idleTimer->stop();
 	}
 }
-
-// Singleton management
-HostsManager* HostsManager::_instance = NULL;
-
-HostsManager* HostsManager::instance()
-{
-	if(_instance == NULL)
-	{
-		_instance = new HostsManager();
-	}
-
-	return _instance;
-}
-void HostsManager::deleteInstance()
-{
-	delete _instance;
-	_instance = NULL;
-}

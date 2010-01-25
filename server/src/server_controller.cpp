@@ -38,6 +38,7 @@
 # include "configuration_manager.h"
 # include "display_manager.h"
 # include "hosts_manager.h"
+# include "meta_decision_maker.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
 
@@ -55,6 +56,9 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	configurationManager = new ConfigurationManager(configFilePath);
 
 	displayManager = new DisplayManager();
+	hostsManager = new HostsManager();
+
+	metaDecisionMaker = new MetaDecisionMaker();
 	
 	controllerListener = new ControllerListener(configurationManager->retrieve("server", "controller-socket", "controller.sock"));
 	viewerListener = new ViewerListener(configurationManager->retrieve("server", "viewer-socket", "viewer.sock"));
@@ -71,21 +75,15 @@ ServerController::~ServerController()
 	delete viewerListener;
 	delete configurationManager;
 	delete displayManager;
+	delete hostsManager;
+	delete metaDecisionMaker;
 	delete signalPipeWatcher;
 }
 
 void ServerController::signalPipeCallback(ev::io &watcher, int revents)
 {
 	int signal = -1;
-	ssize_t bytesRead = -1;
-	
-	bytesRead = read(signalPipe, (void*)&signal, sizeof(int));
-	if(bytesRead != sizeof(int))
-	{
-		signal = -1;
-	}
-	close(signalPipe);
-	
+	ssize_t bytesRead = -1;	
 	LOG_INFO("received signal "<<signal<<", going down")
 	
 	stop();
@@ -177,8 +175,6 @@ void ServerController::stop()
 	controllerListener->closeSocket();
 	viewerListener->closeSocket();
 
-	HostsManager::deleteInstance();
-	
 	state = ServerStateInitialized;
 }
 

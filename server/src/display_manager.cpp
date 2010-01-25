@@ -110,6 +110,7 @@ void DisplayManager::unregisterRenderer(RendererHost *theRenderer)
 void DisplayManager::connect(View *theView, RendererHost *theRenderer)
 {
 	if(theView->getDisplayInformationType() != theRenderer->getDisplayInformationType()) { return; }
+	if(theView->isAssigned() && !theView->isReassignable()) { return; }
 
 	rendererByView->erase(theView);
 	viewByRenderer->erase(theRenderer);

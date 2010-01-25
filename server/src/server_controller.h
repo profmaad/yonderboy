@@ -32,7 +32,10 @@ class ControllerListener;
 class ViewerListener;
 
 class ConfigurationManager;
+class HostsManager;
 class DisplayManager;
+
+class MetaDecisionMaker;
 
 class ServerController
 {
@@ -49,6 +52,8 @@ public:
 	LogLevel getLogLevel() { return logLevel; };
 
 	DisplayManager* displayManagerInstance() { return displayManager; }
+	HostsManager* hostsManagerInstance() { return hostsManager; }
+	MetaDecisionMaker* metaDecisionMakerInstance() { return metaDecisionMaker; }
 
 private:
 	void signalPipeCallback(ev::io &watcher, int revents);
@@ -58,9 +63,12 @@ private:
 	ControllerListener *controllerListener;
 	ViewerListener *viewerListener;
 	
+	HostsManager *hostsManager;
 	DisplayManager *displayManager;
 	ConfigurationManager *configurationManager;
 	std::string configFilePath;
+
+	MetaDecisionMaker *metaDecisionMaker;
 	
 	struct SignalThreadInfo
 	{

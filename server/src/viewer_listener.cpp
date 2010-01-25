@@ -49,7 +49,7 @@ void ViewerListener::callback(ev::io &watcher, int revents)
 		clientSocket = acceptClient();
 		host = new ViewerHost(clientSocket);
 
-		HostsManager::instance()->registerHost(clientSocket, host);
+		server->hostsManagerInstance()->registerHost(clientSocket, host);
 	}
 	catch(std::runtime_error e)
 	{

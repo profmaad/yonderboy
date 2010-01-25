@@ -31,24 +31,18 @@ class AbstractDecisionMaker;
 class MetaDecisionMaker
 {
 public:
+	MetaDecisionMaker();
+	virtual ~MetaDecisionMaker();
+
 	Decision decide(Entity entity, KeyValueMap *information);
 
 	void addDecisionMaker(Entity entity, AbstractDecisionMaker *decisionMaker);
 	void setDecisionStack(Entity entity, std::stack<AbstractDecisionMaker*> newStack);
 	void resetDecisionStack(Entity entity);
 
-// Singleton management	
-	static MetaDecisionMaker* instance();
-	static void deleteInstance();
-
 private:
 	std::map<Entity, std::stack<AbstractDecisionMaker*> > *decisionMakers;
 
-// Singleton management
-	MetaDecisionMaker();
-	virtual ~MetaDecisionMaker();
-	
-	static MetaDecisionMaker* _instance;
 };
 
 # endif /*META_DECISION_MAKER_H*/

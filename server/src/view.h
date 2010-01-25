@@ -39,6 +39,8 @@ public:
 	bool isAssigned() {  return assigned; }
 	ViewerHost* getHost() { return host; }
 
+	void setAssigned(bool newState) { assigned = newState; }
+
 	bool isValid();
 
 private:
