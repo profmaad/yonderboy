@@ -25,6 +25,8 @@
 # include "viewer_host.h"
 # include "package.h"
 
+# include "display_manager.h"
+
 # include "view.h"
 
 View::View(ViewerHost *host, Package *infos) : host(host), reassignable(false), popup(false), assigned(false)
@@ -35,14 +37,18 @@ View::View(ViewerHost *host, Package *infos) : host(host), reassignable(false), 
 	displayInformation = infos->getValue("display-information");
 	displayInformationType = infos->getValue("display-information-type");
 
-	LOG_INFO("new view '"<<id<<"' created for viewer "<<host<<", its "<<(popup?"":"not ")<<"a popup and its "<<(reassignable?"":"not ")<<"reassignable");
+	if(isValid())
+	{
+		server->displayManagerInstance()->registerView(this);
 
-	//TODO: register with DisplayManager
+		LOG_INFO("new view '"<<id<<"' created for viewer "<<host<<", its "<<(popup?"":"not ")<<"a popup and its "<<(reassignable?"":"not ")<<"reassignable");
+	}
 }
 View::~View()
 {
+	server->displayManagerInstance()->unregisterView(this);
+
 	LOG_INFO("view '"<<id<<"' destroyed");
-	//TODO: deregister with DisplayManager
 }
 
 bool View::isValid()

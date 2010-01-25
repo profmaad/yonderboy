@@ -30,7 +30,9 @@
 
 class ControllerListener;
 class ViewerListener;
+
 class ConfigurationManager;
+class DisplayManager;
 
 class ServerController
 {
@@ -46,6 +48,8 @@ public:
 	ServerState getState() { return state; };
 	LogLevel getLogLevel() { return logLevel; };
 
+	DisplayManager* displayManagerInstance() { return displayManager; }
+
 private:
 	void signalPipeCallback(ev::io &watcher, int revents);
 	static void* waitForSignals(void* arg);
@@ -54,9 +58,10 @@ private:
 	ControllerListener *controllerListener;
 	ViewerListener *viewerListener;
 	
+	DisplayManager *displayManager;
 	ConfigurationManager *configurationManager;
 	std::string configFilePath;
-
+	
 	struct SignalThreadInfo
 	{
 		int pipeFD;

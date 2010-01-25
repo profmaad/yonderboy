@@ -31,15 +31,22 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "display_manager.h"
 
 # include "renderer_host.h"
 
 RendererHost::RendererHost(int hostSocket) : AbstractHost(hostSocket)
 {
+	id = server->displayManagerInstance()->getNextRendererID();
+
+	server->displayManagerInstance()->registerRenderer(this);
+	
 	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
 RendererHost::~RendererHost()
 {
+	server->displayManagerInstance()->unregisterRenderer(id);
+
 	LOG_DEBUG("shutting down renderer host");
 }
 

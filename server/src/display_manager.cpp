@@ -32,7 +32,7 @@
 
 # include "display_manager.h"
 
-DisplayManager::DisplayManager() : views(NULL), renderers(NULL), viewByRenderer(NULL), rendererByView(NULL)
+DisplayManager::DisplayManager() : views(NULL), renderers(NULL), viewByRenderer(NULL), rendererByView(NULL), nextRendererNumber(0)
 {
 	views = new std::map<std::pair<std::string, ViewerHost*>, View*>();
 	renderers = new std::map<std::string, RendererHost*>();
@@ -62,6 +62,8 @@ void DisplayManager::registerView(View *theView)
 	if(theView)
 	{
 		views->insert(std::make_pair(std::make_pair(theView->getID(), theView->getHost()), theView));
+
+		LOG_INFO("view "<<theView->getID()<<"@"<<theView->getHost()<<" registered");
 	}
 }
 void DisplayManager::registerRenderer(RendererHost *theRenderer)
@@ -82,6 +84,8 @@ void DisplayManager::unregisterView(std::string viewID, ViewerHost* host)
 	theView = viewIter->second;
 	disconnectView(theView);
 	views->erase(viewIter);
+
+	LOG_INFO("view "<<theView->getID()<<"@"<<theView->getHost()<<" unregistered");
 }
 void DisplayManager::unregisterRenderer(std::string rendererID)
 {

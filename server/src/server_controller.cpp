@@ -36,6 +36,7 @@
 # include "controller_listener.h"
 # include "viewer_listener.h"
 # include "configuration_manager.h"
+# include "display_manager.h"
 # include "hosts_manager.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
@@ -52,6 +53,8 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	
 	configFilePath = std::string(configFile);
 	configurationManager = new ConfigurationManager(configFilePath);
+
+	displayManager = new DisplayManager();
 	
 	controllerListener = new ControllerListener(configurationManager->retrieve("server", "controller-socket", "controller.sock"));
 	viewerListener = new ViewerListener(configurationManager->retrieve("server", "viewer-socket", "viewer.sock"));
@@ -67,6 +70,7 @@ ServerController::~ServerController()
 	delete controllerListener;
 	delete viewerListener;
 	delete configurationManager;
+	delete displayManager;
 	delete signalPipeWatcher;
 }
 
