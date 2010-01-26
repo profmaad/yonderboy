@@ -52,12 +52,15 @@ bool Job::hasDependentJobs() const
 
 void Job::addDependency(Job *dependency)
 {
+	if(!dependency) { return; }
 	dependenciesUsed = true;
 
 	dependencies->push_back(dependency);
 }
 void Job::removeDependency(Job *dependency)
 {
+	if(!dependency) { return; }
+
 	for(std::vector<Job*>::iterator iter = dependencies->begin(); iter != dependencies->end(); ++iter)
 	{
 		if(*iter == dependency)
@@ -74,10 +77,13 @@ void Job::clearDependencies()
 }
 void Job::addDependentJob(Job *dependentJob)
 {
+	if(!dependentJob) { return; }
 	dependentJobs->push_back(dependentJob);
 }
 void Job::removeDependentJob(Job *dependentJob)
 {
+	if(!dependentJob) { return; }
+
 	for(std::vector<Job*>::iterator iter = dependentJobs->begin(); iter != dependentJobs->end(); ++iter)
 	{
 		if(*iter == dependentJob)
