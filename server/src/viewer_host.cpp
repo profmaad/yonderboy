@@ -32,6 +32,8 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "job.h"
+# include "job_manager.h"
 # include "view.h"
 
 # include "viewer_host.h"
@@ -70,7 +72,12 @@ void ViewerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
-	if(thePackage->getType() != ConnectionManagement) { return; }
+	if(thePackage->getType() == Acknowledgement)
+	{
+		server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
+		return;
+	}
+	else if(thePackage->getType() != ConnectionManagement) { return; }
 
 	if(state == Connected)
 	{

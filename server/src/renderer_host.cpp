@@ -31,6 +31,8 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "job.h"
+# include "job_manager.h"
 # include "display_manager.h"
 
 # include "renderer_host.h"
@@ -59,17 +61,20 @@ void RendererHost::handlePackage(Package* thePackage)
 		// check for init packages and handle them
 		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
 		{
-			sendPackage(constructAcknowledgementPackage(thePackage));
-
 			state = Established;
 
 			LOG_INFO("connection successfully established");
+
+			sendPackage(constructAcknowledgementPackage(thePackage));
 		}
 	}
 	else if(state == Established)
 	{
 		switch(thePackage->getType())
 		{
+		case Acknowledgement:
+			server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
+			break;
 		}
 	}
 }

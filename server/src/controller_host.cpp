@@ -31,6 +31,8 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "job.h"
+# include "job_manager.h"
 
 # include "controller_host.h"
 
@@ -67,8 +69,8 @@ void ControllerHost::handlePackage(Package* thePackage)
 		switch(thePackage->getType())
 		{
 		case Command:
+			server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
 			LOG_INFO("received command '"<<thePackage->getValue("command")<<"' from controller")
-			sendPackage(constructAcknowledgementPackage(thePackage));
 			break;
 		}
 	}
