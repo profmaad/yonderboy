@@ -34,6 +34,7 @@ class ViewerListener;
 class ConfigurationManager;
 class HostsManager;
 class DisplayManager;
+class JobManager;
 
 class MetaDecisionMaker;
 
@@ -53,6 +54,7 @@ public:
 
 	DisplayManager* displayManagerInstance() { return displayManager; }
 	HostsManager* hostsManagerInstance() { return hostsManager; }
+	JobManager* jobManagerInstance() { return jobManager; }
 	MetaDecisionMaker* metaDecisionMakerInstance() { return metaDecisionMaker; }
 
 private:
@@ -65,6 +67,7 @@ private:
 	
 	HostsManager *hostsManager;
 	DisplayManager *displayManager;
+	JobManager *jobManager;
 	ConfigurationManager *configurationManager;
 	std::string configFilePath;
 

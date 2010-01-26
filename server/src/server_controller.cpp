@@ -38,13 +38,14 @@
 # include "configuration_manager.h"
 # include "display_manager.h"
 # include "hosts_manager.h"
+# include "job_manager.h"
 # include "meta_decision_maker.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
 
 # include "server_controller.h"
 
-ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized)
+ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized), displayManager(NULL), hostsManager(NULL), metaDecisionMaker(NULL), jobManager(NULL)
 {
 	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
@@ -57,6 +58,7 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 
 	displayManager = new DisplayManager();
 	hostsManager = new HostsManager();
+	jobManager = new JobManager();
 
 	metaDecisionMaker = new MetaDecisionMaker();
 	
@@ -76,6 +78,7 @@ ServerController::~ServerController()
 	delete configurationManager;
 	delete displayManager;
 	delete hostsManager;
+	delete jobManager;
 	delete metaDecisionMaker;
 	delete signalPipeWatcher;
 }
@@ -84,6 +87,11 @@ void ServerController::signalPipeCallback(ev::io &watcher, int revents)
 {
 	int signal = -1;
 	ssize_t bytesRead = -1;	
+	
+	bytesRead = read(signalPipe, static_cast<void*>(&signal), sizeof(int));
+	if(bytesRead != sizeof(int)) { signal = -1; }
+	close(signalPipe);
+
 	LOG_INFO("received signal "<<signal<<", going down")
 	
 	stop();
@@ -143,7 +151,7 @@ void* ServerController::waitForSignals(void* arg)
 	SignalThreadInfo *infos = static_cast<SignalThreadInfo*>(arg);
 	
 	result = sigwait(&infos->signals, &signal);
-	if(result < 0)
+	if(result != 0)
 	{
 		strerror_r(result, errorBuffer, 128);
 		LOG_FATAL("failed to wait for signals, going down ("<<errorBuffer<<")")
