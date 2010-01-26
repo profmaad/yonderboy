@@ -26,9 +26,11 @@
 # include "macros.h"
 
 # include "package.h"
+# include "job.h"
 # include "view.h"
 # include "viewer_host.h"
 # include "renderer_host.h"
+# include "job_manager.h"
 
 # include "display_manager.h"
 
@@ -107,7 +109,7 @@ void DisplayManager::unregisterRenderer(RendererHost *theRenderer)
 	if(theRenderer) { unregisterRenderer(theRenderer->getID()); }
 }
 
-void DisplayManager::connect(View *theView, RendererHost *theRenderer)
+void DisplayManager::connect(View *theView, RendererHost *theRenderer, Job *connectJob)
 {
 	if(theView->getDisplayInformationType() != theRenderer->getDisplayInformationType()) { return; }
 	if(theView->isAssigned() && !theView->isReassignable()) { return; }
@@ -115,25 +117,36 @@ void DisplayManager::connect(View *theView, RendererHost *theRenderer)
 	rendererByView->erase(theView);
 	viewByRenderer->erase(theRenderer);
 
-	theView->getHost()->sendPackage(constructViewConnectPackage(theView, theRenderer));
-	theRenderer->sendPackage(constructRendererConnectPackage(theRenderer, theView));
+	Package *viewerPackage = constructViewConnectPackage(theView, theRenderer);
+	Package *rendererPackage = constructRendererConnectPackage(theRenderer, theView);
+	
+	Job *viewerJob = server->jobManagerInstance()->processSendPackage(static_cast<AbstractHost*>(theView->getHost()), viewerPackage);
+	Job *rendererJob = server->jobManagerInstance()->processSendPackage(static_cast<AbstractHost*>(theRenderer), rendererPackage);
+	if(connectJob)
+	{
+		server->jobManagerInstance()->addDependency(connectJob, viewerJob);
+		server->jobManagerInstance()->addDependency(connectJob, rendererJob);
+	}
+
+	theView->getHost()->sendPackage(viewerPackage);
+	theRenderer->sendPackage(rendererPackage);
 	
 	rendererByView->insert(std::make_pair(theView, theRenderer));
 	viewByRenderer->insert(std::make_pair(theRenderer, theView));
 }
-void DisplayManager::parsePackage(Package *thePackage, ViewerHost *host)
+void DisplayManager::doJob(Job *theJob)
 {
 	View *theView = NULL;
 	RendererHost *theRenderer = NULL;
 
-	if(thePackage->getType() == Command && thePackage->getValue("command") == "connect-view" && thePackage->isSet("view-id") && thePackage->isSet("renderer-id"))
+	if(theJob->getPackage()->getType() == Command && theJob->getPackage()->getValue("command") == "connect-view" && theJob->getPackage()->isSet("view-id") && theJob->getPackage()->isSet("renderer-id"))
 	{
-		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(thePackage->getValue("view-id"), host));
-		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(thePackage->getValue("renderer-id"));
+		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getPackage()->getValue("view-id"), static_cast<ViewerHost*>(theJob->getHost())));
+		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(theJob->getPackage()->getValue("renderer-id"));
 
 		if(viewIter != views->end() && rendererIter != renderers->end())
 		{
-			connect(viewIter->second, rendererIter->second);
+			connect(viewIter->second, rendererIter->second, theJob);
 		}
 	}
 }

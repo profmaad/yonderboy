@@ -24,7 +24,7 @@
 # include "macros.h"
 # include "package.h"
 
-Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL), valid(false)
+Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
 {
 	keyValueMap = constructKeyValueMap(serializedData);
 	
@@ -57,6 +57,7 @@ void Package::initialize()
 	{
 	case Command:
 		valid = isSet("command");
+		acknowledgementNeeded = isSet("id");
 		break;
 	case StatusChange:
 		valid = isSet("new-status");
@@ -75,9 +76,11 @@ void Package::initialize()
 		break;
 	case ConnectionManagement:
 		valid = isSet("command") && isSet("id");
+		acknowledgementNeeded = true;
 		break;
 	default:
 		valid = false;
+		acknowledgementNeeded = false;
 	}
 	
 }
@@ -86,7 +89,7 @@ Package::~Package()
 	delete keyValueMap;
 }
 
-std::string Package::getValue(std::string key)
+std::string Package::getValue(std::string key) const
 {
 	std::map<std::string, std::string>::const_iterator iter = keyValueMap->find(key);
 
@@ -94,7 +97,7 @@ std::string Package::getValue(std::string key)
 
 	return "";
 }
-bool Package::isSet(std::string key)
+bool Package::isSet(std::string key) const
 {
 	std::map<std::string, std::string>::const_iterator iter = keyValueMap->find(key);
 
@@ -102,21 +105,21 @@ bool Package::isSet(std::string key)
 
 	return false;
 }
-bool Package::hasValue(std::string key)
+bool Package::hasValue(std::string key) const
 {
 	if(isSet(key)) { return getValue(key).size() > 0; }
 	else { return false; }
 }
-std::string Package::getID()
+std::string Package::getID() const
 {
 	return getValue("id");
 }
-bool Package::hasID()
+bool Package::hasID() const
 {
 	return hasValue("id");
 }
 
-std::string Package::serialize()
+std::string Package::serialize() const
 {
 	std::string result;
 

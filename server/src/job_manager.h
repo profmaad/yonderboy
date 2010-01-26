@@ -33,16 +33,19 @@ public:
 	JobManager();
 	~JobManager();
 
-	Job* processPackage(Package *thePackage, AbstractHost *host);
+	Job* processReceivedPackage(AbstractHost *host, Package *thePackage);
+	Job* processSendPackage(AbstractHost *host, Package *thePackage);
 	
 	void addDependency(Job *dependentJob, Job *dependency);
 	void clearDependencies(Job *dependentJob);
 
-	void finishJob(Job *theJob);
+	void jobDone(Job *theJob);
 
 	Job* retrieveJob(AbstractHost *host, std::string id);
 	
 private:
+	void finishJob(Job *theJob);
+
 	std::map<std::pair<AbstractHost*, std::string>, Job*> *unfinishedJobs;
 };
 

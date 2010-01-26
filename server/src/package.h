@@ -30,16 +30,17 @@ public:
 	Package(std::map<std::string, std::string> *kvMap);
 	virtual ~Package();
 
-	PackageType getType() { return type; } 
-	std::string getID();
-	bool hasID();
-	bool isValid() { return valid; }
+	PackageType getType() const { return type; }
+	std::string getID() const;
+	bool hasID() const;
+	bool isValid() const { return valid; }
+	bool needsAcknowledgement() const { return acknowledgementNeeded; }
 
-	std::string getValue(std::string key);
-	bool isSet(std::string key);
-	bool hasValue(std::string key);
+	std::string getValue(std::string key) const;
+	bool isSet(std::string key) const;
+	bool hasValue(std::string key) const;
 
-	std::string serialize();
+	std::string serialize() const;
 	
 	static std::string& trimString(std::string &line);
 
@@ -50,6 +51,7 @@ private:
 
 	PackageType type;
 	bool valid;
+	bool acknowledgementNeeded;
 	
 	std::map<std::string, std::string> *keyValueMap;
 };

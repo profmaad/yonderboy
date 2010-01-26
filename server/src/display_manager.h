@@ -26,6 +26,7 @@
 class View;
 class ViewerHost;
 class RendererHost;
+class Job;
 class Package;
 
 class DisplayManager
@@ -42,8 +43,8 @@ public:
 	void unregisterView(View *theView);
 	void unregisterRenderer(RendererHost *theRenderer);
 
-	void connect(View *theView, RendererHost *theRenderer);
-	void parsePackage(Package *thePackage, ViewerHost *host);
+	void connect(View *theView, RendererHost *theRenderer, Job *connectJob = NULL);
+	void doJob(Job *theJob);
 
 	void disconnectView(std::string viewID, ViewerHost *host);
 	void disconnectRenderer(std::string rendererID);

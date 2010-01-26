@@ -40,18 +40,39 @@ JobManager::~JobManager()
 	delete unfinishedJobs;
 }
 
-Job* JobManager::processPackage(Package *thePackage, AbstractHost *host)
+Job* JobManager::processReceivedPackage(AbstractHost *host, Package *thePackage)
 {
 	Job *result = NULL;
 
-	if(thePackage && host && thePackage->hasID() && (thePackage->getType() == ConnectionManagement || thePackage->getType() == Command))
+	if(!thePackage || !host || !thePackage->isValid()) { return result; }
+
+	if(thePackage->getType() == Acknowledgement)
 	{
-		result = new Job(host, thePackage->getID());
+		Job *acknowledgedJob = retrieveJob(host, thePackage->getValue("ack-id"));
+		if (acknowledgedJob) { finishJob(acknowledgedJob); }
+	}
+	else if(thePackage->needsAcknowledgement())
+	{
+		result = new Job(host, thePackage, false);
 		unfinishedJobs->insert(std::make_pair(std::make_pair(host, thePackage->getID()), result));
 		
-		//TODO: analyse package further and forward accordingly
+		LOG_INFO("received new job "<<thePackage->getID()<<"@"<<host);
 
-		LOG_INFO("registered new job "<<thePackage->getID()<<"@"<<host);
+		//TODO: analyse package further and forward accordingly
+	}
+	
+	return result;
+}
+Job* JobManager::processSendPackage(AbstractHost *host, Package *thePackage)
+{
+	Job *result = NULL;
+	
+	if(thePackage && host && thePackage->isValid() && thePackage->needsAcknowledgement())
+	{
+		result = new Job(host, thePackage, true);
+		unfinishedJobs->insert(std::make_pair(std::make_pair(host, thePackage->getID()), result));
+		
+		LOG_INFO("received new external job "<<thePackage->getID()<<"@"<<host);
 	}
 
 	return result;
@@ -70,10 +91,14 @@ void JobManager::clearDependencies(Job *dependentJob)
 	}	
 }
 
-void JobManager::finishJob(Job *theJob)
+void JobManager::jobDone(Job *theJob)
 {
 	theJob->sendAcknowledgement();
 
+	finishJob(theJob);
+}
+void JobManager::finishJob(Job *theJob)
+{
 	for(std::vector<Job*>::iterator iter = theJob->dependentJobs->begin(); iter != theJob->dependentJobs->end(); ++iter)
 	{
 		(*iter)->removeDependency(theJob);
@@ -85,7 +110,7 @@ void JobManager::finishJob(Job *theJob)
 
 	delete theJob;
 
-	LOG_INFO("finished job "<<theJob->ackID<<"@"<<theJob->host);
+	LOG_INFO("finished job "<<theJob->getPackage()->getID()<<"@"<<theJob->host);
 }
 
 Job* JobManager::retrieveJob(AbstractHost *host, std::string id)

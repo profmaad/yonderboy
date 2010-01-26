@@ -23,17 +23,26 @@
 # include <vector>
 # include <string>
 
+# include "macros.h"
+
 class AbstractHost;
+class Package;
 
 class Job
 {
 public:
-	Job(AbstractHost *host, std::string ackID);
+	Job(AbstractHost *host, Package *originalPackage, bool external);
 	~Job();
 
-	bool usesDependencies() { return dependenciesUsed; }
-	bool hasDependencies();
-	bool hasDependentJobs();
+	bool usesDependencies() const { return dependenciesUsed; }
+	bool hasDependencies() const;
+	bool hasDependentJobs() const;
+
+	const Package* getPackage() const { return originalPackage; }
+	std::string getID() const { return originalPackage->getID(); }
+	PackageType getType() const { return originalPackage->getType(); }
+	AbstractHost* getHost() const { return host; }
+	bool isExternal() const { return external; }
 
 private:
 	void addDependency(Job *dependency);
@@ -44,8 +53,9 @@ private:
 
 	void sendAcknowledgement();
 
-	std::string ackID;
 	AbstractHost *host;
+	bool external;
+	const Package *originalPackage;
 
 	std::vector<Job*> *dependencies;
 	std::vector<Job*> *dependentJobs;

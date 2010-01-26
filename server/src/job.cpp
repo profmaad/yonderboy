@@ -22,6 +22,7 @@
 # include <map>
 
 # include "log.h"
+# include "macros.h"
 
 # include "abstract_host.h"
 # include "package.h"
@@ -29,7 +30,7 @@
 
 # include "job.h"
 
-Job::Job(AbstractHost *host, std::string ackID) : dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), ackID(ackID), host(host)
+Job::Job(AbstractHost *host, Package *originalPackage, bool external) : dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host), external(external), originalPackage(originalPackage)
 {
 	dependencies = new std::vector<Job*>();
 	dependentJobs = new std::vector<Job*>();
@@ -40,11 +41,11 @@ Job::~Job()
 	delete dependentJobs;
 }
 
-bool Job::hasDependencies()
+bool Job::hasDependencies() const
 {
 	return !dependencies->empty();
 }
-bool Job::hasDependentJobs()
+bool Job::hasDependentJobs() const
 {
 	return !dependentJobs->empty();
 }
@@ -89,7 +90,7 @@ void Job::removeDependentJob(Job *dependentJob)
 
 void Job::sendAcknowledgement()
 {
-	Package *acknowledgement = constructAcknowledgementPackage(ackID);
+	Package *acknowledgement = constructAcknowledgementPackage(originalPackage->getID());
 
 	if(acknowledgement)
 	{

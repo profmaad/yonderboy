@@ -31,7 +31,10 @@
 # include "ev_cpp.h"
 # include "macros.h"
 # include "log.h"
+
 # include "package.h"
+# include "job.h"
+# include "job_manager.h"
 # include "hosts_manager.h"
 
 # include "abstract_host.h"
