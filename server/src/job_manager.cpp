@@ -40,18 +40,18 @@ JobManager::~JobManager()
 	delete unfinishedJobs;
 }
 
-Job* JobManager::processPackage(Package *thePackage, AbstractHost *receiver)
+Job* JobManager::processPackage(Package *thePackage, AbstractHost *host)
 {
 	Job *result = NULL;
 
-	if(thePackage && receiver && thePackage->hasID() && (thePackage->getType() == ConnectionManagement || thePackage->getType() == Command))
+	if(thePackage && host && thePackage->hasID() && (thePackage->getType() == ConnectionManagement || thePackage->getType() == Command))
 	{
-		result = new Job(receiver, thePackage->getID());
-		unfinishedJobs->insert(std::make_pair(std::make_pair(receiver, thePackage->getID()), result));
+		result = new Job(host, thePackage->getID());
+		unfinishedJobs->insert(std::make_pair(std::make_pair(host, thePackage->getID()), result));
 		
 		//TODO: analyse package further and forward accordingly
 
-		LOG_INFO("registered new job "<<thePackage->getID()<<"@"<<receiver);
+		LOG_INFO("registered new job "<<thePackage->getID()<<"@"<<host);
 	}
 
 	return result;
@@ -85,7 +85,7 @@ void JobManager::finishJob(Job *theJob)
 
 	delete theJob;
 
-	LOG_INFO("finished job "<<theJob->ackID<<"@"<<theJob->originalReceiver);
+	LOG_INFO("finished job "<<theJob->ackID<<"@"<<theJob->host);
 }
 
 Job* JobManager::retrieveJob(AbstractHost *host, std::string id)

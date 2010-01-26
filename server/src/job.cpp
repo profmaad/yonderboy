@@ -29,7 +29,7 @@
 
 # include "job.h"
 
-Job::Job(AbstractHost *originalReceiver, std::string ackID) : dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), ackID(ackID), originalReceiver(originalReceiver)
+Job::Job(AbstractHost *host, std::string ackID) : dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), ackID(ackID), host(host)
 {
 	dependencies = new std::vector<Job*>();
 	dependentJobs = new std::vector<Job*>();
@@ -93,6 +93,6 @@ void Job::sendAcknowledgement()
 
 	if(acknowledgement)
 	{
-		originalReceiver->sendPackage(acknowledgement);
+		host->sendPackage(acknowledgement);
 	}
 }

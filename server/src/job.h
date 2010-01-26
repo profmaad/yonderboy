@@ -28,7 +28,7 @@ class AbstractHost;
 class Job
 {
 public:
-	Job(AbstractHost *originalReceiver, std::string ackID);
+	Job(AbstractHost *host, std::string ackID);
 	~Job();
 
 	bool usesDependencies() { return dependenciesUsed; }
@@ -45,7 +45,7 @@ private:
 	void sendAcknowledgement();
 
 	std::string ackID;
-	AbstractHost *originalReceiver;
+	AbstractHost *host;
 
 	std::vector<Job*> *dependencies;
 	std::vector<Job*> *dependentJobs;

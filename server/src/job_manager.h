@@ -33,7 +33,7 @@ public:
 	JobManager();
 	~JobManager();
 
-	Job* processPackage(Package *thePackage, AbstractHost *receiver);
+	Job* processPackage(Package *thePackage, AbstractHost *host);
 	
 	void addDependency(Job *dependentJob, Job *dependency);
 	void clearDependencies(Job *dependentJob);
