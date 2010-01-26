@@ -47,7 +47,7 @@ ControllerHost::~ControllerHost()
 
 void ControllerHost::handlePackage(Package* thePackage)
 {
-	LOG_INFO("received package of type "<<thePackage->getType())
+	LOG_INFO("received package of type "<<thePackage->getType());
 
 	if(state == Connected && thePackage->getType() == ConnectionManagement)
 	{
@@ -61,7 +61,7 @@ void ControllerHost::handlePackage(Package* thePackage)
 
 			state = Established;
 
-			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive and can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests")
+			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive and can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests");
  		}
 	}
 	else if(state == Established)
@@ -70,7 +70,7 @@ void ControllerHost::handlePackage(Package* thePackage)
 		{
 		case Command:
 			server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
-			LOG_INFO("received command '"<<thePackage->getValue("command")<<"' from controller")
+			LOG_INFO("received command '"<<thePackage->getValue("command")<<"' from controller");
 			break;
 		}
 	}
