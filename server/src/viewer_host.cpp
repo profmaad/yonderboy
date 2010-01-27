@@ -86,6 +86,9 @@ void ViewerHost::handlePackage(Package* thePackage)
 		{
 			displaysStati = thePackage->isSet("can-display-stati");
 			displaysPopups = thePackage->isSet("can-display-popups");
+			clientName = thePackage->getValue("client-name");
+			clientVersion = thePackage->getValue("client-version");
+
 			sendPackage(constructAcknowledgementPackage(thePackage));
 
 			state = Established;

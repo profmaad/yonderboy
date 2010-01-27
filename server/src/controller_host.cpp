@@ -56,6 +56,8 @@ void ControllerHost::handlePackage(Package* thePackage)
 		{
 			interactive = thePackage->isSet("interactive");
 			handlesSynchronousRequests = thePackage->isSet("can-handle-requests");
+			clientName = thePackage->getValue("client-name");
+			clientVersion = thePackage->getValue("client-version");
 
 			sendPackage(constructAcknowledgementPackage(thePackage));
 

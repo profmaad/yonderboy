@@ -19,10 +19,13 @@
 
 # include <stdexcept>
 # include <string>
+# include <sstream>
 
 # include <cerrno>
 # include <cstring>
+# include <sys/types.h>
 # include <sys/socket.h>
+# include <unistd.h>
 
 # include "ev_cpp.h"
 
@@ -61,11 +64,16 @@ void RendererHost::handlePackage(Package* thePackage)
 		// check for init packages and handle them
 		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
 		{
+			clientName = thePackage->getValue("client-name");
+			clientVersion = thePackage->getValue("client-version");
+			backendName = thePackage->getValue("backend-name");
+			backendVersion = thePackage->getValue("backend-version");
+
+			sendPackage(constructAcknowledgementPackage(thePackage));
+			
 			state = Established;
 
 			LOG_INFO("connection successfully established");
-
-			sendPackage(constructAcknowledgementPackage(thePackage));
 		}
 	}
 	else if(state == Established)
@@ -76,5 +84,52 @@ void RendererHost::handlePackage(Package* thePackage)
 			server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
 			break;
 		}
+	}
+}
+
+RendererHost* RendererHost::spawnRenderer(std::string binaryPath)
+{
+	RendererHost *host = NULL;
+	int sockets[2] = { -1, -1 };
+	int result = -1;
+	pid_t forkResult = -1;
+	char errorBuffer[128] = {'\0'};
+
+	// create connected socket pair
+	result = socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
+	if(result < 0)
+	{
+		strerror_r(errno, errorBuffer, 128);
+		throw std::runtime_error("socket pair creation for renderer failed: "+std::string(errorBuffer));
+	}
+
+	forkResult = fork();
+	if(forkResult == 0) // child
+	{
+		close(sockets[0]);
+		
+		std::ostringstream conversionStream;
+		conversionStream<<(sockets[1]);
+		
+		result = execlp(binaryPath.c_str(), conversionStream.str().c_str(), static_cast<char*>(NULL));
+
+		// when we reach this code, execlp failed
+		close(sockets[1]);
+		strerror_r(errno, errorBuffer, 128);
+		throw std::runtime_error("executing the renderer binary failed: "+std::string(errorBuffer));
+	}
+	else if(forkResult > 0) // parent
+	{
+		LOG_INFO("forked renderer with pid "<<forkResult);
+
+		close(sockets[1]);
+		
+		host = new RendererHost(sockets[0]);
+		return host;
+	}
+	else // error
+	{
+		strerror_r(errno, errorBuffer, 128);
+		throw std::runtime_error("spawning the renderer process failed: "+std::string(errorBuffer));
 	}
 }

@@ -37,6 +37,8 @@ public:
 	void disconnect();
 	void shutdownHost();
 	ConnectionState getState() { return state; }
+	std::string getClientName() { return clientName; }
+	std::string getClientVersion() { return clientVersion; }
 
 	void sendPackage(Package *thePackage);
 
@@ -44,6 +46,10 @@ protected:
 	virtual void handlePackage(Package *thePackage) = 0;
 
 	ConnectionState state;
+
+	// client information that all hosts have
+	std::string clientName;
+	std::string clientVersion;
 
 private:
 	void closeSocket(); // only safe to call when we either already did a proper shutdown (thats what disconnect() is for) or we are just responding to the other side shuting down

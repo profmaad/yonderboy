@@ -30,6 +30,7 @@ class RendererHost : public AbstractHost
 public:
 	RendererHost(int hostSocket);
 	~RendererHost();
+	static RendererHost* spawnRenderer(std::string binaryPath);
 
 	std::string getID() { return id; }
 	std::string getDisplayInformation() { return displayInformation; }
@@ -42,6 +43,8 @@ private:
 	std::string id;
 	std::string displayInformation;
 	std::string displayInformationType;
+	std::string backendName;
+	std::string backendVersion;
 };
 
 # endif /*RENDERER_HOST_H*/
