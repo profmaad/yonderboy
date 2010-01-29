@@ -26,19 +26,20 @@
 
 # include "package_factories.h"
 
-Package* constructAcknowledgementPackage(std::string identifier)
+Package* constructAcknowledgementPackage(std::string identifier, std::string error)
 {
 	Package *result = NULL;
 	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();
 	kvMap->insert(std::make_pair("type", "ack"));
 	kvMap->insert(std::make_pair("ack-id",identifier));
+	if(!error.empty()) { kvMap->insert(std::make_pair("error", error)); }
 
 	result = new Package(kvMap);
 
 	return result;
 }
-Package* constructAcknowledgementPackage(Package *packageToAcknowledge)
+Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error)
 {
-	if(packageToAcknowledge->hasID()) { return constructAcknowledgementPackage(packageToAcknowledge->getID()); }
+	if(packageToAcknowledge->hasID()) { return constructAcknowledgementPackage(packageToAcknowledge->getID(), error); }
 	else return NULL;
 }

@@ -52,7 +52,6 @@ public:
 
 private:
 	void idleCallback(ev::idle &watcher, int revents);
-	void scheduleHostForDeletion(AbstractHost *host);
 
 	std::string getNextRendererID();
 	std::string getNextViewerID();

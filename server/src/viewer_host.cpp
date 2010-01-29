@@ -118,6 +118,9 @@ void ViewerHost::handlePackage(Package* thePackage)
 	}
 	else if(state == Established)
 	{
-		server->packageRouterInstance()->processPackage(this, thePackage);
+		if(server->packageRouterInstance()->isAllowed(ServerComponentViewerHost, thePackage))
+		{
+			server->packageRouterInstance()->processPackage(this, thePackage);
+		}
 	}
 }

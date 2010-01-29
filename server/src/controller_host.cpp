@@ -75,6 +75,9 @@ void ControllerHost::handlePackage(Package* thePackage)
 	}
 	else if(state == Established)
 	{
-		server->packageRouterInstance()->processPackage(this, thePackage);
+		if(server->packageRouterInstance()->isAllowed(ServerComponentControllerHost, thePackage))
+		{
+			server->packageRouterInstance()->processPackage(this, thePackage);
+		}
 	}
 }

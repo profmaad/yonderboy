@@ -79,8 +79,11 @@ void RendererHost::handlePackage(Package* thePackage)
 		}
 	}
 	else if(state == Established)
-	{	
-		server->packageRouterInstance()->processPackage(this, thePackage);
+	{
+		if(server->packageRouterInstance()->isAllowed(ServerComponentRendererHost, thePackage))
+		{
+			server->packageRouterInstance()->processPackage(this, thePackage);
+		}
 	}
 }
 

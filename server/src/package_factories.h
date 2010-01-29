@@ -23,5 +23,5 @@
 # include "macros.h"
 # include "package.h"
 
-Package* constructAcknowledgementPackage(std::string identifier);
-Package* constructAcknowledgementPackage(Package *packageToAcknowledge);
+Package* constructAcknowledgementPackage(std::string identifier, std::string error = "");
+Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error = "");

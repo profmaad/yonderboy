@@ -143,12 +143,12 @@ ControllerHost* HostsManager::getControllerHost(std::string id)
 
 void HostsManager::scheduleHostForDeletion(std::string id)
 {
-	scheduleHostForDeletion(getHost(id).second);
-}
-void HostsManager::scheduleHostForDeletion(AbstractHost *host)
-{
+	AbstractHost *host = getHost(id).second;
+
 	if(host)
 	{
+		hosts->erase(id);
+		
 		hostsScheduledForDeletion->push_back(host);
 
 		if(! idleTimer->is_active()) idleTimer->start();

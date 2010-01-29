@@ -38,9 +38,11 @@
 
 # include "package_router.h"
 
-PackageRouter::PackageRouter() : routingTable(NULL), statiReceiver(NULL)
+PackageRouter::PackageRouter() : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
 {
 	routingTable = new std::map<std::string, ServerComponent>();
+	allowedControllerCommands = new std::set<std::string>();
+	allowedRendererRequests = new std::set<std::string>();
 	statiReceiver = new std::set<AbstractHost*>();
 
 	// fill routing table from static arrays
@@ -87,9 +89,36 @@ void PackageRouter::removeStatiReceiver(AbstractHost *host)
 	statiReceiver->erase(host);
 }
 
+bool PackageRouter::isAllowed(ServerComponent receivingComponent, Package *thePackage)
+{
+	if(thePackage->getType() == Acknowledgement || thePackage->getType() == ConnectionManagement) { return true; }
+
+	if(receivingComponent == ServerComponentControllerHost)
+	{
+		if(thePackage->getType() == Command)
+		{
+			return (allowedControllerCommands->count(thePackage->getValue("command")) > 0);
+		}
+		else if(thePackage->getType() == Response) { return true; }
+		else { return false; }
+	}
+	else if(receivingComponent == ServerComponentViewerHost)
+	{
+		return false;
+	}
+	else if(receivingComponent == ServerComponentRendererHost)
+	{
+		if(thePackage->getType() == Request)
+		{
+			return (allowedRendererRequests->count(thePackage->getValue("request-type")) > 0);
+		}
+		else if(thePackage->getType() == StatusChange) { return true; }
+		else { return false; }
+	}
+}
+
 void PackageRouter::routeJob(Job *theJob)
 {
-	std::string key;
 	std::string targetID;
 	std::map<std::string, ServerComponent>::const_iterator iter;
 	RendererHost *rendererHost = NULL;

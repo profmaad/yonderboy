@@ -36,6 +36,8 @@ public:
 
 	Job* processPackage(AbstractHost *host, Package *thePackage);
 
+	bool isAllowed(ServerComponent receivingComponent, Package *thePackage);
+
 	void addStatiReceiver(AbstractHost *host);
 	void removeStatiReceiver(AbstractHost *host);
 
@@ -44,6 +46,9 @@ private:
 	void deliverStatusChange(Job *theJob);
 
 	std::map<std::string, ServerComponent> *routingTable;
+
+	std::set<std::string> *allowedControllerCommands;
+	std::set<std::string> *allowedRendererRequests;
 
 	std::set<AbstractHost*> *statiReceiver;
 };
