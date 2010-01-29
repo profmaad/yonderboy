@@ -59,7 +59,11 @@ void RendererHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
-	if(!thePackage->isValid()) { return; }
+	if(!server->packageRouterInstance()->isAllowed(ServerComponentRendererHost, thePackage))
+	{
+		sendPackage(constructAcknowledgementPackage(thePackage, "forbidden"));
+		return;
+	}
 
 	if(state == Connected)
 	{
@@ -80,10 +84,7 @@ void RendererHost::handlePackage(Package* thePackage)
 	}
 	else if(state == Established)
 	{
-		if(server->packageRouterInstance()->isAllowed(ServerComponentRendererHost, thePackage))
-		{
-			server->packageRouterInstance()->processPackage(this, thePackage);
-		}
+		server->packageRouterInstance()->processPackage(this, thePackage);
 	}
 }
 

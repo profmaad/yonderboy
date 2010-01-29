@@ -53,6 +53,12 @@ void ControllerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
+	if(!server->packageRouterInstance()->isAllowed(ServerComponentControllerHost, thePackage))
+	{
+		sendPackage(constructAcknowledgementPackage(thePackage, "forbidden"));
+		return;
+	}
+
 	if(state == Connected && thePackage->getType() == ConnectionManagement)
 	{
 		// check for init packages and handle them
@@ -75,9 +81,6 @@ void ControllerHost::handlePackage(Package* thePackage)
 	}
 	else if(state == Established)
 	{
-		if(server->packageRouterInstance()->isAllowed(ServerComponentControllerHost, thePackage))
-		{
-			server->packageRouterInstance()->processPackage(this, thePackage);
-		}
+		server->packageRouterInstance()->processPackage(this, thePackage);
 	}
 }
