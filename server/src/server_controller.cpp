@@ -21,7 +21,6 @@
 # include <string>
 # include <vector>
 # include <iostream>
-# include <iomanip>
 
 # include <csignal>
 # include <unistd.h>
@@ -82,8 +81,6 @@ ServerController::~ServerController()
 	delete jobManager;
 	delete metaDecisionMaker;
 	delete signalPipeWatcher;
-
-	std::clog<<std::flush;
 }
 
 void ServerController::signalPipeCallback(ev::io &watcher, int revents)

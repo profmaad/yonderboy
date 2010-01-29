@@ -18,6 +18,7 @@
 //      MA 02110-1301, USA.
 
 # include <iostream>
+# include <iomanip>
 # include <streambuf>
 # include <fstream>
 
@@ -224,7 +225,8 @@ int main(int argc, char** argv)
 	ev::default_loop().loop();
 	
 	delete server;
-	
+
+	std::clog<<std::flush;
 	std::clog.rdbuf(originalCLogStreambuf);
 	if(logfileStream)
 	{
