@@ -139,10 +139,10 @@ void DisplayManager::doJob(Job *theJob)
 	View *theView = NULL;
 	RendererHost *theRenderer = NULL;
 
-	if(theJob->getPackage()->getType() == Command && theJob->getPackage()->getValue("command") == "connect-view" && theJob->getPackage()->isSet("view-id") && theJob->getPackage()->isSet("renderer-id"))
+	if(theJob->getType() == Command && theJob->getValue("command") == "connect-view" && theJob->isSet("view-id") && theJob->isSet("renderer-id"))
 	{
-		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getPackage()->getValue("view-id"), static_cast<ViewerHost*>(theJob->getHost())));
-		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(theJob->getPackage()->getValue("renderer-id"));
+		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getValue("view-id"), static_cast<ViewerHost*>(theJob->getHost())));
+		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(theJob->getValue("renderer-id"));
 
 		if(viewIter != views->end() && rendererIter != renderers->end())
 		{

@@ -40,28 +40,11 @@ JobManager::~JobManager()
 	delete unfinishedJobs;
 }
 
-Job* JobManager::processReceivedPackage(AbstractHost *host, Package *thePackage)
+void JobManager::addJob(Job *theJob)
 {
-	Job *result = NULL;
+	if(!theJob) { return; }
 
-	if(!thePackage || !host || !thePackage->isValid()) { return result; }
-
-	if(thePackage->getType() == Acknowledgement)
-	{
-		Job *acknowledgedJob = retrieveJob(host, thePackage->getValue("ack-id"));
-		if (acknowledgedJob) { finishJob(acknowledgedJob); }
-	}
-	else if(thePackage->needsAcknowledgement())
-	{
-		result = new Job(host, thePackage, false);
-		unfinishedJobs->insert(std::make_pair(std::make_pair(host, thePackage->getID()), result));
-		
-		LOG_INFO("received new job "<<thePackage->getID()<<"@"<<host);
-
-		//TODO: analyse package further and forward accordingly
-	}
-	
-	return result;
+	unfinishedJobs->insert(std::make_pair(std::make_pair(theJob->getHost(), theJob->getID()), theJob));
 }
 Job* JobManager::processSendPackage(AbstractHost *host, Package *thePackage)
 {
@@ -110,7 +93,7 @@ void JobManager::finishJob(Job *theJob)
 
 	delete theJob;
 
-	LOG_INFO("finished job "<<theJob->getPackage()->getID()<<"@"<<theJob->host);
+	LOG_INFO("finished job "<<theJob->getID()<<"@"<<theJob->getHost());
 }
 
 Job* JobManager::retrieveJob(AbstractHost *host, std::string id)

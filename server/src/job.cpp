@@ -30,7 +30,7 @@
 
 # include "job.h"
 
-Job::Job(AbstractHost *host, Package *originalPackage, bool external) : dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host), external(external), originalPackage(originalPackage)
+Job::Job(AbstractHost *host, Package *originalPackage, bool external) : Package(originalPackage), dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host), external(external)
 {
 	dependencies = new std::vector<Job*>();
 	dependentJobs = new std::vector<Job*>();
@@ -96,7 +96,7 @@ void Job::removeDependentJob(Job *dependentJob)
 
 void Job::sendAcknowledgement()
 {
-	Package *acknowledgement = constructAcknowledgementPackage(originalPackage->getID());
+	Package *acknowledgement = constructAcknowledgementPackage(getID());
 
 	if(acknowledgement)
 	{

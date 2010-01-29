@@ -30,7 +30,7 @@ Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL),
 	
 	initialize();
 }
-Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), keyValueMap(NULL), valid(false)
+Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
 {
 	if(!kvMap)
 	{
@@ -43,15 +43,19 @@ Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), key
 
 	initialize();
 }
+Package::Package(Package *thePackage) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
+{
+	type = thePackage->type;
+	valid = thePackage->valid;
+	acknowledgementNeeded = thePackage->acknowledgementNeeded;
+
+	keyValueMap = new std::map<std::string, std::string>(*(thePackage->keyValueMap));
+
+	initialize();
+}
 void Package::initialize()
 {
 	type = extractType(keyValueMap);
-
-	for(std::map<std::string, std::string>::const_iterator iter = keyValueMap->begin(); iter != keyValueMap->end(); ++iter)
-	{
-		std::cout<<"\t'"<<iter->first<<"':'"<<iter->second<<"'"<<std::endl;
-	}
-	std::cout<<"\ttype: "<<type<<std::endl;
 
 	switch(type)
 	{
@@ -81,8 +85,7 @@ void Package::initialize()
 	default:
 		valid = false;
 		acknowledgementNeeded = false;
-	}
-	
+	}	
 }
 Package::~Package()
 {

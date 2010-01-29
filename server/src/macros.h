@@ -90,6 +90,18 @@ enum ServerState
 	ServerStateShuttingDown			// server is going down, doing deinitialization - blocking is allowed, crashing is not
 };
 
+enum ServerComponent
+{
+	DecisionMaker,
+	DisplayManager,
+	JobManager,
+	ConfigurationManager,
+	PersistenceManager,
+	HostsManager,
+	PackageRouter,
+	ServerController
+};
+
 enum LogLevel
 {
 	LogLevelDebug = 0,

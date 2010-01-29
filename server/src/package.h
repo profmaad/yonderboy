@@ -28,6 +28,7 @@ class Package
 public:
 	explicit Package(std::string serializatedData);
 	Package(std::map<std::string, std::string> *kvMap);
+	Package(Package *thePackage);
 	virtual ~Package();
 
 	PackageType getType() const { return type; }
