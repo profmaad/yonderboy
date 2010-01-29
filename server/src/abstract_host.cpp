@@ -33,6 +33,7 @@
 # include "log.h"
 
 # include "package.h"
+# include "package_factories.h"
 # include "job.h"
 # include "job_manager.h"
 # include "hosts_manager.h"
@@ -157,14 +158,21 @@ void AbstractHost::processPackage()
 {
 	Package *constructedPackage = new Package(parseBuffer);
 	if(constructedPackage->isValid()) { handlePackage(constructedPackage); }
-	else { delete constructedPackage; }
-	
+	else
+	{
+		sendPackage(constructAcknowledgementPackage(constructedPackage, "invalid"));
+		delete constructedPackage;
+	}
+
 	parseBuffer.clear();
 }
 
 void AbstractHost::sendPackage(Package *thePackage)
 {
-	if( !thePackage || !(thePackage->isValid()) ) { return; }
+	if( !thePackage || !(thePackage->isValid()) )
+	{
+		return;
+	}
 
 	std::string serializedData = thePackage->serialize();
 	serializedData += '\n';
@@ -172,6 +180,11 @@ void AbstractHost::sendPackage(Package *thePackage)
 	sendBuffer += serializedData;
 
 	if(! writeWatcher->is_active()) { writeWatcher->start(hostSocket, ev::WRITE); }
+}
+void AbstractHost::sendPackageAndDelete(Package *thePackage)
+{
+	sendPackage(thePackage);
+	delete thePackage;
 }
 void AbstractHost::writeCallback(ev::io &watcher, int revents)
 {

@@ -55,7 +55,8 @@ void ControllerHost::handlePackage(Package* thePackage)
 
 	if(!server->packageRouterInstance()->isAllowed(ServerComponentControllerHost, thePackage))
 	{
-		sendPackage(constructAcknowledgementPackage(thePackage, "forbidden"));
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "forbidden"));
+		delete thePackage;
 		return;
 	}
 
@@ -72,15 +73,21 @@ void ControllerHost::handlePackage(Package* thePackage)
 
 			if(displaysStati) { server->packageRouterInstance()->addStatiReceiver(this); }
 
-			sendPackage(constructAcknowledgementPackage(thePackage));
+			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 
 			state = Established;
 
 			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive, can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests and can"<<(displaysStati?"":"'t")<<" display stati");
+
+			delete thePackage;
  		}
 	}
 	else if(state == Established)
 	{
 		server->packageRouterInstance()->processPackage(this, thePackage);
+	}
+	else
+	{
+		delete thePackage;
 	}
 }

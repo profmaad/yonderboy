@@ -129,8 +129,8 @@ void DisplayManager::connect(View *theView, RendererHost *theRenderer, Job *conn
 		server->jobManagerInstance()->addDependency(connectJob, rendererJob);
 	}
 
-	theView->getHost()->sendPackage(viewerPackage);
-	theRenderer->sendPackage(rendererPackage);
+	theView->getHost()->sendPackage(viewerJob);
+	theRenderer->sendPackage(rendererJob);
 	
 	rendererByView->insert(std::make_pair(theView, theRenderer));
 	viewByRenderer->insert(std::make_pair(theRenderer, theView));
@@ -150,6 +150,8 @@ void DisplayManager::doJob(Job *theJob)
 			connect(viewIter->second, rendererIter->second, theJob);
 		}
 	}
+
+	delete theJob;
 }
 
 void DisplayManager::disconnectView(std::string viewID, ViewerHost *host)

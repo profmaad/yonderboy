@@ -37,6 +37,11 @@ JobManager::JobManager() : unfinishedJobs(NULL)
 }
 JobManager::~JobManager()
 {
+	for(std::map<std::pair<AbstractHost*, std::string>, Job*>::iterator iter = unfinishedJobs->begin(); iter != unfinishedJobs->end(); ++iter)
+	{
+		delete iter->second;
+	}
+
 	delete unfinishedJobs;
 }
 

@@ -76,7 +76,8 @@ void ViewerHost::handlePackage(Package* thePackage)
 
 	if(!server->packageRouterInstance()->isAllowed(ServerComponentViewerHost, thePackage))
 	{
-		sendPackage(constructAcknowledgementPackage(thePackage, "forbidden"));
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "forbidden"));
+		delete thePackage;
 		return;
 	}
 
@@ -92,7 +93,8 @@ void ViewerHost::handlePackage(Package* thePackage)
 
 			server->packageRouterInstance()->addStatiReceiver(this);
 
-			sendPackage(constructAcknowledgementPackage(thePackage));
+			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
+			delete thePackage;
 
 			state = Established;
 
@@ -105,7 +107,8 @@ void ViewerHost::handlePackage(Package* thePackage)
 			{
 				views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
 				
-				sendPackage(constructAcknowledgementPackage(thePackage));
+				sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
+				delete thePackage;
 			}
 		}
 		else if(thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
@@ -116,12 +119,17 @@ void ViewerHost::handlePackage(Package* thePackage)
 				views->erase(thePackage->getValue("view-id"));
 				delete theView;
 				
-				sendPackage(constructAcknowledgementPackage(thePackage));
+				sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
+				delete thePackage;
 			}
 		}
 	}
 	else if(state == Established)
 	{
 		server->packageRouterInstance()->processPackage(this, thePackage);
+	}
+	else
+	{
+		delete thePackage;
 	}
 }

@@ -25,6 +25,7 @@
 # include "macros.h"
 
 # include "package.h"
+# include "package_factories.h"
 # include "job.h"
 # include "abstract_host.h"
 # include "job_manager.h"
@@ -59,12 +60,16 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 {
 	Job *result = NULL;
 
-	if(!thePackage || !host || !thePackage->isValid()) { return result; }
+	if(!thePackage || !host)
+	{
+		return result;
+	}
 
 	if(thePackage->getType() == Acknowledgement)
 	{
 		Job *acknowledgedJob = server->jobManagerInstance()->retrieveJob(host, thePackage->getValue("ack-id"));
 		if (acknowledgedJob) { server->jobManagerInstance()->jobDone(acknowledgedJob); }
+		delete thePackage;
 	}
 	else
 	{
@@ -72,7 +77,7 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 
 		if(thePackage->needsAcknowledgement()) { server->jobManagerInstance()->addJob(result); }
 		
-		LOG_INFO("received new job "<<thePackage->getID()<<"@"<<host);
+		LOG_INFO("received new job "<<result->getID()<<"@"<<host);
 
 		routeJob(result);
 	}
@@ -142,18 +147,25 @@ void PackageRouter::routeJob(Job *theJob)
 		originalRequest = server->jobManagerInstance()->retrieveJob(theJob->getHost(), theJob->getValue("request-id"));
 		if(originalRequest)
 		{
+			originalRequest->getHost()->sendPackageAndDelete(theJob);
 			server->jobManagerInstance()->finishJob(originalRequest);
-			originalRequest->getHost()->sendPackage(theJob);
 		}
 		else
 		{
 			LOG_WARNING("encountered unmatched response with request-id "<<theJob->getValue("request-id")<<", discarding it");
+			theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "unmatched"));
+			delete theJob;
 		}
 		return;
 		break;
 	}
 
-	if(iter == routingTable->end()) { return; }
+	if(iter == routingTable->end())
+	{
+		theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "unknown"));
+		delete theJob;
+		return;
+	}
 
 	switch(iter->second)
 	{
@@ -192,6 +204,8 @@ void PackageRouter::routeJob(Job *theJob)
 		break;
 	default:
 		LOG_WARNING("encountered package with invalid routing target: "<<iter->second);
+		theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "unknown"));
+		delete theJob;
 	}
 }
 void PackageRouter::deliverStatusChange(Job *theJob)
@@ -200,4 +214,6 @@ void PackageRouter::deliverStatusChange(Job *theJob)
 	{
 		(*iter)->sendPackage(theJob);
 	}
+	
+	delete theJob;
 }

@@ -33,7 +33,7 @@ class Job : public Package
 {
 public:
 	Job(AbstractHost *host, Package *originalPackage);
-	~Job();
+	virtual ~Job();
 
 	bool usesDependencies() const { return dependenciesUsed; }
 	bool hasDependencies() const;

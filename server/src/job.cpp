@@ -34,6 +34,8 @@ Job::Job(AbstractHost *host, Package *originalPackage) : Package(originalPackage
 {
 	dependencies = new std::vector<Job*>();
 	dependentJobs = new std::vector<Job*>();
+
+	delete originalPackage;
 }
 Job::~Job()
 {

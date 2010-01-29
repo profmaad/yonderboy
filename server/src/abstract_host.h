@@ -44,6 +44,7 @@ public:
 	void setID(std::string newID) { id = newID; }
 
 	void sendPackage(Package *thePackage);
+	void sendPackageAndDelete(Package *thePackage);
 
 protected:
 	virtual void handlePackage(Package *thePackage) = 0;

@@ -61,7 +61,8 @@ void RendererHost::handlePackage(Package* thePackage)
 
 	if(!server->packageRouterInstance()->isAllowed(ServerComponentRendererHost, thePackage))
 	{
-		sendPackage(constructAcknowledgementPackage(thePackage, "forbidden"));
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "forbidden"));
+		delete thePackage;
 		return;
 	}
 
@@ -75,7 +76,8 @@ void RendererHost::handlePackage(Package* thePackage)
 			backendName = thePackage->getValue("backend-name");
 			backendVersion = thePackage->getValue("backend-version");
 
-			sendPackage(constructAcknowledgementPackage(thePackage));
+			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
+			delete thePackage;
 			
 			state = Established;
 
@@ -85,6 +87,10 @@ void RendererHost::handlePackage(Package* thePackage)
 	else if(state == Established)
 	{
 		server->packageRouterInstance()->processPackage(this, thePackage);
+	}
+	else
+	{
+		delete thePackage;
 	}
 }
 
