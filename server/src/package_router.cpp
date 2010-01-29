@@ -38,15 +38,28 @@
 # include "controller_host.h"
 
 # include "package_router.h"
+# include "package_router_tables.h"
 
 PackageRouter::PackageRouter() : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
 {
 	routingTable = new std::map<std::string, ServerComponent>();
-	allowedControllerCommands = new std::set<std::string>();
-	allowedRendererRequests = new std::set<std::string>();
+	allowedControllerCommands = constructSetFromArray(allowedControllerCommandsArray);
+	allowedRendererRequests = constructSetFromArray(allowedRendererRequestsArray);
 	statiReceiver = new std::set<AbstractHost*>();
 
 	// fill routing table from static arrays
+	addArrayToRoutingTable(ServerComponentDecisionMaker, routingTableArrayForDecisionMaker);
+	addArrayToRoutingTable(ServerComponentDisplayManager, routingTableArrayForDisplayManager);
+	addArrayToRoutingTable(ServerComponentJobManager, routingTableArrayForJobManager);
+	addArrayToRoutingTable(ServerComponentConfigurationManager, routingTableArrayForConfigurationManager);
+	addArrayToRoutingTable(ServerComponentPersistenceManager, routingTableArrayForPersistenceManager);
+	addArrayToRoutingTable(ServerComponentHostsManager, routingTableArrayForHostsManager);
+	addArrayToRoutingTable(ServerComponentPackageRouter, routingTableArrayForPackageRouter);
+	addArrayToRoutingTable(ServerComponentServerController, routingTableArrayForServerController);
+	addArrayToRoutingTable(ServerComponentRendererHost, routingTableArrayForRendererHost);
+	addArrayToRoutingTable(ServerComponentViewerHost, routingTableArrayForViewerHost);
+	addArrayToRoutingTable(ServerComponentControllerHost, routingTableArrayForControllerHost);
+
 
 	LOG_INFO("initialized");
 }
@@ -216,4 +229,28 @@ void PackageRouter::deliverStatusChange(Job *theJob)
 	}
 	
 	delete theJob;
+}
+
+void PackageRouter::addArrayToRoutingTable(ServerComponent component, const char* array[])
+{
+	int index = 0;
+	
+	while(array[index] != NULL)
+	{
+		routingTable->insert(std::make_pair(std::string(array[index]), component));
+
+		index++;
+	}		
+}
+std::set<std::string>* PackageRouter::constructSetFromArray(const char* array[])
+{
+	std::set<std::string> *result = new std::set<std::string>();
+	int index = 0;
+
+	while(array[index] != NULL)
+	{
+		result->insert(std::string(array[index]));
+
+		index++;
+	}
 }

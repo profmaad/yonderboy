@@ -24,6 +24,8 @@
 # include <map>
 # include <string>
 
+# include "macros.h"
+
 class Package;
 class Job;
 class AbstractHost;
@@ -44,6 +46,9 @@ public:
 private:
 	void routeJob(Job *theJob);
 	void deliverStatusChange(Job *theJob);
+
+	void addArrayToRoutingTable(ServerComponent component, const char* array[]);
+	std::set<std::string>* constructSetFromArray(const char* array[]);
 
 	std::map<std::string, ServerComponent> *routingTable;
 
