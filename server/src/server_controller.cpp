@@ -42,10 +42,11 @@
 # include "meta_decision_maker.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
+# include "package_router.h"
 
 # include "server_controller.h"
 
-ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized), displayManager(NULL), hostsManager(NULL), metaDecisionMaker(NULL), jobManager(NULL)
+ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized), displayManager(NULL), hostsManager(NULL), metaDecisionMaker(NULL), jobManager(NULL), packageRouter(NULL)
 {
 	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
@@ -59,6 +60,7 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	displayManager = new DisplayManager();
 	hostsManager = new HostsManager();
 	jobManager = new JobManager();
+	packageRouter = new PackageRouter();
 
 	metaDecisionMaker = new MetaDecisionMaker();
 	
@@ -77,9 +79,10 @@ ServerController::~ServerController()
 	delete viewerListener;
 	delete configurationManager;
 	delete displayManager;
-	delete hostsManager;
 	delete jobManager;
+	delete packageRouter;
 	delete metaDecisionMaker;
+	delete hostsManager;
 	delete signalPipeWatcher;
 }
 

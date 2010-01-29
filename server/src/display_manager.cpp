@@ -19,8 +19,6 @@
 
 # include <string>
 # include <map>
-# include <sstream>
-# include <iomanip>
 
 # include "log.h"
 # include "macros.h"
@@ -34,7 +32,7 @@
 
 # include "display_manager.h"
 
-DisplayManager::DisplayManager() : views(NULL), renderers(NULL), viewByRenderer(NULL), rendererByView(NULL), nextRendererNumber(0)
+DisplayManager::DisplayManager() : views(NULL), renderers(NULL), viewByRenderer(NULL), rendererByView(NULL)
 {
 	views = new std::map<std::pair<std::string, ViewerHost*>, View*>();
 	renderers = new std::map<std::string, RendererHost*>();
@@ -120,8 +118,11 @@ void DisplayManager::connect(View *theView, RendererHost *theRenderer, Job *conn
 	Package *viewerPackage = constructViewConnectPackage(theView, theRenderer);
 	Package *rendererPackage = constructRendererConnectPackage(theRenderer, theView);
 	
-	Job *viewerJob = server->jobManagerInstance()->processSendPackage(static_cast<AbstractHost*>(theView->getHost()), viewerPackage);
-	Job *rendererJob = server->jobManagerInstance()->processSendPackage(static_cast<AbstractHost*>(theRenderer), rendererPackage);
+	Job *viewerJob = new Job(theView->getHost(), viewerPackage);
+	Job *rendererJob = new Job(theRenderer, rendererPackage);
+	server->jobManagerInstance()->addJob(viewerJob);
+	server->jobManagerInstance()->addJob(rendererJob);
+     
 	if(connectJob)
 	{
 		server->jobManagerInstance()->addDependency(connectJob, viewerJob);
@@ -256,14 +257,4 @@ Package* DisplayManager::constructRendererDisconnectPackage(RendererHost *theRen
 	result = new Package(kvMap);
 
 	return result;
-}
-
-std::string DisplayManager::getNextRendererID()
-{
-	std::ostringstream conversionStream("renderer");
-	conversionStream<<std::setfill('0')<<std::setw(5)<<nextRendererNumber;
-
-	nextRendererNumber++;
-
-	return conversionStream.str();
 }

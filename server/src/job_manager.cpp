@@ -46,20 +46,6 @@ void JobManager::addJob(Job *theJob)
 
 	unfinishedJobs->insert(std::make_pair(std::make_pair(theJob->getHost(), theJob->getID()), theJob));
 }
-Job* JobManager::processSendPackage(AbstractHost *host, Package *thePackage)
-{
-	Job *result = NULL;
-	
-	if(thePackage && host && thePackage->isValid() && thePackage->needsAcknowledgement())
-	{
-		result = new Job(host, thePackage, true);
-		unfinishedJobs->insert(std::make_pair(std::make_pair(host, thePackage->getID()), result));
-		
-		LOG_INFO("received new external job "<<thePackage->getID()<<"@"<<host);
-	}
-
-	return result;
-}
 
 void JobManager::addDependency(Job *dependentJob, Job *dependency)
 {

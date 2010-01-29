@@ -39,12 +39,11 @@ public:
 	void clearDependencies(Job *dependentJob);
 
 	void jobDone(Job *theJob);
+	void finishJob(Job *theJob);
 
 	Job* retrieveJob(AbstractHost *host, std::string id);
 	
 private:
-	void finishJob(Job *theJob);
-
 	std::map<std::pair<AbstractHost*, std::string>, Job*> *unfinishedJobs;
 };
 

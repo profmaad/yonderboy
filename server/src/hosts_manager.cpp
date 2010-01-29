@@ -17,20 +17,28 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# include <iostream>
 # include <map>
-# include <utility>
+# include <string>
+# include <vector>
+# include <sstream>
+# include <iomanip>
 
 # include "ev_cpp.h"
 # include "log.h"
+# include "macros.h"
+
+# include "abstract_host.h"
+# include "renderer_host.h"
+# include "viewer_host.h"
+# include "controller_host.h"
 
 # include "hosts_manager.h"
-# include "abstract_host.h"
 
-HostsManager::HostsManager() : hosts(NULL), hostsScheduledForDeletion(NULL), idleTimer(NULL)
+HostsManager::HostsManager() : hosts(NULL), hostsScheduledForDeletion(NULL), idleTimer(NULL), nextRendererID(0), nextViewerID(0), nextControllerID(0), mainControllerID("")
 {
-	hosts = new std::map<int, const AbstractHost*>();
-	hostsScheduledForDeletion = new std::map<int, AbstractHost*>();
+	hosts = new std::map<std::string, std::pair<ServerComponent, AbstractHost*> >();
+
+	hostsScheduledForDeletion = new std::vector<AbstractHost*>();
 
 	idleTimer = new ev::idle();
 	idleTimer->set<HostsManager, &HostsManager::idleCallback>(this);
@@ -41,20 +49,18 @@ HostsManager::~HostsManager()
 {
 	if(hosts)
 	{
-		for(std::map<int, const AbstractHost*>::iterator iter = hosts->begin(); iter != hosts->end(); ++iter)
+		for(std::map<std::string, std::pair<ServerComponent, AbstractHost*> >::iterator iter = hosts->begin(); iter != hosts->end(); ++iter)
 		{
-			delete iter->second;
-			LOG_DEBUG("deleted "<<iter->second);
+			delete iter->second.second;
 		}
 		
 		delete hosts;
 	}
 	if(hostsScheduledForDeletion)
 	{
-		for(std::map<int, AbstractHost*>::iterator iter = hostsScheduledForDeletion->begin(); iter != hostsScheduledForDeletion->end(); ++iter)
+		for(std::vector<AbstractHost*>::iterator iter = hostsScheduledForDeletion->begin(); iter != hostsScheduledForDeletion->end(); ++iter)
 		{
-			delete iter->second;
-			LOG_DEBUG("deleted "<<iter->second);
+			delete *iter;
 		}
 		
 		delete hostsScheduledForDeletion;
@@ -63,36 +69,87 @@ HostsManager::~HostsManager()
 	delete idleTimer;
 }
 
-void HostsManager::registerHost(int id, const AbstractHost* host)
+std::string HostsManager::registerHost(RendererHost *host)
 {
-	if(id < 0 || host == NULL) return;
+	if(!host) { return ""; }
 
-	hosts->insert(std::make_pair(id,host));
+	std::string newID = getNextRendererID();
+	host->setID(newID);
+	
+	hosts->insert(std::make_pair(newID, std::make_pair(ServerComponentRendererHost, host)));
+	
+	return newID;
+}
+std::string HostsManager::registerHost(ViewerHost *host)
+{
+	if(!host) { return ""; }
 
-	LOG_DEBUG("registered "<<host);
+	std::string newID = getNextViewerID();
+	host->setID(newID);
+       
+	hosts->insert(std::make_pair(newID, std::make_pair(ServerComponentViewerHost, host)));
+	
+	return newID;
 }
-void HostsManager::deregisterHost(int id)
+std::string HostsManager::registerHost(ControllerHost *host)
 {
-	hosts->erase(id);
+	if(!host) { return ""; }
+
+	std::string newID = getNextControllerID();
+	host->setID(newID);
+	
+	hosts->insert(std::make_pair(newID, std::make_pair(ServerComponentControllerHost, host)));
+
+	if(mainControllerID.empty() && host->isInteractive() && host->canHandleSynchronousRequests())
+	{
+		mainControllerID = host->getID();
+	}
+	
+	return newID;
 }
-const AbstractHost* HostsManager::getHost(int id)
+
+std::pair<ServerComponent, AbstractHost*> HostsManager::getHost(std::string id)
 {
-	std::map<int, const AbstractHost*>::const_iterator iter = hosts->find(id);
+	std::map<std::string, std::pair<ServerComponent, AbstractHost*> >::iterator iter = hosts->find(id);
 
 	if(iter != hosts->end())
 	{
 		return iter->second;
 	}
 
+	return std::pair<ServerComponent, AbstractHost*>(static_cast<ServerComponent>(-1), NULL);
+}
+RendererHost* HostsManager::getRendererHost(std::string id)
+{
+	std::pair<ServerComponent, AbstractHost*> result = getHost(id);
+	if(result.second && result.first == ServerComponentRendererHost) { return static_cast<RendererHost*>(result.second); }
+
 	return NULL;
 }
-void HostsManager::scheduleHostForDeletion(int id)
+ViewerHost* HostsManager::getViewerHost(std::string id)
 {
-	AbstractHost *theHost = const_cast<AbstractHost*>(getHost(id));
-	if(theHost)
+	std::pair<ServerComponent, AbstractHost*> result = getHost(id);
+	if(result.second && result.first == ServerComponentViewerHost) { return static_cast<ViewerHost*>(result.second); }
+
+	return NULL;
+}
+ControllerHost* HostsManager::getControllerHost(std::string id)
+{
+	std::pair<ServerComponent, AbstractHost*> result = getHost(id);
+	if(result.second && result.first == ServerComponentControllerHost) { return static_cast<ControllerHost*>(result.second); }
+
+	return NULL;
+}
+
+void HostsManager::scheduleHostForDeletion(std::string id)
+{
+	scheduleHostForDeletion(getHost(id).second);
+}
+void HostsManager::scheduleHostForDeletion(AbstractHost *host)
+{
+	if(host)
 	{
-		deregisterHost(id);
-		hostsScheduledForDeletion->insert(std::make_pair(id,theHost));
+		hostsScheduledForDeletion->push_back(host);
 
 		if(! idleTimer->is_active()) idleTimer->start();
 	}
@@ -100,19 +157,40 @@ void HostsManager::scheduleHostForDeletion(int id)
 
 void HostsManager::idleCallback(ev::idle &watcher, int revents)
 {
-	for(std::map<int, AbstractHost*>::iterator iter = hostsScheduledForDeletion->begin(); iter != hostsScheduledForDeletion->end(); ++iter)
+	for(std::vector<AbstractHost*>::iterator iter = hostsScheduledForDeletion->begin(); iter != hostsScheduledForDeletion->end(); ++iter)
 	{
-		if(iter->second->getState() == Disconnected)
+		if((*iter)->getState() == Disconnected)
 		{
-			delete iter->second;
 			hostsScheduledForDeletion->erase(iter);
-
-			LOG_DEBUG("deleting "<<iter->second);
+			delete (*iter);
 		}
 	}
 
-	if(hostsScheduledForDeletion->size() == 0)
+	if(hostsScheduledForDeletion->empty())
 	{
 		idleTimer->stop();
 	}
 }
+
+std::string HostsManager::getNextRendererID()
+{
+	return composeID("renderer",nextRendererID++);
+}
+std::string HostsManager::getNextViewerID()
+{
+	return composeID("viewer",nextViewerID++);
+}
+std::string HostsManager::getNextControllerID()
+{
+	return composeID("controller",nextControllerID++);
+}
+
+std::string HostsManager::composeID(std::string prefix, unsigned long number)
+{
+	std::ostringstream conversionStream(prefix);
+	conversionStream<<std::setfill('0')<<std::setw(5)<<number;
+
+	return conversionStream.str();
+}
+
+

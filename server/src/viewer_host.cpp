@@ -34,7 +34,9 @@
 # include "package_factories.h"
 # include "job.h"
 # include "job_manager.h"
+# include "hosts_manager.h"
 # include "view.h"
+# include "package_router.h"
 
 # include "viewer_host.h"
 
@@ -72,22 +74,19 @@ void ViewerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
-	if(thePackage->getType() == Acknowledgement)
-	{
-		server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
-		return;
-	}
-	else if(thePackage->getType() != ConnectionManagement) { return; }
+	if(!thePackage->isValid()) { return; }
 
-	if(state == Connected)
+	if(state == Connected && thePackage->getType() == ConnectionManagement)
 	{
 		// check for init packages and handle them
-		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
+		if(thePackage->getValue("command") == "initialize")
 		{
 			displaysStati = thePackage->isSet("can-display-stati");
 			displaysPopups = thePackage->isSet("can-display-popups");
 			clientName = thePackage->getValue("client-name");
 			clientVersion = thePackage->getValue("client-version");
+
+			server->packageRouterInstance()->addStatiReceiver(this);
 
 			sendPackage(constructAcknowledgementPackage(thePackage));
 
@@ -95,36 +94,30 @@ void ViewerHost::handlePackage(Package* thePackage)
 
 			LOG_INFO("connection successfully established, viewer can"<<(displaysStati?"":"'t")<<" display status messages and can"<<(displaysPopups?"":"'t")<<" display popups");
 		}
+		else if(thePackage->getValue("command") == "register-view" && thePackage->isSet("view-id"))
+		{
+			View *theView = new View(this, thePackage);
+			if(theView->isValid())
+			{
+				views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
+				
+				sendPackage(constructAcknowledgementPackage(thePackage));
+			}
+		}
+		else if(thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
+		{
+			View *theView = retrieveView(thePackage->getValue("view-id"));
+			if(theView)
+			{
+				views->erase(thePackage->getValue("view-id"));
+				delete theView;
+				
+				sendPackage(constructAcknowledgementPackage(thePackage));
+			}
+		}
 	}
 	else if(state == Established)
 	{
-		std::string command = thePackage->getValue("command");
-		if(command == "register-view")
-		{
-			if(thePackage->isSet("view-id"))
-			{
-				View *theView = new View(this, thePackage);
-				if(theView->isValid())
-				{
-					views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
-					
-					sendPackage(constructAcknowledgementPackage(thePackage));
-				}
-			}
-		}
-		else if(command == "unregister-view")
-		{
-			if(thePackage->isSet("view-id"))
-			{
-				View *theView = retrieveView(thePackage->getValue("view-id"));
-				if(theView)
-				{
-					views->erase(thePackage->getValue("view-id"));
-					delete theView;
-
-					sendPackage(constructAcknowledgementPackage(thePackage));
-				}
-			}
-		}
+		server->packageRouterInstance()->processPackage(this, thePackage);
 	}
 }

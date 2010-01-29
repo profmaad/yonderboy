@@ -35,7 +35,7 @@ class ConfigurationManager;
 class HostsManager;
 class DisplayManager;
 class JobManager;
-
+class PackageRouter;
 class MetaDecisionMaker;
 
 class ServerController
@@ -57,6 +57,7 @@ public:
 	JobManager* jobManagerInstance() { return jobManager; }
 	MetaDecisionMaker* metaDecisionMakerInstance() { return metaDecisionMaker; }
 	ConfigurationManager* configurationManagerInstance() { return configurationManager; }
+	PackageRouter* packageRouterInstance() { return packageRouter; }
 
 private:
 	void signalPipeCallback(ev::io &watcher, int revents);
@@ -69,6 +70,7 @@ private:
 	HostsManager *hostsManager;
 	DisplayManager *displayManager;
 	JobManager *jobManager;
+	PackageRouter *packageRouter;
 	ConfigurationManager *configurationManager;
 	std::string configFilePath;
 

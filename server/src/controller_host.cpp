@@ -36,6 +36,7 @@
 # include "configuration_manager.h"
 # include "hosts_manager.h"
 # include "renderer_host.h"
+# include "package_router.h"
 
 # include "controller_host.h"
 
@@ -59,36 +60,21 @@ void ControllerHost::handlePackage(Package* thePackage)
 		{
 			interactive = thePackage->isSet("interactive");
 			handlesSynchronousRequests = thePackage->isSet("can-handle-requests");
+			displaysStati = thePackage->isSet("can-display-stati");
 			clientName = thePackage->getValue("client-name");
 			clientVersion = thePackage->getValue("client-version");
+
+			if(displaysStati) { server->packageRouterInstance()->addStatiReceiver(this); }
 
 			sendPackage(constructAcknowledgementPackage(thePackage));
 
 			state = Established;
 
-			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive and can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests");
+			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive, can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests and can"<<(displaysStati?"":"'t")<<" display stati");
  		}
 	}
 	else if(state == Established)
 	{
-		switch(thePackage->getType())
-		{
-		case Command:
-			if(thePackage->getValue("command") == "spawn-renderer")
-			{
-				RendererHost *rendererHost = RendererHost::spawnRenderer(server->configurationManagerInstance()->retrieve("server","renderer-binary","/bin/false"));				
-				if(rendererHost)
-				{
-					server->hostsManagerInstance()->registerHost(rendererHost->getHostSocket(), rendererHost);
-				}
-				sendPackage(constructAcknowledgementPackage(thePackage));
-			}
-			else
-			{
-				server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
-			}
-			LOG_INFO("received command '"<<thePackage->getValue("command")<<"' from controller");
-			break;
-		}
+		server->packageRouterInstance()->processPackage(this, thePackage);
 	}
 }

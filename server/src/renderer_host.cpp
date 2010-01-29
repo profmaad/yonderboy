@@ -37,13 +37,13 @@
 # include "job.h"
 # include "job_manager.h"
 # include "display_manager.h"
+# include "hosts_manager.h"
+# include "package_router.h"
 
 # include "renderer_host.h"
 
 RendererHost::RendererHost(int hostSocket) : AbstractHost(hostSocket)
 {
-	id = server->displayManagerInstance()->getNextRendererID();
-
 	server->displayManagerInstance()->registerRenderer(this);
 	
 	LOG_DEBUG("initialized with socket "<<hostSocket);
@@ -59,10 +59,12 @@ void RendererHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
+	if(!thePackage->isValid()) { return; }
+
 	if(state == Connected)
 	{
 		// check for init packages and handle them
-		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
+		if(thePackage->getValue("command") == "initialize")
 		{
 			clientName = thePackage->getValue("client-name");
 			clientVersion = thePackage->getValue("client-version");
@@ -77,13 +79,8 @@ void RendererHost::handlePackage(Package* thePackage)
 		}
 	}
 	else if(state == Established)
-	{
-		switch(thePackage->getType())
-		{
-		case Acknowledgement:
-			server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
-			break;
-		}
+	{	
+		server->packageRouterInstance()->processPackage(this, thePackage);
 	}
 }
 

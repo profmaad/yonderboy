@@ -45,7 +45,6 @@ enum PackageType
 	Unknown,
 	Command,
 	StatusChange,
-	Signal,
 	Request,
 	Response,
 	Acknowledgement,
@@ -92,14 +91,17 @@ enum ServerState
 
 enum ServerComponent
 {
-	DecisionMaker,
-	DisplayManager,
-	JobManager,
-	ConfigurationManager,
-	PersistenceManager,
-	HostsManager,
-	PackageRouter,
-	ServerController
+	ServerComponentDecisionMaker,
+	ServerComponentDisplayManager,
+	ServerComponentJobManager,
+	ServerComponentConfigurationManager,
+	ServerComponentPersistenceManager,
+	ServerComponentHostsManager,
+	ServerComponentPackageRouter,
+	ServerComponentServerController,
+	ServerComponentRendererHost,
+	ServerComponentViewerHost,
+	ServerComponentControllerHost
 };
 
 enum LogLevel

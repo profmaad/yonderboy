@@ -40,6 +40,8 @@ public:
 	int getHostSocket() { return hostSocket; }
 	std::string getClientName() { return clientName; }
 	std::string getClientVersion() { return clientVersion; }
+	std::string getID() { return id; }
+	void setID(std::string newID) { id = newID; }
 
 	void sendPackage(Package *thePackage);
 
@@ -47,6 +49,7 @@ protected:
 	virtual void handlePackage(Package *thePackage) = 0;
 
 	ConnectionState state;
+	std::string id;
 
 	// client information that all hosts have
 	std::string clientName;

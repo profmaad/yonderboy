@@ -1,4 +1,4 @@
-//      controller_listener.cpp
+//      package_router.h
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,43 +17,35 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# include <iostream>
+# ifndef PACKAGE_ROUTER_H
+# define PACKAGE_ROUTER_H
+
+# include <set>
+# include <map>
 # include <string>
-# include <stdexcept>
 
-# include <cerrno>
-# include <cstring>
-# include <unistd.h>
+class Package;
+class Job;
+class AbstractHost;
 
-# include "ev_cpp.h"
-# include "log.h"
-# include "controller_host.h"
-# include "hosts_manager.h"
-
-# include "controller_listener.h"
-
-ControllerListener::ControllerListener(std::string socketPath) : IPCListener(socketPath)
+class PackageRouter
 {
-}
-ControllerListener::~ControllerListener()
-{
-}
+public:
+	PackageRouter();
+	~PackageRouter();
 
-void ControllerListener::callback(ev::io &watcher, int revents)
-{
-	int clientSocket = -1;
-	ControllerHost *host = NULL;
+	Job* processPackage(AbstractHost *host, Package *thePackage);
 
-	try
-	{
-		clientSocket = acceptClient();
-		host = new ControllerHost(clientSocket);
+	void addStatiReceiver(AbstractHost *host);
+	void removeStatiReceiver(AbstractHost *host);
 
-		server->hostsManagerInstance()->registerHost(host);
-	}
-	catch(std::runtime_error e)
-	{
-		delete host;
-		LOG_ERROR("failed to accept controller connection: "<<e.what())
-	}
-}
+private:
+	void routeJob(Job *theJob);
+	void deliverStatusChange(Job *theJob);
+
+	std::map<std::string, ServerComponent> *routingTable;
+
+	std::set<AbstractHost*> *statiReceiver;
+};
+
+# endif /*PACKAGE_ROUTER_H*/

@@ -54,8 +54,6 @@ public:
 	bool isConnected(View *theView);
 	bool isConnected(RendererHost *theRenderer);
 
-	std::string getNextRendererID();
-
 private:
 	void disconnect(View *theView, RendererHost *theRenderer);
 
@@ -69,8 +67,6 @@ private:
 
 	std::map<View*, RendererHost*> *rendererByView;
 	std::map<RendererHost*, View*> *viewByRenderer;
-
-	unsigned int nextRendererNumber;
 };
 
 # endif /*DISPLAY_MANAGER_H*/

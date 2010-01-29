@@ -21,10 +21,16 @@
 # define HOSTS_MANAGER_H
 
 # include <map>
+# include <vector>
+# include <string>
 
 # include "ev_cpp.h"
+# include "macros.h"
 
 class AbstractHost;
+class RendererHost;
+class ViewerHost;
+class ControllerHost;
 
 class HostsManager
 {
@@ -32,16 +38,36 @@ public:
 	HostsManager();
 	virtual ~HostsManager();
 
-	void registerHost(int id, const AbstractHost* host);
-	void deregisterHost(int id);
-	const AbstractHost* getHost(int id);
-	void scheduleHostForDeletion(int id);
+	std::string registerHost(RendererHost *host);
+	std::string registerHost(ViewerHost *host);
+	std::string registerHost(ControllerHost *host);
+
+	std::pair<ServerComponent, AbstractHost*> getHost(std::string id);
+        RendererHost* getRendererHost(std::string id);
+	ViewerHost* getViewerHost(std::string id);
+	ControllerHost* getControllerHost(std::string id);
+	ControllerHost* getMainController() { return getControllerHost(mainControllerID); }
+
+	void scheduleHostForDeletion(std::string id);
 
 private:
 	void idleCallback(ev::idle &watcher, int revents);
+	void scheduleHostForDeletion(AbstractHost *host);
 
-	std::map<int, const AbstractHost*> *hosts;
-	std::map<int, AbstractHost*> *hostsScheduledForDeletion;
+	std::string getNextRendererID();
+	std::string getNextViewerID();
+	std::string getNextControllerID();
+
+	std::string composeID(std::string prefix, unsigned long number);
+
+	std::map<std::string, std::pair<ServerComponent, AbstractHost*> > *hosts;
+	std::string mainControllerID;
+
+	std::vector<AbstractHost*> *hostsScheduledForDeletion;
+
+	unsigned long nextRendererID;
+	unsigned long nextViewerID;
+	unsigned long nextControllerID;
 
 	ev::idle *idleTimer;
 };

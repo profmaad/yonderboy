@@ -29,12 +29,17 @@ public:
 	ControllerHost(int hostSocket);
 	~ControllerHost();
 
+	bool isInteractive() { return interactive; }
+	bool canHandleSynchronousRequests() { return handlesSynchronousRequests; }
+	bool canDisplayStati() { return displaysStati; }
+
 protected:
 	void handlePackage(Package *thePackage);
 
 private:
 	bool interactive;
 	bool handlesSynchronousRequests;
+	bool displaysStati;
 };
 
 # endif /*CONTROLLER_HOST_H*/

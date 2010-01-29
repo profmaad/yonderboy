@@ -23,4 +23,5 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		view.h view.cpp \
 		display_manager.h display_manager.cpp \
 		job.h job.cpp \
-		job_manager.h job_manager.cpp
+		job_manager.h job_manager.cpp \
+		package_router.h package_router.cpp

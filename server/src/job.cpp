@@ -30,7 +30,7 @@
 
 # include "job.h"
 
-Job::Job(AbstractHost *host, Package *originalPackage, bool external) : Package(originalPackage), dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host), external(external)
+Job::Job(AbstractHost *host, Package *originalPackage) : Package(originalPackage), dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host)
 {
 	dependencies = new std::vector<Job*>();
 	dependentJobs = new std::vector<Job*>();

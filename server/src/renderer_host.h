@@ -32,7 +32,6 @@ public:
 	~RendererHost();
 	static RendererHost* spawnRenderer(std::string binaryPath);
 
-	std::string getID() { return id; }
 	std::string getDisplayInformation() { return displayInformation; }
 	std::string getDisplayInformationType() { return displayInformationType; }
 
@@ -40,7 +39,6 @@ protected:
 	void handlePackage(Package *thePackage);
 
 private:
-	std::string id;
 	std::string displayInformation;
 	std::string displayInformationType;
 	std::string backendName;

@@ -32,7 +32,7 @@ class AbstractHost;
 class Job : public Package
 {
 public:
-	Job(AbstractHost *host, Package *originalPackage, bool external);
+	Job(AbstractHost *host, Package *originalPackage);
 	~Job();
 
 	bool usesDependencies() const { return dependenciesUsed; }
@@ -40,7 +40,6 @@ public:
 	bool hasDependentJobs() const;
 
 	AbstractHost* getHost() const { return host; }
-	bool isExternal() const { return external; }
 
 private:
 	void addDependency(Job *dependency);
@@ -52,7 +51,6 @@ private:
 	void sendAcknowledgement();
 
 	AbstractHost *host;
-	bool external;
 
 	std::vector<Job*> *dependencies;
 	std::vector<Job*> *dependentJobs;

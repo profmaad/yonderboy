@@ -66,9 +66,6 @@ void Package::initialize()
 	case StatusChange:
 		valid = isSet("new-status");
 		break;
-	case Signal:
-		valid = isSet("signal-name");
-		break;
 	case Request:
 		valid = isSet("request-type") && isSet("request-id");
 		break;
@@ -174,7 +171,6 @@ PackageType Package::extractType(std::map<std::string, std::string> *kvMap)
 	{
 		if(iter->second == "command") { result = Command; }
 		else if(iter->second == "status-change") { result = StatusChange; }
-		else if(iter->second == "signal") { result = Signal; }
 		else if(iter->second == "request") { result = Request; }
 		else if(iter->second == "response") { result = Response; }
 		else if(iter->second == "ack") { result = Acknowledgement; }
