@@ -56,6 +56,7 @@ public:
 	HostsManager* hostsManagerInstance() { return hostsManager; }
 	JobManager* jobManagerInstance() { return jobManager; }
 	MetaDecisionMaker* metaDecisionMakerInstance() { return metaDecisionMaker; }
+	ConfigurationManager* configurationManagerInstance() { return configurationManager; }
 
 private:
 	void signalPipeCallback(ev::io &watcher, int revents);

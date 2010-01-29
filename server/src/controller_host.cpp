@@ -33,6 +33,9 @@
 # include "package_factories.h"
 # include "job.h"
 # include "job_manager.h"
+# include "configuration_manager.h"
+# include "hosts_manager.h"
+# include "renderer_host.h"
 
 # include "controller_host.h"
 
@@ -71,7 +74,19 @@ void ControllerHost::handlePackage(Package* thePackage)
 		switch(thePackage->getType())
 		{
 		case Command:
-			server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
+			if(thePackage->getValue("command") == "spawn-renderer")
+			{
+				RendererHost *rendererHost = RendererHost::spawnRenderer(server->configurationManagerInstance()->retrieve("server","renderer-binary","/bin/false"));				
+				if(rendererHost)
+				{
+					server->hostsManagerInstance()->registerHost(rendererHost->getHostSocket(), rendererHost);
+				}
+				sendPackage(constructAcknowledgementPackage(thePackage));
+			}
+			else
+			{
+				server->jobManagerInstance()->processReceivedPackage(static_cast<AbstractHost*>(this), thePackage);
+			}
 			LOG_INFO("received command '"<<thePackage->getValue("command")<<"' from controller");
 			break;
 		}

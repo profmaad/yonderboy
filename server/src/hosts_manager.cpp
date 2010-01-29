@@ -44,6 +44,7 @@ HostsManager::~HostsManager()
 		for(std::map<int, const AbstractHost*>::iterator iter = hosts->begin(); iter != hosts->end(); ++iter)
 		{
 			delete iter->second;
+			LOG_DEBUG("deleted "<<iter->second);
 		}
 		
 		delete hosts;
@@ -53,6 +54,7 @@ HostsManager::~HostsManager()
 		for(std::map<int, AbstractHost*>::iterator iter = hostsScheduledForDeletion->begin(); iter != hostsScheduledForDeletion->end(); ++iter)
 		{
 			delete iter->second;
+			LOG_DEBUG("deleted "<<iter->second);
 		}
 		
 		delete hostsScheduledForDeletion;
@@ -66,6 +68,8 @@ void HostsManager::registerHost(int id, const AbstractHost* host)
 	if(id < 0 || host == NULL) return;
 
 	hosts->insert(std::make_pair(id,host));
+
+	LOG_DEBUG("registered "<<host);
 }
 void HostsManager::deregisterHost(int id)
 {
@@ -102,6 +106,8 @@ void HostsManager::idleCallback(ev::idle &watcher, int revents)
 		{
 			delete iter->second;
 			hostsScheduledForDeletion->erase(iter);
+
+			LOG_DEBUG("deleting "<<iter->second);
 		}
 	}
 

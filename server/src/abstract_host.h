@@ -37,6 +37,7 @@ public:
 	void disconnect();
 	void shutdownHost();
 	ConnectionState getState() { return state; }
+	int getHostSocket() { return hostSocket; }
 	std::string getClientName() { return clientName; }
 	std::string getClientVersion() { return clientVersion; }
 

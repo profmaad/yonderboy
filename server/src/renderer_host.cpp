@@ -107,11 +107,19 @@ RendererHost* RendererHost::spawnRenderer(std::string binaryPath)
 	if(forkResult == 0) // child
 	{
 		close(sockets[0]);
-		
+
+
+		std::string binaryName = binaryPath;	
+		size_t lastSlash = binaryPath.find_last_of('/');
+		if(lastSlash != std::string::npos)
+		{
+			binaryName = binaryPath.substr(lastSlash);
+		}
+
 		std::ostringstream conversionStream;
 		conversionStream<<(sockets[1]);
 		
-		result = execlp(binaryPath.c_str(), conversionStream.str().c_str(), static_cast<char*>(NULL));
+		result = execlp(binaryPath.c_str(), binaryName.c_str(), conversionStream.str().c_str(), static_cast<char*>(NULL));
 
 		// when we reach this code, execlp failed
 		close(sockets[1]);
