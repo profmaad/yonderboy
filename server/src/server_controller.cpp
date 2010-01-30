@@ -192,6 +192,13 @@ void ServerController::stop()
 
 void ServerController::doJob(Job *theJob)
 {
+	if(theJob->getValue("command") == "quit-server")
+	{
+		jobManagerInstance()->jobDone(theJob);
+		stop();
+		
+		ev::get_default_loop().unloop(ev::ALL);
+	}
 }
 
 bool ServerController::allowedToBlock()

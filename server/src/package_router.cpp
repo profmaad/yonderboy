@@ -253,4 +253,6 @@ std::set<std::string>* PackageRouter::constructSetFromArray(const char* array[])
 
 		index++;
 	}
+
+	return result;
 }

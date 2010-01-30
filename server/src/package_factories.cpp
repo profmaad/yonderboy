@@ -21,6 +21,8 @@
 # include <map>
 # include <utility>
 
+# include <cstdarg>
+
 # include "macros.h"
 # include "package.h"
 
@@ -42,4 +44,27 @@ Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::str
 {
 	if(packageToAcknowledge->hasID()) { return constructAcknowledgementPackage(packageToAcknowledge->getID(), error); }
 	else return NULL;
+}
+Package* constructPackage(char *type, ...)
+{
+	Package *result = NULL;
+	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();
+	
+	kvMap->insert(std::make_pair("type",std::string(type)));
+
+	// get variable argument list
+	char *key = NULL;
+	char *value = NULL;
+
+	va_list vaList;
+	va_start(vaList, type);
+	while( (key = va_arg(vaList, char*)) != NULL && (value = va_arg(vaList, char*)) != NULL)
+	{
+		kvMap->insert(std::make_pair(std::string(key), std::string(value)));
+	}
+	va_end(vaList);
+
+	result = new Package(kvMap);
+	
+	return result;
 }

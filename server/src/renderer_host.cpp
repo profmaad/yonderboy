@@ -97,6 +97,11 @@ void RendererHost::handlePackage(Package* thePackage)
 
 void RendererHost::doJob(Job *theJob)
 {
+	if(theJob->getValue("command") == "open-uri" && theJob->hasValue("uri"))
+	{
+		sendPackage(theJob);
+		server->jobManagerInstance()->jobDone(theJob);
+	}
 }
 
 RendererHost* RendererHost::spawnRenderer(std::string binaryPath)

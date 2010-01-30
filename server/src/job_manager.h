@@ -39,6 +39,7 @@ public:
 	void clearDependencies(Job *dependentJob);
 
 	void jobDone(Job *theJob);
+	void jobFailed(Job *theJob, std::string reason);
 	void finishJob(Job *theJob);
 
 	Job* retrieveJob(AbstractHost *host, std::string id);

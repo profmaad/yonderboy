@@ -22,6 +22,7 @@
 # include <vector>
 # include <sstream>
 # include <iomanip>
+# include <stdexcept>
 
 # include "ev_cpp.h"
 # include "log.h"
@@ -31,6 +32,9 @@
 # include "renderer_host.h"
 # include "viewer_host.h"
 # include "controller_host.h"
+# include "configuration_manager.h"
+# include "job_manager.h"
+# include "job.h"
 
 # include "hosts_manager.h"
 
@@ -71,6 +75,25 @@ HostsManager::~HostsManager()
 
 void HostsManager::doJob(Job *theJob)
 {
+	if(theJob->getValue("command") == "spawn-renderer")
+	{
+		RendererHost *newRenderer = NULL;
+		try
+		{
+			newRenderer = RendererHost::spawnRenderer(server->configurationManagerInstance()->retrieve("server", "renderer-binary", "/bin/false"));
+
+			if(newRenderer)
+			{
+				registerHost(newRenderer);
+				server->jobManagerInstance()->jobDone(theJob);
+				LOG_DEBUG("new renderer has id "<<newRenderer->getID());
+			}
+		}
+		catch(std::runtime_error e)
+		{
+			server->jobManagerInstance()->jobFailed(theJob, e.what());
+		}
+	}
 }
 
 std::string HostsManager::registerHost(RendererHost *host)
@@ -195,8 +218,9 @@ std::string HostsManager::getNextControllerID()
 
 std::string HostsManager::composeID(std::string prefix, unsigned long number)
 {
-	std::ostringstream conversionStream(prefix);
-	conversionStream<<std::setfill('0')<<std::setw(5)<<number;
+	std::ostringstream conversionStream("");
+	conversionStream<<prefix.c_str();
+	conversionStream<<number;
 
 	return conversionStream.str();
 }

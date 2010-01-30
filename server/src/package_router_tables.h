@@ -21,18 +21,18 @@
 # define PACKAGE_ROUTER_TABLES_H
 
 const char* routingTableArrayForDecisionMaker[] = {NULL};
-const char* routingTableArrayForDisplayManager[] = {NULL};
+const char* routingTableArrayForDisplayManager[] = {"connect-view-to-renderer", NULL};
 const char* routingTableArrayForJobManager[] = {NULL};
 const char* routingTableArrayForConfigurationManager[] = {NULL};
 const char* routingTableArrayForPersistenceManager[] = {NULL};
-const char* routingTableArrayForHostsManager[] = {NULL};
+const char* routingTableArrayForHostsManager[] = {"spawn-renderer", NULL};
 const char* routingTableArrayForPackageRouter[] = {NULL};
-const char* routingTableArrayForServerController[] = {NULL};
-const char* routingTableArrayForRendererHost[] = {NULL};
+const char* routingTableArrayForServerController[] = {"quit-server", NULL};
+const char* routingTableArrayForRendererHost[] = {"open-uri", NULL};
 const char* routingTableArrayForViewerHost[] = {NULL};
 const char* routingTableArrayForControllerHost[] = {NULL};
 
-const char* allowedControllerCommandsArray[] = {NULL};
+const char* allowedControllerCommandsArray[] = {"spawn-renderer", "open-uri", "connect-view-to-renderer", "quit-server", NULL};
 const char* allowedRendererRequestsArray[] = {NULL};
 
 # endif /*PACKAGE_ROUTER_TABLES_H*/

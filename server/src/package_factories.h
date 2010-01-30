@@ -25,3 +25,4 @@
 
 Package* constructAcknowledgementPackage(std::string identifier, std::string error = "");
 Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error = "");
+Package* constructPackage(char *type, ...);

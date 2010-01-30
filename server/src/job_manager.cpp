@@ -25,6 +25,7 @@
 
 # include "abstract_host.h"
 # include "package.h"
+# include "package_factories.h"
 # include "job.h"
 
 # include "job_manager.h"
@@ -71,6 +72,12 @@ void JobManager::jobDone(Job *theJob)
 
 	finishJob(theJob);
 }
+void JobManager::jobFailed(Job *theJob, std::string reason)
+{
+	theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, reason));
+	
+	finishJob(theJob);
+}
 void JobManager::finishJob(Job *theJob)
 {
 	for(std::vector<Job*>::iterator iter = theJob->dependentJobs->begin(); iter != theJob->dependentJobs->end(); ++iter)
@@ -82,9 +89,9 @@ void JobManager::finishJob(Job *theJob)
 		}
 	}
 
-	delete theJob;
-
 	LOG_INFO("finished job "<<theJob->getID()<<"@"<<theJob->getHost());
+
+	delete theJob;
 }
 
 Job* JobManager::retrieveJob(AbstractHost *host, std::string id)
