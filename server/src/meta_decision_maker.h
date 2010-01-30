@@ -26,6 +26,7 @@
 
 # include "macros.h"
 
+class Job;
 class AbstractDecisionMaker;
 
 class MetaDecisionMaker
@@ -33,6 +34,8 @@ class MetaDecisionMaker
 public:
 	MetaDecisionMaker();
 	virtual ~MetaDecisionMaker();
+
+	void doJob(Job *theJob);
 
 	Decision decide(Entity entity, KeyValueMap *information);
 

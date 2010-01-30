@@ -31,6 +31,8 @@
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
 
+class Job;
+
 typedef std::map<std::pair<std::string, std::string>, std::string> EntriesMap;
 
 class ConfigurationManager
@@ -38,6 +40,8 @@ class ConfigurationManager
 public:
 	ConfigurationManager(std::string configFile);
 	~ConfigurationManager();
+
+	void doJob(Job *theJob);
 	
 	bool isSet(std::string namespaceName, std::string identifier);
 	

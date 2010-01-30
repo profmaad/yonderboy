@@ -70,6 +70,10 @@ View* ViewerHost::retrieveView(std::string viewID)
 	return result;
 }
 
+void ViewerHost::doJob(Job *theJob)
+{
+}
+
 void ViewerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());

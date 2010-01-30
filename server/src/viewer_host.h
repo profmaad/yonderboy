@@ -27,12 +27,15 @@
 # include "abstract_host.h"
 
 class View;
+class Job;
 
 class ViewerHost : public AbstractHost
 {
 public:
 	ViewerHost(int hostSocket);
 	~ViewerHost();
+
+	void doJob(Job *theJob);
 
 protected:
 	void handlePackage(Package *thePackage);

@@ -25,12 +25,16 @@
 # include "ev_cpp.h"
 # include "abstract_host.h"
 
+class Job;
+
 class RendererHost : public AbstractHost
 {
 public:
 	RendererHost(int hostSocket);
 	~RendererHost();
 	static RendererHost* spawnRenderer(std::string binaryPath);
+
+	void doJob(Job *theJob);
 
 	std::string getDisplayInformation() { return displayInformation; }
 	std::string getDisplayInformationType() { return displayInformationType; }

@@ -39,6 +39,7 @@
 # include "display_manager.h"
 # include "hosts_manager.h"
 # include "job_manager.h"
+# include "job.h"
 # include "meta_decision_maker.h"
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
@@ -187,6 +188,10 @@ void ServerController::stop()
 	viewerListener->closeSocket();
 
 	state = ServerStateInitialized;
+}
+
+void ServerController::doJob(Job *theJob)
+{
 }
 
 bool ServerController::allowedToBlock()

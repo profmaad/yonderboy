@@ -49,6 +49,10 @@ ControllerHost::~ControllerHost()
 	LOG_DEBUG("shutting down controller host")
 }
 
+void ControllerHost::doJob(Job *theJob)
+{
+}
+
 void ControllerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());

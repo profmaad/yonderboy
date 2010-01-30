@@ -23,11 +23,15 @@
 # include "ev_cpp.h"
 # include "abstract_host.h"
 
+class Job;
+
 class ControllerHost : public AbstractHost
 {
 public:
 	ControllerHost(int hostSocket);
 	~ControllerHost();
+
+	void doJob(Job *theJob);
 
 	bool isInteractive() { return interactive; }
 	bool canHandleSynchronousRequests() { return handlesSynchronousRequests; }

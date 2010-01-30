@@ -31,6 +31,7 @@
 # include "file_persistence_manager.h"
 # include "persistent_storage.h"
 # include "package.h"
+# include "job.h"
 
 # include "configuration_manager.h"
 
@@ -63,6 +64,10 @@ ConfigurationManager::~ConfigurationManager()
 	persistenceManager->releaseStorage("", configFileName);
 	persistenceManager->close();
 	delete persistenceManager;
+}
+
+void ConfigurationManager::doJob(Job *theJob)
+{
 }
 
 void ConfigurationManager::retrieveEntries()

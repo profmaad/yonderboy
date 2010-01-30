@@ -31,12 +31,15 @@ class AbstractHost;
 class RendererHost;
 class ViewerHost;
 class ControllerHost;
+class Job;
 
 class HostsManager
 {
 public:
 	HostsManager();
 	virtual ~HostsManager();
+
+	void doJob(Job *theJob);
 
 	std::string registerHost(RendererHost *host);
 	std::string registerHost(ViewerHost *host);

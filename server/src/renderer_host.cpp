@@ -39,6 +39,7 @@
 # include "display_manager.h"
 # include "hosts_manager.h"
 # include "package_router.h"
+# include "job.h"
 
 # include "renderer_host.h"
 
@@ -92,6 +93,10 @@ void RendererHost::handlePackage(Package* thePackage)
 	{
 		delete thePackage;
 	}
+}
+
+void RendererHost::doJob(Job *theJob)
+{
 }
 
 RendererHost* RendererHost::spawnRenderer(std::string binaryPath)

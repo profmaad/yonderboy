@@ -22,8 +22,10 @@
 # include <string>
 # include <utility>
 
+# include "log.h"
 # include "macros.h"
 # include "abstract_decision_maker.h"
+# include "job.h"
 
 # include "meta_decision_maker.h"
 
@@ -43,6 +45,10 @@ MetaDecisionMaker::~MetaDecisionMaker()
 	}
 
 	delete decisionMakers;
+}
+
+void MetaDecisionMaker::doJob(Job *theJob)
+{
 }
 
 Decision MetaDecisionMaker::decide(Entity entity, KeyValueMap *information)

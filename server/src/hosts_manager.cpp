@@ -69,6 +69,10 @@ HostsManager::~HostsManager()
 	delete idleTimer;
 }
 
+void HostsManager::doJob(Job *theJob)
+{
+}
+
 std::string HostsManager::registerHost(RendererHost *host)
 {
 	if(!host) { return ""; }

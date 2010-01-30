@@ -28,6 +28,8 @@
 
 # include "macros.h"
 
+class Job;
+
 class ControllerListener;
 class ViewerListener;
 
@@ -47,6 +49,8 @@ public:
 	void start(); // runtime phase - once this is called, we are not supposed to quit until explicitely told so
 	void stop(); // and this is what tells us to: stop running + static shutdown
 	
+	void doJob(Job *theJob);
+
 	// queries
 	bool allowedToBlock();
 	ServerState getState() { return state; };
