@@ -16,7 +16,6 @@ def parsePacket
   if(@buffer["type"] == "command")
     if(@buffer["command"] == "open-uri")
       @webview.open(@buffer["uri"])
-      puts @plug.embedded?
     elsif(@buffer["command"] == "reload-page")
       @webview.reload
     end

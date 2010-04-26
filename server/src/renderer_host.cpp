@@ -77,9 +77,6 @@ void RendererHost::handlePackage(Package* thePackage)
 			displayInformation = thePackage->getValue("display-information");
 			displayInformationType = thePackage->getValue("display-information-type");
 
-			LOG_DEBUG(displayInformation);
-			LOG_DEBUG(displayInformationType);
-
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 			delete thePackage;
 			
