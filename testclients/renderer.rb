@@ -16,6 +16,7 @@ def parsePacket
   if(@buffer["type"] == "command")
     if(@buffer["command"] == "open-uri")
       @webview.open(@buffer["uri"])
+      puts @plug.embedded?
     elsif(@buffer["command"] == "reload-page")
       @webview.reload
     end
@@ -30,8 +31,11 @@ end
 
 # GUI elements
 @webview = Gtk::WebKit::WebView.new
+@scrollview = Gtk::ScrolledWindow.new
 @plug = Gtk::Plug.new
-@plug.add(@webview)
+@scrollview.add(@webview)
+@plug.add(@scrollview)
+@plug.show_all
 
 # IPC socket stuff
 @socketFD = ARGV[0].to_i
@@ -42,7 +46,7 @@ end
 
 puts "My socket fd is #{@socketFD}"
 
-@socket = IO.new(@socketFD, "a+")
+@socket = Socket.for_fd(@socketFD)
 
 @socket.write("type = connection-management\ncommand = initialize\nid = init00\nclient-name = ruby-webkit-test\nclient-version = 0\nbackend-name = webkit\nbackend-version = r51110\ndisplay-information-type = XEMBED\ndisplay-information = #{@plug.id}\n\n")
 

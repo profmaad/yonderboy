@@ -45,14 +45,12 @@
 
 RendererHost::RendererHost(int hostSocket) : AbstractHost(hostSocket)
 {
-	server->displayManagerInstance()->registerRenderer(this);
-	
 	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
 RendererHost::~RendererHost()
 {
-	server->displayManagerInstance()->unregisterRenderer(id);
-
+	server->displayManagerInstance()->unregisterRenderer(this->getID());
+	
 	LOG_DEBUG("shutting down renderer host");
 }
 
@@ -76,6 +74,11 @@ void RendererHost::handlePackage(Package* thePackage)
 			clientVersion = thePackage->getValue("client-version");
 			backendName = thePackage->getValue("backend-name");
 			backendVersion = thePackage->getValue("backend-version");
+			displayInformation = thePackage->getValue("display-information");
+			displayInformationType = thePackage->getValue("display-information-type");
+
+			LOG_DEBUG(displayInformation);
+			LOG_DEBUG(displayInformationType);
 
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 			delete thePackage;
@@ -124,7 +127,6 @@ RendererHost* RendererHost::spawnRenderer(std::string binaryPath)
 	if(forkResult == 0) // child
 	{
 		close(sockets[0]);
-
 
 		std::string binaryName = binaryPath;	
 		size_t lastSlash = binaryPath.find_last_of('/');

@@ -22,6 +22,7 @@
 # include <map>
 
 # include "macros.h"
+# include "log.h"
 # include "package.h"
 
 Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
@@ -147,6 +148,7 @@ std::map<std::string, std::string>* Package::constructKeyValueMap(std::string &s
 		serializedData.erase(0,lastNewline+1);
 
 		separatorPosition = line.find("=");
+
 		if(separatorPosition != std::string::npos)
 		{
 			std::string keyString = line.substr(0,separatorPosition);
@@ -158,7 +160,7 @@ std::map<std::string, std::string>* Package::constructKeyValueMap(std::string &s
 		{
 			result->insert(std::make_pair(trimString(line),std::string()));
 		}
-	}	
+	}
 
 	return result;
 }

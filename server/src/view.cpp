@@ -34,8 +34,8 @@ View::View(ViewerHost *host, Package *infos) : host(host), reassignable(false), 
 	reassignable = infos->isSet("can-be-reassigned");
 	popup = infos->isSet("is-popup");
 	id = infos->getValue("view-id");
-//	displayInformation = infos->getValue("display-information");
-//	displayInformationType = infos->getValue("display-information-type");
+	displayInformation = infos->getValue("display-information");
+	displayInformationType = infos->getValue("display-information-type");
 
 	if(isValid())
 	{

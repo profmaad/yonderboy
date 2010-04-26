@@ -144,7 +144,7 @@ void AbstractHost::parseReceivedData()
 
 	while((lastPosition = buffer.find("\n\n")) != std::string::npos) // check whether we have received a complete package
 	{
-		parseBuffer += buffer.substr(0,lastPosition);
+		parseBuffer += buffer.substr(0,lastPosition+1); // we include the first newline, because package parsing needs a newline after each line
 		buffer.erase(0,lastPosition+2);
 
 		processPackage();

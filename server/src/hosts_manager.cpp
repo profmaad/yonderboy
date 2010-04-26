@@ -34,6 +34,7 @@
 # include "controller_host.h"
 # include "configuration_manager.h"
 # include "job_manager.h"
+# include "display_manager.h"
 # include "job.h"
 
 # include "hosts_manager.h"
@@ -85,6 +86,7 @@ void HostsManager::doJob(Job *theJob)
 			if(newRenderer)
 			{
 				registerHost(newRenderer);
+				server->displayManagerInstance()->registerRenderer(newRenderer);
 				server->jobManagerInstance()->jobDone(theJob);
 				LOG_DEBUG("new renderer has id "<<newRenderer->getID());
 			}

@@ -72,6 +72,8 @@ void DisplayManager::registerRenderer(RendererHost *theRenderer)
 	if(theRenderer)
 	{
 		renderers->insert(std::make_pair(theRenderer->getID(), theRenderer));
+
+		LOG_INFO("renderer "<<theRenderer->getID()<<" registered");
 	}
 }
 

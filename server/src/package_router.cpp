@@ -175,6 +175,7 @@ void PackageRouter::routeJob(Job *theJob)
 
 	if(iter == routingTable->end())
 	{
+		LOG_INFO("unknown command in job "<<theJob);
 		theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "unknown"));
 		delete theJob;
 		return;

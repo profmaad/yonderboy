@@ -19,7 +19,7 @@ def parsePacket
       @gtkSocket.add_id(0)
     end
   elsif(@buffer["type"] == "ack" && @buffer["ack-id"] == "init00")
-    @socket.write("type = connection-management\ncommand = register-view\nview-id = view00\nid = init01\n\n")
+    @socket.write("type = connection-management\ncommand = register-view\nview-id = view00\ndisplay-information = #{@gtkSocket.id}\ndisplay-information-type = XEMBED\nid = init01\n\n")
   end
     
   if(@buffer["id"])
@@ -32,12 +32,14 @@ end
 # GUI elements
 @gtkSocket = Gtk::Socket.new
 @window = Gtk::Window.new
-@scrollview = Gtk::ScrolledWindow.new
 
 @window.signal_connect("destroy"){Gtk.main_quit}
+@gtkSocket.signal_connect("plug-added") do 
+  puts "plug was added, new window: #{@gtkSocket.plug_window}"
+  @window.show_all
+end
 
-@scrollview.add_with_viewport(@gtkSocket)
-@window.add(@scrollview)
+@window.add(@gtkSocket)
 @window.show_all
 # TEMP END
 
