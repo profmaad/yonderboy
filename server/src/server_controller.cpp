@@ -75,7 +75,7 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 ServerController::~ServerController()
 {
 	state = ServerStateUninitialized;
-	
+
 	delete controllerListener;
 	delete viewerListener;
 	delete configurationManager;

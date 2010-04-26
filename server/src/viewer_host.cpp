@@ -85,10 +85,10 @@ void ViewerHost::handlePackage(Package* thePackage)
 		return;
 	}
 
-	if(state == Connected && thePackage->getType() == ConnectionManagement)
+	if(thePackage->getType() == ConnectionManagement)
 	{
 		// check for init packages and handle them
-		if(thePackage->getValue("command") == "initialize")
+		if(state == Connected && thePackage->getValue("command") == "initialize")
 		{
 			displaysStati = thePackage->isSet("can-display-stati");
 			displaysPopups = thePackage->isSet("can-display-popups");
@@ -104,7 +104,7 @@ void ViewerHost::handlePackage(Package* thePackage)
 
 			LOG_INFO("connection successfully established, viewer can"<<(displaysStati?"":"'t")<<" display status messages and can"<<(displaysPopups?"":"'t")<<" display popups");
 		}
-		else if(thePackage->getValue("command") == "register-view" && thePackage->isSet("view-id"))
+		else if(state == Established && thePackage->getValue("command") == "register-view" && thePackage->isSet("view-id"))
 		{
 			View *theView = new View(this, thePackage);
 			if(theView->isValid())
@@ -115,7 +115,7 @@ void ViewerHost::handlePackage(Package* thePackage)
 				delete thePackage;
 			}
 		}
-		else if(thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
+		else if(state == Established && thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
 		{
 			View *theView = retrieveView(thePackage->getValue("view-id"));
 			if(theView)

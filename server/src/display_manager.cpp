@@ -29,6 +29,7 @@
 # include "viewer_host.h"
 # include "renderer_host.h"
 # include "job_manager.h"
+# include "hosts_manager.h"
 
 # include "display_manager.h"
 
@@ -140,9 +141,10 @@ void DisplayManager::doJob(Job *theJob)
 	View *theView = NULL;
 	RendererHost *theRenderer = NULL;
 
-	if(theJob->getType() == Command && theJob->getValue("command") == "connect-view-to-renderer" && theJob->isSet("view-id") && theJob->isSet("renderer-id"))
+	if(theJob->getType() == Command && theJob->getValue("command") == "connect-view-to-renderer" && theJob->isSet("view-id") && theJob->isSet("renderer-id") && theJob->isSet("viewer-id"))
 	{
-		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getValue("view-id"), static_cast<ViewerHost*>(theJob->getHost())));
+		ViewerHost *viewerHost = server->hostsManagerInstance()->getViewerHost(theJob->getValue("viewer-id"));
+		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getValue("view-id"), viewerHost));
 		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(theJob->getValue("renderer-id"));
 
 		if(viewIter != views->end() && rendererIter != renderers->end())

@@ -31,15 +31,7 @@ end
 # GUI elements
 @webview = Gtk::WebKit::WebView.new
 @plug = Gtk::Plug.new
-
-# TEMP BEGIN
-@window = Gtk::Window.new
-@window.signal_connect("destroy"){Gtk.main_quit}
-@scrollview = Gtk::ScrolledWindow.new
-@scrollview.add(@webview)
-@window.add(@scrollview)
-@window.show_all
-# TEMP END
+@plug.add(@webview)
 
 # IPC socket stuff
 @socketFD = ARGV[0].to_i
