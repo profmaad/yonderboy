@@ -20,7 +20,7 @@ def parsePacket
       @webview.reload
     end
   end
-    
+
   if(@buffer["id"])
     @socket.write("type = ack\nack-id = #{@buffer["id"]}\n\n")
   end

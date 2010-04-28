@@ -65,7 +65,7 @@ void RendererHost::handlePackage(Package* thePackage)
 		return;
 	}
 
-	if(state == Connected)
+	if(state == Connected && thePackage->getType() == ConnectionManagement)
 	{
 		// check for init packages and handle them
 		if(thePackage->getValue("command") == "initialize")
@@ -100,7 +100,7 @@ void RendererHost::doJob(Job *theJob)
 	if(theJob->getValue("command") == "open-uri" && theJob->hasValue("uri"))
 	{
 		sendPackage(theJob);
-		server->jobManagerInstance()->jobDone(theJob);
+//		server->jobManagerInstance()->jobDone(theJob);
 	}
 }
 
