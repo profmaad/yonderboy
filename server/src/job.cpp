@@ -30,17 +30,18 @@
 
 # include "job.h"
 
-Job::Job(AbstractHost *host, Package *originalPackage) : Package(originalPackage), dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host)
+Job::Job(AbstractHost *host, Package *originalPackage, std::string newID) : Package(originalPackage), dependencies(NULL), dependentJobs(NULL), dependenciesUsed(false), host(host)
 {
 	dependencies = new std::vector<Job*>();
 	dependentJobs = new std::vector<Job*>();
 
+	if(!newID.empty())
+	{
+		keyValueMap->erase("id");
+		keyValueMap->insert(std::make_pair("id", newID));
+	}
+
 	delete originalPackage;
-}
-Job(AbstractHost *host, Package *originalPackage, std::string newID) : Job(host, originalPackage)
-{
-	kvMap->erase("id");
-	kvMap->insert(std::make_pair("id", newID));
 }
 Job::~Job()
 {

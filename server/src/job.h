@@ -32,8 +32,7 @@ class AbstractHost;
 class Job : public Package
 {
 public:
-	Job(AbstractHost *host, Package *originalPackage);
-	Job(AbstractHost *host, Package *originalPackage, std::string newID);
+	Job(AbstractHost *host, Package *originalPackage, std::string newID = std::string());
 	virtual ~Job();
 
 	bool usesDependencies() const { return dependenciesUsed; }

@@ -45,6 +45,9 @@ public:
 	
 	static std::string& trimString(std::string &line);
 
+protected:
+	std::map<std::string, std::string> *keyValueMap;
+
 private:
 	void initialize();
 	std::map<std::string, std::string>* constructKeyValueMap(std::string &serializedData);
@@ -52,9 +55,7 @@ private:
 
 	PackageType type;
 	bool valid;
-	bool acknowledgementNeeded;
-	
-	std::map<std::string, std::string> *keyValueMap;
+	bool acknowledgementNeeded;	
 };
 
 # endif /*PACKAGE_H*/
