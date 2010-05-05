@@ -42,6 +42,7 @@
 
 ViewerHost::ViewerHost(int hostSocket) : AbstractHost(hostSocket), views(NULL)
 {
+	type = ServerComponentViewerHost;
 	views = new std::map<std::string, View*>();
 
 	LOG_DEBUG("initialized with socket "<<hostSocket);
@@ -78,62 +79,48 @@ void ViewerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
-	if(!server->packageRouterInstance()->isAllowed(ServerComponentViewerHost, thePackage))
+	// check for init packages and handle them
+	if(state == Connected && thePackage->getValue("command") == "initialize")
 	{
-		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "forbidden"));
+		displaysStati = thePackage->isSet("can-display-stati");
+		displaysPopups = thePackage->isSet("can-display-popups");
+		clientName = thePackage->getValue("client-name");
+		clientVersion = thePackage->getValue("client-version");
+		
+		server->packageRouterInstance()->addStatiReceiver(this);
+		
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 		delete thePackage;
-		return;
+		
+		state = Established;
+		
+		LOG_INFO("connection successfully established, viewer can"<<(displaysStati?"":"'t")<<" display status messages and can"<<(displaysPopups?"":"'t")<<" display popups");
 	}
-
-	if(thePackage->getType() == ConnectionManagement)
+	else if(state == Established && thePackage->getValue("command") == "register-view" && thePackage->isSet("view-id"))
 	{
-		// check for init packages and handle them
-		if(state == Connected && thePackage->getValue("command") == "initialize")
+		View *theView = new View(this, thePackage);
+		if(theView->isValid())
 		{
-			displaysStati = thePackage->isSet("can-display-stati");
-			displaysPopups = thePackage->isSet("can-display-popups");
-			clientName = thePackage->getValue("client-name");
-			clientVersion = thePackage->getValue("client-version");
-
-			server->packageRouterInstance()->addStatiReceiver(this);
-
+			views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
+			
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 			delete thePackage;
-
-			state = Established;
-
-			LOG_INFO("connection successfully established, viewer can"<<(displaysStati?"":"'t")<<" display status messages and can"<<(displaysPopups?"":"'t")<<" display popups");
-		}
-		else if(state == Established && thePackage->getValue("command") == "register-view" && thePackage->isSet("view-id"))
-		{
-			View *theView = new View(this, thePackage);
-			if(theView->isValid())
-			{
-				views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
-				
-				sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
-				delete thePackage;
-			}
-		}
-		else if(state == Established && thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
-		{
-			View *theView = retrieveView(thePackage->getValue("view-id"));
-			if(theView)
-			{
-				views->erase(thePackage->getValue("view-id"));
-				delete theView;
-				
-				sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
-				delete thePackage;
-			}
 		}
 	}
-	else if(state == Established)
+	else if(state == Established && thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
 	{
-		server->packageRouterInstance()->processPackage(this, thePackage);
+		View *theView = retrieveView(thePackage->getValue("view-id"));
+		if(theView)
+		{
+			views->erase(thePackage->getValue("view-id"));
+			delete theView;
+			
+			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
+			delete thePackage;
+		}
 	}
 	else
 	{
-		delete thePackage;
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
 	}
 }

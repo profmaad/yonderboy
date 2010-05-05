@@ -18,6 +18,7 @@
 //      MA 02110-1301, USA.
 
 # include <string>
+# include <sstream>
 # include <map>
 # include <utility>
 # include <stdexcept>
@@ -34,6 +35,7 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "package_router.h"
 # include "job.h"
 # include "job_manager.h"
 # include "hosts_manager.h"
@@ -47,6 +49,8 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 	memset(receiveBuffer,0,4096);
 	this->hostSocket = hostSocket;
 	state = Connected;
+	type = (ServerComponent)-1;
+	nextID = 0;
 
 	readWatcher = new ev::io();
 	readWatcher->set<AbstractHost, &AbstractHost::readCallback>(this);
@@ -157,17 +161,35 @@ void AbstractHost::parseReceivedData()
 void AbstractHost::processPackage()
 {
 	Package *constructedPackage = new Package(parseBuffer);
-	if(constructedPackage->isValid()) { handlePackage(constructedPackage); }
+	if(!constructedPackage->isValid())
+	{
+		sendPackage(constructAcknowledgementPackage(constructedPackage, "invalid"));
+		delete constructedPackage;
+	}
+	else if(!server->packageRouterInstance()->isAllowed(type, constructedPackage))
+	{
+		sendPackageAndDelete(constructAcknowledgementPackage(constructedPackage, "forbidden"));
+		delete constructedPackage;
+	}
+	else if(constructedPackage->getType() == ConnectionManagement)
+	{
+		handlePackage(constructedPackage);
+	}
+	else if(state == Established)
+	{
+		server->packageRouterInstance()->processPackage(this, constructedPackage);
+	}
 	else
 	{
 		sendPackage(constructAcknowledgementPackage(constructedPackage, "invalid"));
 		delete constructedPackage;
 	}
 
+
 	parseBuffer.clear();
 }
 
-void AbstractHost::sendPackage(Package *thePackage)
+void AbstractHost::sendPackage(Package *thePackage, bool withID)
 {
 	if( !thePackage || !(thePackage->isValid()) )
 	{
@@ -181,10 +203,32 @@ void AbstractHost::sendPackage(Package *thePackage)
 
 	if(! writeWatcher->is_active()) { writeWatcher->start(hostSocket, ev::WRITE); }
 }
-void AbstractHost::sendPackageAndDelete(Package *thePackage)
+void AbstractHost::sendPackageAndDelete(Package *thePackage, bool withID)
 {
-	sendPackage(thePackage);
+	sendPackage(thePackage, withID);
 	delete thePackage;
+}
+void AbstractHost::forwardJob(Job *theJob)
+{
+	Job *forwardedJob = new Job(this, theJob, getNextID());
+	
+	server->jobManagerInstance()->addJob(forwardedJob);
+	server->jobManagerInstance()->addDependency(theJob, forwardedJob);
+
+	sendPackage(forwardedJob, false);
+}
+void AbstractHost::forwardJobAndDelete(Job *theJob)
+{
+	forwardJob(theJob);
+	delete theJob;
+}
+std::string AbstractHost::getNextID()
+{
+	std::ostringstream conversionStream("");
+	conversionStream<<nextID;
+	nextID++;
+	
+	return conversionStream.str();
 }
 void AbstractHost::writeCallback(ev::io &watcher, int revents)
 {

@@ -45,6 +45,8 @@
 
 RendererHost::RendererHost(int hostSocket) : AbstractHost(hostSocket)
 {
+	type = ServerComponentRendererHost;
+
 	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
 RendererHost::~RendererHost()
@@ -57,15 +59,7 @@ RendererHost::~RendererHost()
 void RendererHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
-
-	if(!server->packageRouterInstance()->isAllowed(ServerComponentRendererHost, thePackage))
-	{
-		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "forbidden"));
-		delete thePackage;
-		return;
-	}
-
-	if(state == Connected && thePackage->getType() == ConnectionManagement)
+	if(state == Connected)
 	{
 		// check for init packages and handle them
 		if(thePackage->getValue("command") == "initialize")
@@ -85,13 +79,9 @@ void RendererHost::handlePackage(Package* thePackage)
 			LOG_INFO("connection successfully established");
 		}
 	}
-	else if(state == Established)
-	{
-		server->packageRouterInstance()->processPackage(this, thePackage);
-	}
 	else
 	{
-		delete thePackage;
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
 	}
 }
 
@@ -99,8 +89,7 @@ void RendererHost::doJob(Job *theJob)
 {
 	if(theJob->getValue("command") == "open-uri" && theJob->hasValue("uri"))
 	{
-		sendPackage(theJob);
-//		server->jobManagerInstance()->jobDone(theJob);
+		forwardJob(theJob);
 	}
 }
 

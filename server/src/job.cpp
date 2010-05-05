@@ -37,6 +37,11 @@ Job::Job(AbstractHost *host, Package *originalPackage) : Package(originalPackage
 
 	delete originalPackage;
 }
+Job(AbstractHost *host, Package *originalPackage, std::string newID) : Job(host, originalPackage)
+{
+	kvMap->erase("id");
+	kvMap->insert(std::make_pair("id", newID));
+}
 Job::~Job()
 {
 	delete dependencies;

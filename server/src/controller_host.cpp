@@ -42,6 +42,8 @@
 
 ControllerHost::ControllerHost(int hostSocket) : AbstractHost(hostSocket), interactive(false), handlesSynchronousRequests(false)
 {
+	type = ServerComponentControllerHost;
+
 	LOG_DEBUG("initialized with socket "<<hostSocket)
 }
 ControllerHost::~ControllerHost()
@@ -57,14 +59,7 @@ void ControllerHost::handlePackage(Package* thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 
-	if(!server->packageRouterInstance()->isAllowed(ServerComponentControllerHost, thePackage))
-	{
-		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "forbidden"));
-		delete thePackage;
-		return;
-	}
-
-	if(state == Connected && thePackage->getType() == ConnectionManagement)
+	if(state == Connected)
 	{
 		// check for init packages and handle them
 		if(thePackage->getValue("command") == "initialize" && thePackage->isSet("id"))
@@ -86,12 +81,8 @@ void ControllerHost::handlePackage(Package* thePackage)
 			delete thePackage;
  		}
 	}
-	else if(state == Established)
-	{
-		server->packageRouterInstance()->processPackage(this, thePackage);
-	}
 	else
 	{
-		delete thePackage;
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
 	}
 }
