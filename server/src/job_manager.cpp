@@ -19,6 +19,7 @@
 
 # include <map>
 # include <string>
+# include <algorithm>
 
 # include "log.h"
 # include "macros.h"
@@ -51,6 +52,8 @@ void JobManager::addJob(Job *theJob)
 	if(!theJob) { return; }
 
 	unfinishedJobs->insert(std::make_pair(std::make_pair(theJob->getHost(), theJob->getID()), theJob));
+	
+	LOG_DEBUG("got new job "<<theJob->getID()<<"x"<<theJob->getHost());	
 }
 
 void JobManager::addDependency(Job *dependentJob, Job *dependency)
@@ -85,15 +88,21 @@ void JobManager::finishJob(Job *theJob)
 		(*iter)->removeDependency(theJob);
 		if((*iter)->usesDependencies() && !(*iter)->hasDependencies())
 		{
-			finishJob(*iter);
+			jobDone(*iter);
 		}
 	}
 
-	LOG_INFO("finished job "<<theJob->getID()<<"@"<<theJob->getHost());
+	removeJob(theJob);	
+
+	LOG_INFO("finished job "<<theJob->getID()<<"@"<<theJob->getHost()<<", "<<unfinishedJobs->size()<<" unfinished jobs left");
 
 	delete theJob;
 }
 
+void JobManager::removeJob(Job *theJob)
+{
+	unfinishedJobs->erase(std::make_pair(theJob->getHost(),theJob->getID()));
+}
 Job* JobManager::retrieveJob(AbstractHost *host, std::string id)
 {
 	Job *result = NULL;

@@ -42,6 +42,7 @@ public:
 	std::string getClientVersion() { return clientVersion; }
 	std::string getID() { return id; }
 	void setID(std::string newID) { id = newID; }
+	std::string getNextID();
 
 	void sendPackage(Package *thePackage, bool withID = true);
 	void sendPackageAndDelete(Package *thePackage, bool withID = true);
@@ -60,8 +61,6 @@ protected:
 	std::string clientVersion;
 
 private:
-	std::string getNextID();
-
 	void closeSocket(); // only safe to call when we either already did a proper shutdown (thats what disconnect() is for) or we are just responding to the other side shuting down
 	void shutdownSocket(); // shuts down the write half of the socket to signal the other party that we are going down
 

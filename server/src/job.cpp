@@ -20,6 +20,7 @@
 # include <vector>
 # include <string>
 # include <map>
+# include <algorithm>
 
 # include "log.h"
 # include "macros.h"
@@ -39,6 +40,10 @@ Job::Job(AbstractHost *host, Package *originalPackage, std::string newID) : Pack
 	{
 		keyValueMap->erase("id");
 		keyValueMap->insert(std::make_pair("id", newID));
+	}
+	else if(!originalPackage->hasID())
+	{
+		keyValueMap->insert(std::make_pair("id", host->getNextID()));
 	}
 
 	delete originalPackage;
@@ -69,13 +74,11 @@ void Job::removeDependency(Job *dependency)
 {
 	if(!dependency) { return; }
 
-	for(std::vector<Job*>::iterator iter = dependencies->begin(); iter != dependencies->end(); ++iter)
+	std::vector<Job*>::iterator iter = std::find(dependencies->begin(), dependencies->end(), dependency);
+
+	if(iter != dependencies->end())
 	{
-		if(*iter == dependency)
-		{
-			dependencies->erase(iter);
-			return;
-		}
+		dependencies->erase(iter);
 	}
 }
 void Job::clearDependencies()

@@ -153,9 +153,15 @@ void DisplayManager::doJob(Job *theJob)
 		{
 			connect(viewIter->second, rendererIter->second, theJob);
 		}
+		else
+		{
+			delete theJob;
+		}
 	}
-
-	delete theJob;
+	else
+	{
+		delete theJob;
+	}
 }
 
 void DisplayManager::disconnectView(std::string viewID, ViewerHost *host)

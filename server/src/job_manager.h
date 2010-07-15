@@ -45,6 +45,7 @@ public:
 	Job* retrieveJob(AbstractHost *host, std::string id);
 	
 private:
+	void removeJob(Job *theJob);
 	std::map<std::pair<AbstractHost*, std::string>, Job*> *unfinishedJobs;
 };
 

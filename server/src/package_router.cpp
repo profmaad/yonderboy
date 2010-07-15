@@ -80,6 +80,7 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 
 	if(thePackage->getType() == Acknowledgement)
 	{
+		LOG_DEBUG("received ack for id "<<thePackage->getValue("ack-id")<<" from "<<host);
 		Job *acknowledgedJob = server->jobManagerInstance()->retrieveJob(host, thePackage->getValue("ack-id"));
 		if (acknowledgedJob) { server->jobManagerInstance()->jobDone(acknowledgedJob); }
 		delete thePackage;
