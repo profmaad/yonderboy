@@ -20,6 +20,9 @@
 # include <map>
 # include <string>
 # include <set>
+# include <fstream>
+
+# include <yaml.h>
 
 # include "log.h"
 # include "macros.h"
@@ -40,7 +43,7 @@
 # include "package_router.h"
 # include "package_router_tables.h"
 
-PackageRouter::PackageRouter() : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
+PackageRouter::PackageRouter(std::string specFilename) : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
 {
 	routingTable = new std::map<std::string, ServerComponent>();
 	allowedControllerCommands = constructSetFromArray(allowedControllerCommandsArray);
@@ -60,6 +63,24 @@ PackageRouter::PackageRouter() : routingTable(NULL), statiReceiver(NULL), allowe
 	addArrayToRoutingTable(ServerComponentViewerHost, routingTableArrayForViewerHost);
 	addArrayToRoutingTable(ServerComponentControllerHost, routingTableArrayForControllerHost);
 
+	try
+	{
+		std::ifstream specFile(specFilename.c_str());
+
+		LOG_DEBUG("tried to open spec file at '"<<specFilename<<"': "<<specFile.fail());
+		
+		YAML::Parser specParser(specFile);
+		YAML::Node specDoc;
+		bool success = specParser.GetNextDocument(specDoc);
+
+		LOG_DEBUG("getting document node: "<<success);
+		
+		// TODO: iterate over commands in spec file and add them to the routing table and the allowed* tables
+	}
+	catch(const YAML::Exception &e)
+	{
+		LOG_ERROR("error parsing network spec file: "<<e.what());
+	}
 
 	LOG_INFO("initialized");
 }

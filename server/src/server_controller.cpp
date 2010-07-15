@@ -61,7 +61,7 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	displayManager = new DisplayManager();
 	hostsManager = new HostsManager();
 	jobManager = new JobManager();
-	packageRouter = new PackageRouter();
+	packageRouter = new PackageRouter(configurationManager->retrieve("net", "spec", "net-spec.yml"));
 
 	metaDecisionMaker = new MetaDecisionMaker();
 	

@@ -33,7 +33,7 @@ class AbstractHost;
 class PackageRouter
 {
 public:
-	PackageRouter();
+	PackageRouter(std::string specFilename);
 	~PackageRouter();
 
 	Job* processPackage(AbstractHost *host, Package *thePackage);
