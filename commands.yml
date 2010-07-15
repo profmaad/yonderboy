@@ -1,0 +1,23 @@
+controller:
+  - command: spawn-renderer
+    target: hosts-manager
+    description: Spawns off a new rendering process using the default engine
+    
+  - command: open-uri
+    target: renderer-host
+    description: Tells the renderer to retrieve and render the given URI
+    required:
+      - renderer-id: ID of the renderer that should open the uri
+
+  - command: connect-view-to-renderer
+    target: display-manager
+    description: Hooks up a view to a renderer, so that the renderers results are shown in the view and can be controlled
+    required:
+      - viewer-id: viewer containing the view to connect
+      - view-id: view inside that viewer that should be connected
+      - renderer-id: renderer that should be connected to the view
+
+  - command: quit-server
+    target: server-controller
+    description: Results in a (hopefully) graceful shutdown of the server
+      

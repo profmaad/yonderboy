@@ -1,4 +1,5 @@
-AM_CXXFLAGS = -I../../libev/ -g -lpthread
+AM_CXXFLAGS = -I../../libev/ $(DEPS_CFLAGS) -g
+server_LDADD = -lpthread $(DEPS_LIBS)
 
 bin_PROGRAMS = server
 server_SOURCES = main.cpp macros.h log.h defaults.h \
