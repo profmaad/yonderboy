@@ -1,4 +1,4 @@
-AM_CXXFLAGS = -I../../libev/ $(DEPS_CFLAGS) -g
+AM_CXXFLAGS = -I../../libev/ $(DEPS_CFLAGS)
 server_LDADD = -lpthread $(DEPS_LIBS)
 
 bin_PROGRAMS = server
@@ -25,4 +25,4 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		display_manager.h display_manager.cpp \
 		job.h job.cpp \
 		job_manager.h job_manager.cpp \
-		package_router.h package_router_tables.h package_router.cpp
+		package_router.h package_router.cpp

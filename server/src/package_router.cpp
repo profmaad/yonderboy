@@ -41,7 +41,6 @@
 # include "controller_host.h"
 
 # include "package_router.h"
-# include "package_router_tables.h"
 
 PackageRouter::PackageRouter(std::string specFilename) : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
 {
@@ -173,6 +172,8 @@ bool PackageRouter::isAllowed(ServerComponent receivingComponent, Package *thePa
 		else if(thePackage->getType() == StatusChange) { return true; }
 		else { return false; }
 	}
+
+	return false;
 }
 
 void PackageRouter::routeJob(Job *theJob)
