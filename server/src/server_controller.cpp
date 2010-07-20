@@ -76,14 +76,14 @@ ServerController::~ServerController()
 {
 	state = ServerStateUninitialized;
 
+	delete hostsManager;
 	delete controllerListener;
 	delete viewerListener;
-	delete configurationManager;
 	delete displayManager;
 	delete jobManager;
 	delete packageRouter;
 	delete metaDecisionMaker;
-	delete hostsManager;
+	delete configurationManager;
 	delete signalPipeWatcher;
 }
 

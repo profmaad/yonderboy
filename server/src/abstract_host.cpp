@@ -61,8 +61,8 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 }
 AbstractHost::~AbstractHost()
 {
-  	delete readWatcher;
-	delete writeWatcher;
+//	delete writeWatcher;
+//	delete readWatcher;
 }
 
 void AbstractHost::shutdownHost()

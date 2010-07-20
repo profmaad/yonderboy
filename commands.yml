@@ -21,3 +21,4 @@ controller:
     target: server-controller
     description: Results in a (hopefully) graceful shutdown of the server
       
+renderer:

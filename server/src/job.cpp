@@ -45,8 +45,6 @@ Job::Job(AbstractHost *host, Package *originalPackage, std::string newID) : Pack
 	{
 		keyValueMap->insert(std::make_pair("id", host->getNextID()));
 	}
-
-	delete originalPackage;
 }
 Job::~Job()
 {

@@ -113,5 +113,4 @@ enum LogLevel
 	LogLevelFatal = 40
 };
 
-
 # endif /*MACROS_H*/

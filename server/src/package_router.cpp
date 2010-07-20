@@ -46,47 +46,65 @@
 PackageRouter::PackageRouter(std::string specFilename) : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
 {
 	routingTable = new std::map<std::string, ServerComponent>();
-	allowedControllerCommands = constructSetFromArray(allowedControllerCommandsArray);
-	allowedRendererRequests = constructSetFromArray(allowedRendererRequestsArray);
+	allowedControllerCommands = new std::set<std::string>();
+	allowedRendererRequests = new std::set<std::string>();
 	statiReceiver = new std::set<AbstractHost*>();
 
-	// fill routing table from static arrays
-	addArrayToRoutingTable(ServerComponentDecisionMaker, routingTableArrayForDecisionMaker);
-	addArrayToRoutingTable(ServerComponentDisplayManager, routingTableArrayForDisplayManager);
-	addArrayToRoutingTable(ServerComponentJobManager, routingTableArrayForJobManager);
-	addArrayToRoutingTable(ServerComponentConfigurationManager, routingTableArrayForConfigurationManager);
-	addArrayToRoutingTable(ServerComponentPersistenceManager, routingTableArrayForPersistenceManager);
-	addArrayToRoutingTable(ServerComponentHostsManager, routingTableArrayForHostsManager);
-	addArrayToRoutingTable(ServerComponentPackageRouter, routingTableArrayForPackageRouter);
-	addArrayToRoutingTable(ServerComponentServerController, routingTableArrayForServerController);
-	addArrayToRoutingTable(ServerComponentRendererHost, routingTableArrayForRendererHost);
-	addArrayToRoutingTable(ServerComponentViewerHost, routingTableArrayForViewerHost);
-	addArrayToRoutingTable(ServerComponentControllerHost, routingTableArrayForControllerHost);
-
-	try
+	std::ifstream specFile(specFilename.c_str());
+	
+	if(!specFile.fail())
 	{
-		std::ifstream specFile(specFilename.c_str());
-
-		LOG_DEBUG("tried to open spec file at '"<<specFilename<<"': "<<specFile.fail());
-		
-		YAML::Parser specParser(specFile);
-		YAML::Node specDoc;
-		bool success = specParser.GetNextDocument(specDoc);
-
-		LOG_DEBUG("getting document node: "<<success);
-		
-		// TODO: iterate over commands in spec file and add them to the routing table and the allowed* tables
+		try
+		{
+			YAML::Parser specParser(specFile);
+			YAML::Node specDoc;
+			specParser.GetNextDocument(specDoc);
+			
+			// parse controller information
+			for(int i=0; i<specDoc["controller"].size(); i++)
+			{
+				if(specDoc["controller"][i]["command"].GetType() == YAML::CT_SCALAR && specDoc["controller"][i]["target"].GetType() == YAML::CT_SCALAR)
+				{
+					// we got a valid command, lets add it
+					std::string command, target;
+					specDoc["controller"][i]["command"] >> command;
+					specDoc["controller"][i]["target"] >> target;
+						
+					routingTable->insert(std::make_pair(command, stringToServerComponent(target)));
+					allowedControllerCommands->insert(command);
+				}
+			}
+			// parse renderer information
+			for(int i=0; i<specDoc["renderer"].size(); i++)
+			{
+				if(specDoc["renderer"][i]["request"].GetType() == YAML::CT_SCALAR && specDoc["renderer"][i]["target"].GetType() == YAML::CT_SCALAR)
+				{
+					// we got a valid request, lets add it
+					std::string request, target;
+					specDoc["renderer"][i]["request"] >> request;
+					specDoc["renderer"][i]["target"] >> target;
+						
+					routingTable->insert(std::make_pair(request, stringToServerComponent(target)));
+					allowedRendererRequests->insert(request);
+					
+				}
+			}
+		}
+		catch(const YAML::Exception &e)
+		{
+			LOG_ERROR("error parsing network spec file: "<<e.what());
+		}
 	}
-	catch(const YAML::Exception &e)
-	{
-		LOG_ERROR("error parsing network spec file: "<<e.what());
-	}
 
+	specFile.close();
+	
 	LOG_INFO("initialized");
 }
 PackageRouter::~PackageRouter()
 {
 	delete routingTable;
+	delete allowedControllerCommands;
+	delete allowedRendererRequests;
 	delete statiReceiver;
 }
 
@@ -278,4 +296,19 @@ std::set<std::string>* PackageRouter::constructSetFromArray(const char* array[])
 	}
 
 	return result;
+}
+ServerComponent PackageRouter::stringToServerComponent(std::string string)
+{
+	if(string == "decision-maker"){ return ServerComponentDecisionMaker; }
+	else if(string == "display-manager"){ return ServerComponentDisplayManager; }
+	else if(string == "job-manager"){ return ServerComponentJobManager; }
+	else if(string == "configuration-manager"){ return ServerComponentConfigurationManager; }
+	else if(string == "persistence-manager"){ return ServerComponentPersistenceManager; }
+	else if(string == "hosts-manager"){ return ServerComponentHostsManager; }
+	else if(string == "package-router"){ return ServerComponentPackageRouter; }
+	else if(string == "server-controller"){ return ServerComponentServerController; }
+	else if(string == "renderer-host"){ return ServerComponentRendererHost; }
+	else if(string == "viewer-host"){ return ServerComponentViewerHost; }
+	else if(string == "controller-host"){ return ServerComponentControllerHost; }
+	else { return ServerComponent(-1); }
 }
