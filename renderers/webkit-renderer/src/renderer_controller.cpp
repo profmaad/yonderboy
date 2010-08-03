@@ -1,4 +1,4 @@
-//      package_factories.cpp
+//      renderer_controller.cpp
 //      
 //      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,17 +17,18 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef PACKAGE_FACTORIES_H
-# define PACKAGE_FACTORIES_H
+# include "renderer_controller.h"
 
-# include <string>
-# include <map>
-
-# include "macros.h"
 # include "package.h"
 
-Package* constructAcknowledgementPackage(std::string identifier, std::string error = "");
-Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error = "");
-Package* constructPackage(char *type, ...);
+RendererController::RendererController(int socket) : AbstractHost(socket)
+{
+}
 
-# endif
+RendererController::~RendererController()
+{
+}
+
+void RendererController::handlePackage(Package* thePackage)
+{
+}

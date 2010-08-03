@@ -76,8 +76,8 @@ void printHelpMessage(const char *executable)
 	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] -c/--config <file>"<<std::endl;
 	
 	std::cout<<"options:"<<std::endl;
-	std::cout<<" -h/--help\t\tshow this help"<<std::endl;
-	std::cout<<" -v/--version\t\tshow version"<<std::endl;
+	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
+	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
 	std::cout<<" -c/--config <file>\tfilename of the config-file"<<std::endl;
 }
 void printVersion(bool onOneLine)

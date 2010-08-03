@@ -1,6 +1,6 @@
-//      package_factories.cpp
+//      defaults.h
 //      
-//      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
+//      Copyright 2010 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
 //      This program is free software; you can redistribute it and/or modify
 //      it under the terms of the GNU General Public License as published by
@@ -17,17 +17,11 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef PACKAGE_FACTORIES_H
-# define PACKAGE_FACTORIES_H
+# ifndef DEFAULTS_H
+# define DEFAULTS_H
 
-# include <string>
-# include <map>
-
-# include "macros.h"
-# include "package.h"
-
-Package* constructAcknowledgementPackage(std::string identifier, std::string error = "");
-Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error = "");
-Package* constructPackage(char *type, ...);
+# define PROJECT_NAME "WebKit renderer"
+# define PROJECT_VERSION "0 [devel build]"
+# define PROJECT_BRIEF_DESCRIPTION "a WebKit-based renderer"
 
 # endif

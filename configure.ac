@@ -1,11 +1,18 @@
 AC_INIT([cli-browser],[0.0],[himself@prof-maad.org])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
+#AC_PROG_CC(clang)
+#AC_PROG_CPP(clang)
+#AC_PROG_CXX(clang)
+#AC_PROG_CXXCPP(clang)
+
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_CXXCPP
+
 m4_include([libev/libev.m4])
 m4_include([m4/ax_prog_doxygen.m4])
-
-AC_PROG_CXXCPP(clang)
-AC_PROG_CXX(clang)
 
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_cond_init])

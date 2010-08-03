@@ -1,6 +1,6 @@
-//      package_factories.cpp
+//      renderer_controller.h
 //      
-//      Copyright 2009 Prof. MAAD <prof.maad@lambda-bb.de>
+//      Copyright 2010 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
 //      This program is free software; you can redistribute it and/or modify
 //      it under the terms of the GNU General Public License as published by
@@ -17,17 +17,22 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef PACKAGE_FACTORIES_H
-# define PACKAGE_FACTORIES_H
+# ifndef RENDERER_CONTROLLER_H
+# define RENDERER_CONTROLLER_H
 
-# include <string>
-# include <map>
+# include <abstract_host.h>
 
-# include "macros.h"
-# include "package.h"
+class RendererController : public AbstractHost
+{
+public:
+	RendererController(int socket);
+	~RendererController();
 
-Package* constructAcknowledgementPackage(std::string identifier, std::string error = "");
-Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error = "");
-Package* constructPackage(char *type, ...);
+protected:
+	void handlePackage(Package *thePackage);
+
+private:
+	
+};
 
 # endif
