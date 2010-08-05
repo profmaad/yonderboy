@@ -43,7 +43,7 @@ Job::Job(AbstractHost *host, Package *originalPackage, std::string newID) : Pack
 	}
 	else if(!originalPackage->hasID())
 	{
-		keyValueMap->insert(std::make_pair("id", host->getNextID()));
+		keyValueMap->insert(std::make_pair("id", host->getNextPackageID()));
 	}
 }
 Job::~Job()

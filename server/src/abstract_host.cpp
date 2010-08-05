@@ -26,6 +26,7 @@
 
 # include <cerrno>
 # include <cstring>
+# include <climits>
 # include <unistd.h>
 # include <sys/socket.h>
 
@@ -50,7 +51,7 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 	this->hostSocket = hostSocket;
 	state = Connected;
 	type = (ServerComponent)-1;
-	nextID = 0;
+	nextPackageID = 0;
 
 	readWatcher = new ev::io();
 	readWatcher->set<AbstractHost, &AbstractHost::readCallback>(this);
@@ -173,10 +174,12 @@ void AbstractHost::processPackage()
 	}
 	else if(constructedPackage->getType() == ConnectionManagement)
 	{
+		updateNextPackageID(constructedPackage->getID());
 		handlePackage(constructedPackage);
 	}
 	else if(state == Established)
 	{
+		updateNextPackageID(constructedPackage->getID());
 		server->packageRouterInstance()->processPackage(this, constructedPackage);
 	}
 	else
@@ -200,7 +203,7 @@ void AbstractHost::sendPackage(Package *thePackage, bool withID)
 	if(withID && !thePackage->hasID() && !thePackage->getType() == Acknowledgement)
 	{
 		serializedData += "id = ";
-		serializedData += getNextID();
+		serializedData += getNextPackageID();
 		serializedData += '\n';
 	}
 	serializedData += '\n';
@@ -216,7 +219,7 @@ void AbstractHost::sendPackageAndDelete(Package *thePackage, bool withID)
 }
 void AbstractHost::forwardJob(Job *theJob)
 {
-	Job *forwardedJob = new Job(this, theJob, getNextID());
+	Job *forwardedJob = new Job(this, theJob, getNextPackageID());
 	
 	server->jobManagerInstance()->addJob(forwardedJob);
 	server->jobManagerInstance()->addDependency(theJob, forwardedJob);
@@ -228,13 +231,20 @@ void AbstractHost::forwardJobAndDelete(Job *theJob)
 	forwardJob(theJob);
 	delete theJob;
 }
-std::string AbstractHost::getNextID()
+std::string AbstractHost::getNextPackageID()
 {
 	std::ostringstream conversionStream("");
-	conversionStream<<nextID;
-	nextID++;
+	conversionStream<<nextPackageID;
+	nextPackageID++;
 	
 	return conversionStream.str();
+}
+void AbstractHost::updateNextPackageID(unsigned long long lastReceivedID)
+{
+	if(lastReceivedID >= nextPackageID || (nextPackageID > ULLONG_MAX-100  && lastReceivedID < 100) ) // second case hopefully handles wrap-arounds
+	{
+		nextPackageID = lastReceivedID+1;
+	}
 }
 void AbstractHost::writeCallback(ev::io &watcher, int revents)
 {

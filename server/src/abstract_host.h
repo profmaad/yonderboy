@@ -42,7 +42,7 @@ public:
 	std::string getClientVersion() { return clientVersion; }
 	std::string getID() { return id; }
 	void setID(std::string newID) { id = newID; }
-	std::string getNextID();
+	std::string getNextPackageID();
 
 	void sendPackage(Package *thePackage, bool withID = true);
 	void sendPackageAndDelete(Package *thePackage, bool withID = true);
@@ -67,6 +67,7 @@ private:
 	void readCallback(ev::io &watcher, int revents);
 	void parseReceivedData();
 	void processPackage();
+	void updateNextPackageID(unsigned long long lastReceivedID);
 
 	void writeCallback(ev::io &watcher, int revents);
 
@@ -77,7 +78,7 @@ private:
 	bool receivedNewline;
 
 	std::string sendBuffer;
-	unsigned long long nextID;
+	unsigned long long nextPackageID;
 
 	ev::io *readWatcher;
 	ev::io *writeWatcher;
