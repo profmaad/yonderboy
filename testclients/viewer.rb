@@ -18,12 +18,12 @@ def parsePacket
     elsif(@buffer["command"] == "disconnect-from-renderer")
       @gtkSocket.add_id(0)
     end
-  elsif(@buffer["type"] == "ack" && @buffer["ack-id"] == "init00")
-    @socket.write("type = connection-management\ncommand = register-view\nview-id = view00\ndisplay-information = #{@gtkSocket.id}\ndisplay-information-type = XEMBED\nid = init01\n\n")
+  elsif(@buffer["type"] == "ack" && @buffer["id"] == "0")
+    @socket.write("type = connection-management\ncommand = register-view\nview-id = view00\ndisplay-information = #{@gtkSocket.id}\ndisplay-information-type = XEMBED\nid = 1\n\n")
   end
     
   if(@buffer["id"])
-    @socket.write("type = ack\nack-id = #{@buffer["id"]}\n\n")
+    @socket.write("type = ack\nid = #{@buffer["id"]}\n\n")
   end
 
   @buffer = Hash.new
@@ -50,7 +50,7 @@ end
 # read buffer
 @buffer = Hash.new
 
-@socket.write("type = connection-management\ncommand = initialize\nid = init00\nclient-name = ruby-test\ncan-display-stati\n\n")
+@socket.write("type = connection-management\ncommand = initialize\nid = 0\nclient-name = ruby-test\ncan-display-stati\n\n")
 
 @thread = Thread.new {
   Kernel.loop do

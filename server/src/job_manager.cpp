@@ -33,13 +33,13 @@
 
 JobManager::JobManager() : unfinishedJobs(NULL)
 {
-	unfinishedJobs = new std::map<std::pair<AbstractHost*, std::string>, Job*>();
+	unfinishedJobs = new std::map<std::pair<AbstractHost*, unsigned long long>, Job*>();
 
 	LOG_INFO("initialized");
 }
 JobManager::~JobManager()
 {
-	for(std::map<std::pair<AbstractHost*, std::string>, Job*>::iterator iter = unfinishedJobs->begin(); iter != unfinishedJobs->end(); ++iter)
+	for(std::map<std::pair<AbstractHost*, unsigned long long>, Job*>::iterator iter = unfinishedJobs->begin(); iter != unfinishedJobs->end(); ++iter)
 	{
 		delete iter->second;
 	}
@@ -103,11 +103,11 @@ void JobManager::removeJob(Job *theJob)
 {
 	unfinishedJobs->erase(std::make_pair(theJob->getHost(),theJob->getID()));
 }
-Job* JobManager::retrieveJob(AbstractHost *host, std::string id)
+Job* JobManager::retrieveJob(AbstractHost *host, unsigned long long id)
 {
 	Job *result = NULL;
 
-	std::map<std::pair<AbstractHost*, std::string>, Job*>::const_iterator iter = unfinishedJobs->find(std::make_pair(host,id));
+	std::map<std::pair<AbstractHost*, unsigned long long>, Job*>::const_iterator iter = unfinishedJobs->find(std::make_pair(host,id));
 	if(iter != unfinishedJobs->end())
 	{
 		result = iter->second;

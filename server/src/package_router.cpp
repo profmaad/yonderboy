@@ -118,8 +118,8 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 
 	if(thePackage->getType() == Acknowledgement)
 	{
-		LOG_DEBUG("received ack for id "<<thePackage->getValue("ack-id")<<" from "<<host);
-		Job *acknowledgedJob = server->jobManagerInstance()->retrieveJob(host, thePackage->getValue("ack-id"));
+		LOG_DEBUG("received ack for id "<<thePackage->getID()<<" from "<<host);
+		Job *acknowledgedJob = server->jobManagerInstance()->retrieveJob(host, thePackage->getID());
 		if (acknowledgedJob) { server->jobManagerInstance()->jobDone(acknowledgedJob); }
 		delete thePackage;
 	}
@@ -198,7 +198,7 @@ void PackageRouter::routeJob(Job *theJob)
 		iter = routingTable->find(theJob->getValue("request-type"));
 		break;
 	case Response:
-		originalRequest = server->jobManagerInstance()->retrieveJob(theJob->getHost(), theJob->getValue("request-id"));
+		originalRequest = server->jobManagerInstance()->retrieveJob(theJob->getHost(), theJob->getID());
 		if(originalRequest)
 		{
 			originalRequest->getHost()->sendPackageAndDelete(theJob);
@@ -206,7 +206,7 @@ void PackageRouter::routeJob(Job *theJob)
 		}
 		else
 		{
-			LOG_WARNING("encountered unmatched response with request-id "<<theJob->getValue("request-id")<<", discarding it");
+			LOG_WARNING("encountered unmatched response with id "<<theJob->getID()<<", discarding it");
 			theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "unmatched"));
 			delete theJob;
 		}

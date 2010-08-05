@@ -32,7 +32,7 @@ public:
 	virtual ~Package();
 
 	PackageType getType() const { return type; }
-	std::string getID() const;
+	unsigned long long getID() const;
 	bool hasID() const;
 	bool isValid() const { return valid; }
 	bool needsAcknowledgement() const { return acknowledgementNeeded; }
@@ -52,10 +52,13 @@ private:
 	void initialize();
 	std::map<std::string, std::string>* constructKeyValueMap(std::string &serializedData);
 	PackageType extractType(std::map<std::string, std::string> *keyValueMap);
+	void convertID();
 
 	PackageType type;
 	bool valid;
-	bool acknowledgementNeeded;	
+	bool acknowledgementNeeded;
+	unsigned long long id;
+	bool hasValidID;
 };
 
 # endif /*PACKAGE_H*/

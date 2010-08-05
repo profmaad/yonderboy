@@ -19,19 +19,20 @@
 
 # include <iostream>
 # include <string>
+# include <sstream>
 # include <map>
 
 # include "macros.h"
 # include "log.h"
 # include "package.h"
 
-Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
+Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false), id(0), hasValidID(false)
 {
 	keyValueMap = constructKeyValueMap(serializedData);
 	
 	initialize();
 }
-Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
+Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false), id(0), hasValidID(false)
 {
 	if(!kvMap)
 	{
@@ -44,11 +45,13 @@ Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), key
 
 	initialize();
 }
-Package::Package(Package *thePackage) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false)
+Package::Package(Package *thePackage) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false), id(0), hasValidID(false)
 {
 	type = thePackage->type;
 	valid = thePackage->valid;
 	acknowledgementNeeded = thePackage->acknowledgementNeeded;
+	id = thePackage->getID();
+	hasValidID = thePackage->hasID();
 
 	keyValueMap = new std::map<std::string, std::string>(*(thePackage->keyValueMap));
 
@@ -57,33 +60,34 @@ Package::Package(Package *thePackage) : type(Unknown), keyValueMap(NULL), valid(
 void Package::initialize()
 {
 	type = extractType(keyValueMap);
+	convertID();
 
 	switch(type)
 	{
 	case Command:
 		valid = isSet("command");
-		acknowledgementNeeded = isSet("id");
+		acknowledgementNeeded = hasID();
 		break;
 	case StatusChange:
 		valid = isSet("new-status");
 		break;
 	case Request:
-		valid = isSet("request-type") && isSet("request-id");
+		valid = isSet("request-type") && hasID();
 		break;
 	case Response:
-		valid = isSet("request-id") && isSet("answer");
+		valid = hasID() && isSet("answer");
 		break;
 	case Acknowledgement:
-		valid = isSet("ack-id");
+		valid = hasID();
 		break;
 	case ConnectionManagement:
-		valid = isSet("command") && isSet("id");
+		valid = isSet("command") && hasID();
 		acknowledgementNeeded = true;
 		break;
 	default:
 		valid = false;
 		acknowledgementNeeded = false;
-	}	
+	}
 }
 Package::~Package()
 {
@@ -111,13 +115,13 @@ bool Package::hasValue(std::string key) const
 	if(isSet(key)) { return getValue(key).size() > 0; }
 	else { return false; }
 }
-std::string Package::getID() const
+unsigned long long Package::getID() const
 {
-	return getValue("id");
+	return id;
 }
 bool Package::hasID() const
 {
-	return hasValue("id");
+	return hasValidID;
 }
 
 std::string Package::serialize() const
@@ -180,6 +184,12 @@ PackageType Package::extractType(std::map<std::string, std::string> *kvMap)
 	}
 
 	return result;
+}
+void Package::convertID()
+{
+	std::stringstream conversionStream(getValue("id"));
+
+	hasValidID = !(conversionStream >> id).fail();
 }
 
 std::string& Package::trimString(std::string &line)

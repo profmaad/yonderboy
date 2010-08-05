@@ -16,7 +16,7 @@ class CLIBrowserClient < EventMachine::Connection
     @packetID = 0
     @receiveBuffer = ""
 
-    package = construct_packet({"type" => "connection-management", "id" => "init00", "command" => "initialize"})
+    package = construct_packet({"type" => "connection-management", "id" => "0", "command" => "initialize"})
 
     send_data package
   end

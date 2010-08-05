@@ -22,7 +22,7 @@ def parsePacket
   end
 
   if(@buffer["id"])
-    @socket.write("type = ack\nack-id = #{@buffer["id"]}\n\n")
+    @socket.write("type = ack\nid = #{@buffer["id"]}\n\n")
   end
 
   @buffer = Hash.new
@@ -47,7 +47,7 @@ puts "My socket fd is #{@socketFD}"
 
 @socket = Socket.for_fd(@socketFD)
 
-@socket.write("type = connection-management\ncommand = initialize\nid = init00\nclient-name = ruby-webkit-test\nclient-version = 0\nbackend-name = webkit\nbackend-version = r51110\ndisplay-information-type = XEMBED\ndisplay-information = #{@plug.id}\n\n")
+@socket.write("type = connection-management\ncommand = initialize\nid = 0\nclient-name = ruby-webkit-test\nclient-version = 0\nbackend-name = webkit\nbackend-version = r51110\ndisplay-information-type = XEMBED\ndisplay-information = #{@plug.id}\n\n")
 
 @thread = Thread.new {
   Kernel.loop do
