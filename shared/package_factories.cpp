@@ -20,6 +20,7 @@
 # include <string>
 # include <map>
 # include <utility>
+# include <sstream>
 
 # include <cstdarg>
 
@@ -28,12 +29,16 @@
 
 # include "package_factories.h"
 
-Package* constructAcknowledgementPackage(std::string identifier, std::string error)
+Package* constructAcknowledgementPackage(unsigned long long id, std::string error)
 {
 	Package *result = NULL;
 	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();
 	kvMap->insert(std::make_pair("type", "ack"));
-	kvMap->insert(std::make_pair("ack-id",identifier));
+
+	std::stringstream conversionStream;
+	conversionStream<<id;
+	kvMap->insert(std::make_pair("id",conversionStream.str()));
+	
 	if(!error.empty()) { kvMap->insert(std::make_pair("error", error)); }
 
 	result = new Package(kvMap);

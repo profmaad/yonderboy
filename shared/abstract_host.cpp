@@ -26,6 +26,7 @@
 
 # include <cerrno>
 # include <cstring>
+# include <climits>
 # include <unistd.h>
 # include <sys/socket.h>
 
@@ -44,7 +45,7 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 	memset(receiveBuffer,0,4096);
 	this->hostSocket = hostSocket;
 	state = Connected;
-	nextID = 0;
+	nextPackageID = 0;
 
 	readWatcher = new ev::io();
 	readWatcher->set<AbstractHost, &AbstractHost::readCallback>(this);
@@ -156,9 +157,9 @@ void AbstractHost::processPackage()
 	}
 	else
 	{
+		updateNextPackageID(constructedPackage->getID());
 		handlePackage(constructedPackage);
 	}
-
 
 	parseBuffer.clear();
 }
@@ -174,7 +175,7 @@ void AbstractHost::sendPackage(Package *thePackage, bool withID)
 	if(withID && !thePackage->hasID() && !thePackage->getType() == Acknowledgement)
 	{
 		serializedData += "id = ";
-		serializedData += getNextID();
+		serializedData += getNextPackageID();
 		serializedData += '\n';
 	}
 	serializedData += '\n';
@@ -188,13 +189,21 @@ void AbstractHost::sendPackageAndDelete(Package *thePackage, bool withID)
 	sendPackage(thePackage, withID);
 	delete thePackage;
 }
-std::string AbstractHost::getNextID()
+
+std::string AbstractHost::getNextPackageID()
 {
 	std::ostringstream conversionStream("");
-	conversionStream<<nextID;
-	nextID++;
+	conversionStream<<nextPackageID;
+	nextPackageID++;
 	
 	return conversionStream.str();
+}
+void AbstractHost::updateNextPackageID(unsigned long long lastReceivedID)
+{
+	if(lastReceivedID >= nextPackageID || (nextPackageID > ULLONG_MAX-100  && lastReceivedID < 100) ) // second case hopefully handles wrap-arounds
+	{
+		nextPackageID = lastReceivedID+1;
+	}
 }
 void AbstractHost::writeCallback(ev::io &watcher, int revents)
 {
