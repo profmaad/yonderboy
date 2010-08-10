@@ -45,6 +45,7 @@ public:
 
 protected:
 	virtual void handlePackage(Package *thePackage) = 0;
+	virtual void socketClosed() = 0;
 
 	ConnectionState state;
 

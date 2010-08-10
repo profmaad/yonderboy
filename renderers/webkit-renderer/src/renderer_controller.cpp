@@ -17,12 +17,33 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
+# include <string>
+# include <sstream>
+
 # include "renderer_controller.h"
 
-# include "package.h"
+# include "defaults.h"
+
+# include <package.h>
+# include <package_factories.h>
 
 RendererController::RendererController(int socket) : AbstractHost(socket)
 {
+// initialize webkit backend (webview inside plug)
+	backendWebView = webkit_web_view_new();
+	backendPlug = gtk_plug_new(0);
+	gtk_container_add(GTK_CONTAINER(backendPlug), backendWebView);
+
+	// setup signals
+
+	// send init package
+	std::stringstream conversionStream;
+	conversionStream<<gtk_plug_get_id(GTK_PLUG(backendPlug));
+	
+	Package* initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "backend-name", BACKEND_NAME, "backend-version", BACKEND_VERSION, "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", conversionStream.str().c_str(), NULL);
+	sendPackageAndDelete(initPackage);
+
+	// react to signals from backend and commands from server
 }
 
 RendererController::~RendererController()
@@ -31,4 +52,8 @@ RendererController::~RendererController()
 
 void RendererController::handlePackage(Package* thePackage)
 {
+}
+void RendererController::socketClosed()
+{
+	ev::get_default_loop().unloop(ev::ALL);
 }

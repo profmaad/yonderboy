@@ -24,4 +24,8 @@
 # define PROJECT_VERSION "0 [devel build]"
 # define PROJECT_BRIEF_DESCRIPTION "a WebKit-based renderer"
 
+# define BACKEND_NAME "webkitgtk"
+# define BACKEND_VERSION "1.2.0"
+# define DISPLAY_INFORMATION_TYPE "XEMBED"
+
 # endif

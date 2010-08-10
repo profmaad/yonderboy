@@ -50,7 +50,7 @@ Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::str
 	if(packageToAcknowledge->hasID()) { return constructAcknowledgementPackage(packageToAcknowledge->getID(), error); }
 	else return NULL;
 }
-Package* constructPackage(char *type, ...)
+Package* constructPackage(const char *type, ...)
 {
 	Package *result = NULL;
 	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();

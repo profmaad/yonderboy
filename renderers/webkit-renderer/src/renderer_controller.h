@@ -20,6 +20,9 @@
 # ifndef RENDERER_CONTROLLER_H
 # define RENDERER_CONTROLLER_H
 
+# include <gtk/gtk.h>
+# include <webkit/webkit.h>
+
 # include <abstract_host.h>
 
 class RendererController : public AbstractHost
@@ -30,9 +33,11 @@ public:
 
 protected:
 	void handlePackage(Package *thePackage);
+	void socketClosed();
 
 private:
-	
+	GtkWidget *backendPlug;
+	GtkWidget *backendWebView;
 };
 
 # endif

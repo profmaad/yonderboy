@@ -70,6 +70,9 @@ void RendererHost::handlePackage(Package* thePackage)
 			backendVersion = thePackage->getValue("backend-version");
 			displayInformation = thePackage->getValue("display-information");
 			displayInformationType = thePackage->getValue("display-information-type");
+			
+			LOG_DEBUG(displayInformationType);
+			LOG_DEBUG(displayInformation);
 
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 			delete thePackage;

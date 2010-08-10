@@ -50,7 +50,7 @@ Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::str
 	if(packageToAcknowledge->hasID()) { return constructAcknowledgementPackage(packageToAcknowledge->getID(), error); }
 	else return NULL;
 }
-Package* constructPackage(char *type, ...)
+Package* constructPackage(const char *type, ...)
 {
 	Package *result = NULL;
 	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();
@@ -72,4 +72,11 @@ Package* constructPackage(char *type, ...)
 	result = new Package(kvMap);
 	
 	return result;
+}
+
+Package* constructRendererInitPackage(std::string software, std::string softwareVersion, std::string backendName, std::string backendVersion, std::string displayInformationType, std::string displayInformation)
+{
+	Package* initPackage = constructPackage("connection-management", "command", "initialize", "client-name", software.c_str(), "client-version", softwareVersion.c_str(), "backend-name", backendName.c_str(), "backend-version", backendVersion.c_str(), "display-information-type", displayInformationType.c_str(), "display-information", displayInformation.c_str());
+
+	return initPackage;
 }

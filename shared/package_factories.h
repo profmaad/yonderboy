@@ -28,6 +28,6 @@
 
 Package* constructAcknowledgementPackage(unsigned long long id, std::string error = "");
 Package* constructAcknowledgementPackage(Package *packageToAcknowledge, std::string error = "");
-Package* constructPackage(char *type, ...);
+Package* constructPackage(const char *type, ...);
 
 # endif

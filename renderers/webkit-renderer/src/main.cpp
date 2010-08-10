@@ -24,6 +24,8 @@
 # include <cstdlib>
 # include <getopt.h>
 
+# include <gtk/gtk.h>
+
 # include "shared.h"
 # include "defaults.h"
 # include "ev_cpp.h"
@@ -53,6 +55,13 @@ void printHelpMessage(const char *executable)
 	std::cout<<"options:"<<std::endl;
 	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
 	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
+}
+
+gboolean executeLibevLoop(gpointer data)
+{
+	ev::default_loop().loop(EVLOOP_NONBLOCK);
+
+	return TRUE;
 }
 
 int main(int argc, char** argv)
@@ -106,9 +115,17 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
+	gtk_init(&argc, &argv);
+	if(!g_thread_supported())
+	{
+		g_thread_init(NULL);
+	}
+
 	RendererController renderer(socket);
 
-	ev::default_loop().loop();
+	g_idle_add(executeLibevLoop,NULL);
+	gtk_main();
+//	ev::default_loop().loop();
 
 	return 0;
 }
