@@ -1,4 +1,4 @@
-//      renderer_controller.h
+//      server_connection.h
 //      
 //      Copyright 2010 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,25 +17,33 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef RENDERER_CONTROLLER_H
-# define RENDERER_CONTROLLER_H
+# ifndef SERVER_CONNECTION_H
+# define SERVER_CONNECTION_H
 
-# include <gtk/gtk.h>
-# include <webkit/webkit.h>
+# include <vector>
 
-class RendererController
+# include <glib.h>
+
+# include <abstract_host.h>
+
+class Package;
+
+class ServerConnection : public AbstractHost
 {
 public:
-	RendererController(int socket);
-	~RendererController();
+	ServerConnection(int serverSocket, int signalSocket);
+	~ServerConnection();
+	
+	Package* popPackage();
+	void pushPackage(Package *thePackage);
 
 protected:
 	void handlePackage(Package *thePackage);
 	void socketClosed();
 
 private:
-	GtkWidget *backendPlug;
-	GtkWidget *backendWebView;
-};
+	std::vector<Package*> *receivedPackages;
+	std::vector<Package*> *toSendPackages;
+}
 
 # endif

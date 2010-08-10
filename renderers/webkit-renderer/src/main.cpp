@@ -57,13 +57,6 @@ void printHelpMessage(const char *executable)
 	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
 }
 
-gboolean executeLibevLoop(gpointer data)
-{
-	ev::default_loop().loop(EVLOOP_NONBLOCK);
-
-	return TRUE;
-}
-
 int main(int argc, char** argv)
 {
 	int socket = -1;
@@ -123,9 +116,7 @@ int main(int argc, char** argv)
 
 	RendererController renderer(socket);
 
-	g_idle_add(executeLibevLoop,NULL);
 	gtk_main();
-//	ev::default_loop().loop();
 
 	return 0;
 }
