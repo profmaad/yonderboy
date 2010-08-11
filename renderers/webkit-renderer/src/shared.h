@@ -23,5 +23,6 @@
 # include <package.cpp>
 # include <package_factories.cpp>
 # include <abstract_host.cpp>
+# include <server_connection.cpp>
 
 # endif

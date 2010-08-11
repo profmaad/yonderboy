@@ -22,6 +22,10 @@
 
 # include <gtk/gtk.h>
 # include <webkit/webkit.h>
+# include <pthread.h>
+
+class ServerConnection;
+class Package;
 
 class RendererController
 {
@@ -29,13 +33,32 @@ public:
 	RendererController(int socket);
 	~RendererController();
 
-protected:
-	void handlePackage(Package *thePackage);
-	void socketClosed();
-
 private:
+	void setupServerConnection(int serverSocket);
+	static void* startServerConnection(void *args);
+	void sendSignal();
+	static gboolean signalCallback(GIOChannel *channel, GIOCondition condition, gpointer data);
+	void signalSocketClosed();
+
+	void sendPackageAndDelete(Package *thePackage);
+	void handlePackage(Package *thePackage);
+	void handlePackagesFromServerConnection();
+
 	GtkWidget *backendPlug;
 	GtkWidget *backendWebView;
+
+	ServerConnection *serverConnection;
+	GIOChannel *signalChannel;
+	guint signalWatcher;
+	int signalSocket;
+	pthread_t serverConnectionThread;
+
+	struct ServerConnectionThreadInfo
+	{
+		int serverSocket;
+		int signalSocket;
+		ServerConnection **serverConnection;
+	};
 };
 
 # endif

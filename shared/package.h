@@ -23,6 +23,8 @@
 # include <map>
 # include <string>
 
+# include "macros.h"
+
 class Package
 {
 public:

@@ -61,6 +61,7 @@ Package* constructPackage(const char *type, ...)
 	char *key = NULL;
 	char *value = NULL;
 
+
 	va_list vaList;
 	va_start(vaList, type);
 	while( (key = va_arg(vaList, char*)) != NULL && (value = va_arg(vaList, char*)) != NULL)
@@ -72,11 +73,4 @@ Package* constructPackage(const char *type, ...)
 	result = new Package(kvMap);
 	
 	return result;
-}
-
-Package* constructRendererInitPackage(std::string software, std::string softwareVersion, std::string backendName, std::string backendVersion, std::string displayInformationType, std::string displayInformation)
-{
-	Package* initPackage = constructPackage("connection-management", "command", "initialize", "client-name", software.c_str(), "client-version", softwareVersion.c_str(), "backend-name", backendName.c_str(), "backend-version", backendVersion.c_str(), "display-information-type", displayInformationType.c_str(), "display-information", displayInformation.c_str());
-
-	return initPackage;
 }

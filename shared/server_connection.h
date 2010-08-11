@@ -20,11 +20,12 @@
 # ifndef SERVER_CONNECTION_H
 # define SERVER_CONNECTION_H
 
-# include <vector>
+# include <queue>
 
-# include <glib.h>
+# include <pthread.h>
 
-# include <abstract_host.h>
+# include "ev_cpp.h"
+# include "abstract_host.h"
 
 class Package;
 
@@ -42,8 +43,20 @@ protected:
 	void socketClosed();
 
 private:
-	std::vector<Package*> *receivedPackages;
-	std::vector<Package*> *toSendPackages;
-}
+	void setupSignalSocket();
+	void signalCallback(ev::io &watcher, int revents);
+	void sendSignal();
+
+	std::queue<Package*> *receivedPackages;
+	std::queue<Package*> *toSendPackages;
+
+	pthread_mutex_t receivedPackagesMutex;
+	pthread_mutex_t toSendPackagesMutex;
+
+	int serverSocket;
+	int signalSocket;
+
+	ev::io *signalWatcher;
+};
 
 # endif

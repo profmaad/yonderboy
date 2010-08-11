@@ -96,6 +96,7 @@ void AbstractHost::closeSocket()
 	}
 	close(hostSocket);
 	state = Disconnected;
+	socketClosed();
 }
 
 void AbstractHost::readCallback(ev::io &watcher, int revents)
