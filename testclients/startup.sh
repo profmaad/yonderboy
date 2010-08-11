@@ -8,7 +8,8 @@ VIEWER="ruby viewer.rb"
 
 #$TERMINAL $SERVER -c ~/.cli-browser/config &
 $TERMINAL gdb --args $SERVER -c ~/.cli-browser/config &
-sleep 5
+#sleep 5
+read
 $TERMINAL $CONTROLLER &
 $TERMINAL $VIEWER ~/.cli-browser/viewer.sock &
 

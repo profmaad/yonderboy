@@ -56,6 +56,8 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 }
 AbstractHost::~AbstractHost()
 {
+	closeSocket(false);
+
 //	delete writeWatcher;
 //	delete readWatcher;
 }
@@ -87,16 +89,17 @@ void AbstractHost::shutdownSocket()
 		throw std::runtime_error("Host socket shutdown failed");
 	}
 }
-void AbstractHost::closeSocket()
+void AbstractHost::closeSocket(bool notifySubclasses)
 {
 	if(ev::get_default_loop().depth() > 0)
 	{
 		readWatcher->stop();
 		writeWatcher->stop();
+
 	}
 	close(hostSocket);
 	state = Disconnected;
-	socketClosed();
+	if(notifySubclasses) { socketClosed(); }
 }
 
 void AbstractHost::readCallback(ev::io &watcher, int revents)

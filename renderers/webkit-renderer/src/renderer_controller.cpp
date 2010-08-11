@@ -55,14 +55,12 @@ RendererController::RendererController(int socket)
 	
 	Package* initPackage = constructPackage("connection-management", "id", serverConnection->getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "backend-name", BACKEND_NAME, "backend-version", BACKEND_VERSION, "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", conversionStream.str().c_str(), NULL);
 	sendPackageAndDelete(initPackage);
-
-	// react to signals from backend and commands from server
 }
 
 RendererController::~RendererController()
 {
-	pthread_join(serverConnectionThread, NULL);
 	delete serverConnection;
+	pthread_join(serverConnectionThread, NULL);
 }
 
 void RendererController::setupServerConnection(int serverSocket)
@@ -87,6 +85,7 @@ void RendererController::setupServerConnection(int serverSocket)
 	
 	this->signalSocket = sockets[0];
 	signalChannel = g_io_channel_unix_new(this->signalSocket);
+	g_io_channel_set_encoding(signalChannel, NULL, NULL);
 	signalWatcher = g_io_add_watch(signalChannel, (GIOCondition)(G_IO_IN | G_IO_HUP | G_IO_ERR), signalCallback, this);
 }
 void* RendererController::startServerConnection(void *args)
@@ -106,22 +105,28 @@ gboolean RendererController::signalCallback(GIOChannel *channel, GIOCondition co
 	if(condition == G_IO_HUP || condition == G_IO_ERR)
 	{
 		me->signalSocketClosed();
+		return FALSE;
 	}
 	else if(condition == G_IO_IN)
 	{
-		gchar *readString;
-		gsize readStringLength;
-
-		GIOStatus result = g_io_channel_read_to_end(channel, &readString, &readStringLength, NULL);
+		gchar payload;
+		gsize bytesRead = -1;
+		GIOStatus result = G_IO_STATUS_ERROR;
+		
+		result = g_io_channel_read_chars(channel, &payload, sizeof(gchar), &bytesRead, NULL);
+		
 		if(result == G_IO_STATUS_NORMAL)
 		{
 			me->handlePackagesFromServerConnection();
 		}
-		else if(result == G_IO_STATUS_ERROR)
-		{		       
+		else if(result == G_IO_STATUS_ERROR || bytesRead == 0)
+		{
 			me->signalSocketClosed();
+			return FALSE;
 		}
 	}
+	
+	return TRUE;
 }
 void RendererController::handlePackagesFromServerConnection()
 {
@@ -146,8 +151,13 @@ void RendererController::sendPackageAndDelete(Package *thePackage)
 
 void RendererController::handlePackage(Package *thePackage)
 {
+	std::cerr<<"___WEBKITRENDERER::RendererController___got Package with id "<<thePackage->getID()<<std::endl;
 }
 void RendererController::signalSocketClosed()
 {
+	std::cerr<<"___WEBKITRENDERER___going down in signalSocketClosed"<<std::endl;
+
+	close(signalSocket);
+
 	gtk_main_quit();
 }

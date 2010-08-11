@@ -35,7 +35,7 @@ ServerConnection::ServerConnection(int serverSocket, int signalSocket) : Abstrac
 
 	receivedPackages = new std::queue<Package*>();
 	toSendPackages = new std::queue<Package*>();
-
+	
 	receivedPackagesMutex = PTHREAD_MUTEX_INITIALIZER;
 	toSendPackagesMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -50,6 +50,8 @@ ServerConnection::~ServerConnection()
 	{
 		signalWatcher->stop();
 	}
+
+	ev::get_default_loop().unloop(ev::ALL);
 }
 void ServerConnection::setupSignalSocket()
 {
@@ -92,6 +94,8 @@ void ServerConnection::handlePackage(Package *thePackage)
 	receivedPackages->push(thePackage);
 
 	pthread_mutex_unlock(&receivedPackagesMutex);
+
+	sendSignal();
 }
 void ServerConnection::socketClosed()
 {
@@ -104,8 +108,6 @@ void ServerConnection::socketClosed()
 		strerror_r(result, errorBuffer, 128);
 		std::cerr<<"failed to close signal socket on ServerConnection side: "<<errorBuffer<<std::endl;
 	}
-
-	ev::default_loop().unloop();
 }
 
 void ServerConnection::signalCallback(ev::io &watcher, int revents)

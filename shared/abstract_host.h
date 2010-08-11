@@ -50,7 +50,7 @@ protected:
 	ConnectionState state;
 
 private:
-	void closeSocket(); // only safe to call when we either already did a proper shutdown (thats what disconnect() is for) or we are just responding to the other side shuting down
+	void closeSocket(bool notifySubclasses = true); // only safe to call when we either already did a proper shutdown (thats what disconnect() is for) or we are just responding to the other side shuting down
 	void shutdownSocket(); // shuts down the write half of the socket to signal the other party that we are going down
 
 	void readCallback(ev::io &watcher, int revents);
