@@ -117,6 +117,11 @@ void ServerConnection::signalCallback(ev::io &watcher, int revents)
 
 	bytesRead = read(signalSocket, static_cast<void*>(&payload), sizeof(int));
 
+	if(bytesRead == 0)
+	{
+		shutdownHost();
+	}
+
 	pthread_mutex_lock(&toSendPackagesMutex);
 
 	while(!toSendPackages->empty())

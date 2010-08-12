@@ -28,7 +28,8 @@
 
 # include "shared.h"
 # include "defaults.h"
-# include "ev_cpp.h"
+
+# include <ev_cpp.h>
 
 # include "renderer_controller.h"
 

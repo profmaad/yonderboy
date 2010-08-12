@@ -20,9 +20,11 @@
 # ifndef SHARED_H
 # define SHARED_H
 
+# include <ev_cpp.cpp>
 # include <package.cpp>
 # include <package_factories.cpp>
 # include <abstract_host.cpp>
 # include <server_connection.cpp>
+# include <client_controller.cpp>
 
 # endif
