@@ -14,6 +14,7 @@ def parsePacket
 
   if(@buffer["type"] == "command")
     if(@buffer["command"] == "connect-to-renderer")
+      @gtkSocket.add_id(0)
       @gtkSocket.add_id(@buffer["display-information"].to_i)
     elsif(@buffer["command"] == "disconnect-from-renderer")
       @gtkSocket.add_id(0)

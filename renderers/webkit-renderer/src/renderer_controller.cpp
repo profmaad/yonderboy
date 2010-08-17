@@ -48,8 +48,15 @@ RendererController::RendererController(int socket) : ClientController(socket), b
 	// setup signals
 	g_signal_connect_swapped(backendPlug, "embedded", G_CALLBACK(&RendererController::plugEmbeddedCallback),this);
 
+	g_signal_connect_swapped(backendWebView, "notify::load-status", G_CALLBACK(&RendererController::loadStatusCallback),this);
+	g_signal_connect_swapped(backendWebView, "notify::progress", G_CALLBACK(&RendererController::progressCallback),this);
+	g_signal_connect_swapped(backendWebView, "hovering-over-link", G_CALLBACK(&RendererController::hoveringLinkCallback),this);
+
 	// show everything
 	gtk_widget_show_all(backendPlug);
+
+	// init scalars
+	lastProgress = 1;
 
 	// send init package
 	std::stringstream conversionStream;
@@ -103,6 +110,19 @@ std::string RendererController::handleCommand(Package *thePackage)
 			webkit_web_view_reload(view);
 		}
 	}
+	else if(command == "go-back")
+	{
+		webkit_web_view_go_back(view);
+	}
+	else if(command == "go-forward")
+	{
+		webkit_web_view_go_forward(view);
+	}
+	else if(command == "search-in-page" && thePackage->hasValue("text"))
+	{
+		gboolean result = webkit_web_view_search_text(view, thePackage->getValue("text").c_str(), thePackage->isSet("case-sensitive"), !(thePackage->isSet("backwards")), thePackage->isSet("wrap-around"));
+		if(!result) { error = "failed"; }
+	}
 	else
 	{
 		error = "invalid";
@@ -123,4 +143,48 @@ void RendererController::signalSocketClosed()
 void RendererController::plugEmbeddedCallback(GtkPlug *plug)
 {
 	std::cerr<<"___WEBKITRENDERER___plug got embedded into socket"<<std::endl;
+}
+void RendererController::loadStatusCallback()
+{
+	Package *statusPackage;
+
+	switch(webkit_web_view_get_load_status(WEBKIT_WEB_VIEW(backendWebView)))
+	{
+	case WEBKIT_LOAD_COMMITTED:
+		statusPackage = constructPackage("status-change", "status", "load-started", "uri", webkit_web_view_get_uri(WEBKIT_WEB_VIEW(backendWebView)), NULL);
+		break;
+	case WEBKIT_LOAD_FINISHED:
+		statusPackage = constructPackage("status-change", "status", "load-finished", "uri", webkit_web_view_get_uri(WEBKIT_WEB_VIEW(backendWebView)), NULL);
+		break;
+	case WEBKIT_LOAD_FAILED:
+		statusPackage = constructPackage("status-change", "status", "load-failed", NULL);
+		break;
+	}
+
+	if(statusPackage) { sendPackageAndDelete(statusPackage); }
+}
+void RendererController::progressCallback()
+{
+	double progress = webkit_web_view_get_progress(WEBKIT_WEB_VIEW(backendWebView));
+
+	if(progress < lastProgress || progress >= (lastProgress + 0.1))
+	{
+		std::ostringstream conversionStream;
+		conversionStream<<progress;
+
+		sendPackageAndDelete(constructPackage("status-change", "status", "progress-changed", "progress", conversionStream.str().c_str(), NULL));
+
+		lastProgress = progress;
+	}
+}
+void RendererController::hoveringLinkCallback(WebKitWebView *view, gchar *title, gchar *uri)
+{
+	if(uri)
+	{
+		sendPackageAndDelete(constructPackage("status-change", "status", "hovering-over-link", "title", title, "uri", uri, NULL));
+	}
+	else
+	{
+		sendPackageAndDelete(constructPackage("status-change", "status", "not-hovering-over-link", NULL));
+	}
 }

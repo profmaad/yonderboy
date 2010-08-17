@@ -9,6 +9,29 @@ controller:
     required:
       - renderer-id: ID of the renderer that should open the uri
 
+  - command: go-back
+    target: renderer-host
+    description: Tells the renderer to go back one item in its history
+    required:
+      - renderer-id: ID of the renderer that should open the uri
+
+  - command: go-forward
+    target: renderer-host
+    description: Tells the renderer to go forward one item in its history
+    required:
+      - renderer-id: ID of the renderer that should open the uri
+
+  - command: search-in-page
+    target: renderer-host
+    description: Tells the renderer to start a search in the currently loaded page
+    required:
+      - renderer-id: ID of the renderer that should open the uri
+      - text: the text to search for
+    optional:
+      - case-sensitive: boolean property
+      - backwards: boolean property, when set the page is searched backwards
+      - wrap-around: boolean property, when set the search will wrap around at the page end
+
   - command: reload-page
     target: renderer-host
     description: Tells the renderer to reload the currently displayed page

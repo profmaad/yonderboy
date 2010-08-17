@@ -269,7 +269,7 @@ void PackageRouter::deliverStatusChange(Job *theJob)
 	{
 		(*iter)->sendPackage(theJob);
 	}
-	
+      	
 	delete theJob;
 }
 

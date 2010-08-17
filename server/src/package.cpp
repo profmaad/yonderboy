@@ -69,7 +69,7 @@ void Package::initialize()
 		acknowledgementNeeded = hasID();
 		break;
 	case StatusChange:
-		valid = isSet("new-status");
+		valid = isSet("status");
 		break;
 	case Request:
 		valid = isSet("request-type") && hasID();

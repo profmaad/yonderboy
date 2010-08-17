@@ -44,10 +44,15 @@ private:
 
 	// Callbacks
 	void plugEmbeddedCallback(GtkPlug *plug);
+	void loadStatusCallback();
+	void progressCallback();
+	void hoveringLinkCallback(WebKitWebView *view, gchar *title, gchar *uri);
 
 	GtkWidget *backendPlug;
 	GtkWidget *backendScrolledWindow;
 	GtkWidget *backendWebView;
+
+	gdouble lastProgress;
 };
 
 # endif
