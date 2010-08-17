@@ -49,12 +49,12 @@ public:
 
 protected:
 	std::map<std::string, std::string> *keyValueMap;
+	void convertID();
 
 private:
 	void initialize();
 	std::map<std::string, std::string>* constructKeyValueMap(std::string &serializedData);
 	PackageType extractType(std::map<std::string, std::string> *keyValueMap);
-	void convertID();
 
 	PackageType type;
 	bool valid;

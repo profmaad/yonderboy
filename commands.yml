@@ -9,6 +9,14 @@ controller:
     required:
       - renderer-id: ID of the renderer that should open the uri
 
+  - command: reload-page
+    target: renderer-host
+    description: Tells the renderer to reload the currently displayed page
+    required:
+      - renderer-id: ID of the renderer that should open the uri
+    optional:
+      - bypass-cache: boolean property, tells the renderer to not use any caches
+
   - command: connect-view-to-renderer
     target: display-manager
     description: Hooks up a view to a renderer, so that the renderers results are shown in the view and can be controlled

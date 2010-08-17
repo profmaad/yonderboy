@@ -53,7 +53,7 @@ void JobManager::addJob(Job *theJob)
 
 	unfinishedJobs->insert(std::make_pair(std::make_pair(theJob->getHost(), theJob->getID()), theJob));
 	
-	LOG_DEBUG("got new job "<<theJob->getID()<<"x"<<theJob->getHost());	
+	LOG_DEBUG("got new job "<<theJob->getID()<<"@"<<theJob->getHost());	
 }
 
 void JobManager::addDependency(Job *dependentJob, Job *dependency)

@@ -121,8 +121,9 @@ void DisplayManager::connect(View *theView, RendererHost *theRenderer, Job *conn
 	Package *viewerPackage = constructViewConnectPackage(theView, theRenderer);
 	Package *rendererPackage = constructRendererConnectPackage(theRenderer, theView);
 	
-	Job *viewerJob = new Job(theView->getHost(), viewerPackage);
-	Job *rendererJob = new Job(theRenderer, rendererPackage);
+	Job *viewerJob = new Job(theView->getHost(), viewerPackage, theView->getHost()->getNextPackageID());
+	Job *rendererJob = new Job(theRenderer, rendererPackage, theRenderer->getNextPackageID());
+
 	server->jobManagerInstance()->addJob(viewerJob);
 	server->jobManagerInstance()->addJob(rendererJob);
      

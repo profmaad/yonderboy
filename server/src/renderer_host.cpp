@@ -90,10 +90,10 @@ void RendererHost::handlePackage(Package* thePackage)
 
 void RendererHost::doJob(Job *theJob)
 {
-	if(theJob->getValue("command") == "open-uri" && theJob->hasValue("uri"))
-	{
+//	if(theJob->getValue("command") == "open-uri" && theJob->hasValue("uri"))
+//	{
 		forwardJob(theJob);
-	}
+//	}
 }
 
 RendererHost* RendererHost::spawnRenderer(std::string binaryPath)
