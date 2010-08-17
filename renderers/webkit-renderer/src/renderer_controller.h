@@ -20,6 +20,8 @@
 # ifndef RENDERER_CONTROLLER_H
 # define RENDERER_CONTROLLER_H
 
+# include <string>
+
 # include <gtk/gtk.h>
 # include <webkit/webkit.h>
 
@@ -38,7 +40,13 @@ protected:
 	void signalSocketClosed();
 
 private:
+	std::string handleCommand(Package *thePackage);	
+
+	// Callbacks
+	void plugEmbeddedCallback(GtkPlug *plug);
+
 	GtkWidget *backendPlug;
+	GtkWidget *backendScrolledWindow;
 	GtkWidget *backendWebView;
 };
 

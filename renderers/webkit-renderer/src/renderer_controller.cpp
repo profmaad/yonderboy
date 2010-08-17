@@ -40,10 +40,16 @@ RendererController::RendererController(int socket) : ClientController(socket), b
 {
 // initialize webkit backend (webview inside plug)
 	backendWebView = webkit_web_view_new();
+	backendScrolledWindow = gtk_scrolled_window_new(NULL,NULL);
 	backendPlug = gtk_plug_new(0);
-	gtk_container_add(GTK_CONTAINER(backendPlug), backendWebView);
+	gtk_container_add(GTK_CONTAINER(backendScrolledWindow), backendWebView);
+	gtk_container_add(GTK_CONTAINER(backendPlug), backendScrolledWindow);
 
 	// setup signals
+	g_signal_connect_swapped(backendPlug, "embedded", G_CALLBACK(&RendererController::plugEmbeddedCallback),this);
+
+	// show everything
+	gtk_widget_show_all(backendPlug);
 
 	// send init package
 	std::stringstream conversionStream;
@@ -54,12 +60,57 @@ RendererController::RendererController(int socket) : ClientController(socket), b
 }
 RendererController::~RendererController()
 {
+	
 }
 
 void RendererController::handlePackage(Package *thePackage)
 {
 	std::cerr<<"___WEBKITRENDERER::RendererController___got Package with id "<<thePackage->getID()<<std::endl;
+
+	std::string error;
+
+	switch(thePackage->getType())
+	{
+	case Command:
+		error = handleCommand(thePackage);
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, error));
+		break;
+	case Response:
+		break;
+	case ConnectionManagement:
+		break;
+	}
 }
+std::string RendererController::handleCommand(Package *thePackage)
+{
+	std::string command = thePackage->getValue("command");
+	WebKitWebView *view = WEBKIT_WEB_VIEW(backendWebView);
+
+	std::string error;
+
+	if(command == "open-uri" && thePackage->hasValue("uri"))
+	{
+		webkit_web_view_load_uri(view, thePackage->getValue("uri").c_str());
+	}
+	else if(command == "reload-page")
+	{
+		if(thePackage->isSet("bypass-cache"))
+		{
+			webkit_web_view_reload_bypass_cache(view);
+		}
+		else
+		{
+			webkit_web_view_reload(view);
+		}
+	}
+	else
+	{
+		error = "invalid";
+	}
+
+	return error;
+}
+
 void RendererController::signalSocketClosed()
 {
 	std::cerr<<"___WEBKITRENDERER___going down in signalSocketClosed"<<std::endl;
@@ -67,4 +118,9 @@ void RendererController::signalSocketClosed()
 	closeServerConnection();
 
 	gtk_main_quit();
+}
+
+void RendererController::plugEmbeddedCallback(GtkPlug *plug)
+{
+	std::cerr<<"___WEBKITRENDERER___plug got embedded into socket"<<std::endl;
 }
