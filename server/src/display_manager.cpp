@@ -218,6 +218,16 @@ bool DisplayManager::isConnected(RendererHost *theRenderer)
 	if(iter == viewByRenderer->end()) { return false; }
 	else { return true; }
 }
+bool DisplayManager::areConnected(ViewerHost *theViewer, RendererHost *theRenderer)
+{
+	std::map<RendererHost*, View*>::const_iterator iter = viewByRenderer->find(theRenderer);
+	if(iter != viewByRenderer->end())
+	{
+		return (iter->second->getHost() == theViewer);
+	}
+
+	return false;
+}
 
 Package* DisplayManager::constructViewConnectPackage(View *theView, RendererHost *theRenderer)
 {

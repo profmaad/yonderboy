@@ -53,6 +53,7 @@ public:
 
 	bool isConnected(View *theView);
 	bool isConnected(RendererHost *theRenderer);
+	bool areConnected(ViewerHost *theViewer, RendererHost *theRenderer);
 
 private:
 	void disconnect(View *theView, RendererHost *theRenderer);

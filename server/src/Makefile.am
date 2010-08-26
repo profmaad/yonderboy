@@ -9,6 +9,7 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		hosts_manager.h hosts_manager.cpp \
 		package.h package.cpp \
 		package_factories.h package_factories.cpp \
+		status_change_package.h status_change_package.cpp \
 		controller_listener.h controller_listener.cpp \
 		controller_host.h controller_host.cpp \
 		viewer_listener.h viewer_listener.cpp \

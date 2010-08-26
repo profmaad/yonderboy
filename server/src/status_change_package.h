@@ -1,4 +1,4 @@
-//      renderer_controller.h
+//      status_change_package.h
 //      
 //      Copyright 2010 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,43 +17,26 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef RENDERER_CONTROLLER_H
-# define RENDERER_CONTROLLER_H
+# ifndef STATUS_CHANGE_PACKAGE_H
+# define STATUS_CHANGE_PACKAGE_H
 
 # include <string>
 
-# include <gtk/gtk.h>
-# include <webkit/webkit.h>
+# include "macros.h"
 
-# include <client_controller.h>
+# include "package.h"
 
-class Package;
+class AbstractHost;
 
-class RendererController : public ClientController
+class StatusChangePackage : public Package
 {
 public:
-	RendererController(int socket);
-	~RendererController();
-
-protected:
-	void handlePackage(Package *thePackage);
-	void signalSocketClosed();
-
+	StatusChangePackage(Package *originalPackage, AbstractHost *source);
+	ServerComponent getSourceType() { return sourceType; }
+	std::string getSourceID();
+	
 private:
-	std::string handleCommand(Package *thePackage);	
-	void handleRequest(Package *thePackage);
-
-	// Callbacks
-	void plugEmbeddedCallback(GtkPlug *plug);
-	void loadStatusCallback();
-	void progressCallback();
-	void hoveringLinkCallback(WebKitWebView *view, gchar *uri);
-
-	GtkWidget *backendPlug;
-	GtkWidget *backendScrolledWindow;
-	GtkWidget *backendWebView;
-
-	gdouble lastProgress;
+	ServerComponent sourceType;
 };
 
-# endif
+# endif /*STATUS_CHANGE_PACKAGE_H*/

@@ -38,7 +38,7 @@ def parsePacket
       @statusbar.push(@statusbarContextRendererLoad, "#{percentage}% loaded")
     when "hovering-over-link"
       @statusbar.pop(@statusbarContextRendererHover)
-      @statusbar.push(@statusbarContextRendererHover, @buffer["uri"]+" ("+@buffer["title"]+")")      
+      @statusbar.push(@statusbarContextRendererHover, @buffer["uri"])      
     when "not-hovering-over-link"
       @statusbar.pop(@statusbarContextRendererHover)
     end

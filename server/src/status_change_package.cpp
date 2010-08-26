@@ -1,4 +1,4 @@
-//      renderer_controller.h
+//      status_change_package.cpp
 //      
 //      Copyright 2010 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,43 +17,28 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef RENDERER_CONTROLLER_H
-# define RENDERER_CONTROLLER_H
-
 # include <string>
 
-# include <gtk/gtk.h>
-# include <webkit/webkit.h>
+# include "macros.h"
+# include "log.h"
 
-# include <client_controller.h>
+# include "package.h"
+# include "abstract_host.h"
 
-class Package;
+# include "status_change_package.h"
 
-class RendererController : public ClientController
+StatusChangePackage::StatusChangePackage(Package *originalPackage, AbstractHost *source) : Package(originalPackage)
 {
-public:
-	RendererController(int socket);
-	~RendererController();
+	sourceType = source->getType();
+	keyValueMap->insert(std::make_pair("source-id", source->getID()));
+	
+	if(sourceType == ServerComponentRendererHost)
+	{
+		keyValueMap->insert(std::make_pair("source-type", "renderer"));
+	}
+}
 
-protected:
-	void handlePackage(Package *thePackage);
-	void signalSocketClosed();
-
-private:
-	std::string handleCommand(Package *thePackage);	
-	void handleRequest(Package *thePackage);
-
-	// Callbacks
-	void plugEmbeddedCallback(GtkPlug *plug);
-	void loadStatusCallback();
-	void progressCallback();
-	void hoveringLinkCallback(WebKitWebView *view, gchar *uri);
-
-	GtkWidget *backendPlug;
-	GtkWidget *backendScrolledWindow;
-	GtkWidget *backendWebView;
-
-	gdouble lastProgress;
-};
-
-# endif
+std::string StatusChangePackage::getSourceID()
+{
+	return getValue("source-id");
+}

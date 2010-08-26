@@ -38,6 +38,7 @@ public:
 	void shutdownHost();
 	ConnectionState getState() { return state; }
 	int getHostSocket() { return hostSocket; }
+	ServerComponent getType() { return type; }
 	std::string getClientName() { return clientName; }
 	std::string getClientVersion() { return clientVersion; }
 	std::string getID() { return id; }

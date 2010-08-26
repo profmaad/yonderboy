@@ -29,6 +29,7 @@
 
 # include "package.h"
 # include "package_factories.h"
+# include "status_change_package.h"
 # include "job.h"
 # include "abstract_host.h"
 # include "job_manager.h"
@@ -132,7 +133,7 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 	}
 	else if(thePackage->getType() == StatusChange)
 	{
-		deliverStatusChange(thePackage);
+		deliverStatusChange(host, thePackage);
 	}
 	else
 	{
@@ -206,10 +207,6 @@ void PackageRouter::routeJob(Job *theJob)
 	case Command:
 		iter = routingTable->find(theJob->getValue("command"));
 		break;
-	case StatusChange:
-		deliverStatusChange(theJob);
-		return;
-		break;
 	case Request:
 		iter = routingTable->find(theJob->getValue("request-type"));
 		break;
@@ -279,14 +276,27 @@ void PackageRouter::routeJob(Job *theJob)
 		delete theJob;
 	}
 }
-void PackageRouter::deliverStatusChange(Package *thePackage)
+void PackageRouter::deliverStatusChange(AbstractHost *source, Package *thePackage)
 {
+	StatusChangePackage *statusChange = new StatusChangePackage(thePackage, source);
+
 	for(std::set<AbstractHost*>::const_iterator iter = statiReceiver->begin(); iter != statiReceiver->end(); ++iter)
 	{
-		(*iter)->sendPackage(thePackage);
+		if((*iter)->getType() == ServerComponentControllerHost)
+		{
+			(*iter)->sendPackage(statusChange);
+		}
+		else if((*iter)->getType() == ServerComponentViewerHost && statusChange->getSourceType() == ServerComponentRendererHost)
+		{
+			if(server->displayManagerInstance()->areConnected(dynamic_cast<ViewerHost*>(*iter), dynamic_cast<RendererHost*>(source)))
+			{
+				(*iter)->sendPackage(statusChange);
+			}
+		}
 	}
-      	
+      
 	delete thePackage;
+	delete statusChange;
 }
 
 void PackageRouter::addArrayToRoutingTable(ServerComponent component, const char* array[])

@@ -45,7 +45,7 @@ public:
 
 private:
 	void routeJob(Job *theJob);
-	void deliverStatusChange(Package *thePackage);
+	void deliverStatusChange(AbstractHost *source, Package *thePackage);
 
 	static ServerComponent stringToServerComponent(std::string string);
 
