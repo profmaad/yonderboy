@@ -130,6 +130,10 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 		server->jobManagerInstance()->requestAnswered(host, thePackage);
 		delete thePackage;
 	}
+	else if(thePackage->getType() == StatusChange)
+	{
+		deliverStatusChange(thePackage);
+	}
 	else
 	{
 		result = new Job(host, thePackage);
@@ -275,14 +279,14 @@ void PackageRouter::routeJob(Job *theJob)
 		delete theJob;
 	}
 }
-void PackageRouter::deliverStatusChange(Job *theJob)
+void PackageRouter::deliverStatusChange(Package *thePackage)
 {
 	for(std::set<AbstractHost*>::const_iterator iter = statiReceiver->begin(); iter != statiReceiver->end(); ++iter)
 	{
-		(*iter)->sendPackage(theJob);
+		(*iter)->sendPackage(thePackage);
 	}
       	
-	delete theJob;
+	delete thePackage;
 }
 
 void PackageRouter::addArrayToRoutingTable(ServerComponent component, const char* array[])
