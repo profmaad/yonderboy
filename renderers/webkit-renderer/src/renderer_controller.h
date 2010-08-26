@@ -41,6 +41,7 @@ protected:
 
 private:
 	std::string handleCommand(Package *thePackage);	
+	void handleRequest(Package *thePackage);
 
 	// Callbacks
 	void plugEmbeddedCallback(GtkPlug *plug);

@@ -176,7 +176,7 @@ void AbstractHost::sendPackage(Package *thePackage, bool withID)
 	}
 
 	std::string serializedData = thePackage->serialize();
-	if(withID && !thePackage->hasID() && !thePackage->getType() == Acknowledgement)
+	if(withID && !thePackage->hasID() && !thePackage->getType() == Acknowledgement && !thePackage->getType() == StatusChange)
 	{
 		serializedData += "id = ";
 		serializedData += getNextPackageID();

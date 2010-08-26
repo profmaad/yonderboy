@@ -42,11 +42,16 @@ public:
 	void jobFailed(Job *theJob, std::string reason);
 	void finishJob(Job *theJob);
 
-	Job* retrieveJob(AbstractHost *host, unsigned long long);
+	void addRequestResponseMapping(Job *request, Job *forwardedRequest);
+	void requestAnswered(AbstractHost *host, Package *theResponsePackage);
+
+	Job* retrieveJob(AbstractHost *host, unsigned long long id);
+	std::pair<AbstractHost*, unsigned long long> retrieveAndDeleteRequestResponseMapping(AbstractHost *host, unsigned long long id);
 	
 private:
 	void removeJob(Job *theJob);
 	std::map<std::pair<AbstractHost*, unsigned long long>, Job*> *unfinishedJobs;
+	std::map<std::pair<AbstractHost*, unsigned long long>, std::pair<AbstractHost*, unsigned long long> > *requestResponseMapping;
 };
 
 # endif /*JOB_MANAGER_H*/

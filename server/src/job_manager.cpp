@@ -19,6 +19,7 @@
 
 # include <map>
 # include <string>
+# include <sstream>
 # include <algorithm>
 
 # include "log.h"
@@ -34,6 +35,7 @@
 JobManager::JobManager() : unfinishedJobs(NULL)
 {
 	unfinishedJobs = new std::map<std::pair<AbstractHost*, unsigned long long>, Job*>();
+	requestResponseMapping = new std::map<std::pair<AbstractHost*, unsigned long long>, std::pair<AbstractHost*, unsigned long long> >();
 
 	LOG_INFO("initialized");
 }
@@ -114,4 +116,32 @@ Job* JobManager::retrieveJob(AbstractHost *host, unsigned long long id)
 	}
 
 	return result;
+}
+void JobManager::addRequestResponseMapping(Job *request, Job *forwardedRequest)
+{
+	requestResponseMapping->insert(std::make_pair(std::make_pair(forwardedRequest->getHost(), forwardedRequest->getID()), std::make_pair(request->getHost(), request->getID())));
+}
+std::pair<AbstractHost*, unsigned long long> JobManager::retrieveAndDeleteRequestResponseMapping(AbstractHost *host, unsigned long long id)
+{
+	std::map<std::pair<AbstractHost*, unsigned long long>, std::pair<AbstractHost*, unsigned long long> >::iterator iter = requestResponseMapping->find(std::make_pair(host, id));
+	if(iter != requestResponseMapping->end())
+	{
+		std::pair<AbstractHost*, unsigned long long> result = std::make_pair(iter->second.first, iter->second.second);
+		requestResponseMapping->erase(iter);
+		return result;
+	}
+
+	return std::make_pair((AbstractHost*)NULL, (unsigned long long)0);
+}
+void JobManager::requestAnswered(AbstractHost *host, Package *theResponsePackage)
+{
+	std::pair<AbstractHost*, unsigned long long> mapping = server->jobManagerInstance()->retrieveAndDeleteRequestResponseMapping(host, theResponsePackage->getID());
+	if(mapping.first != NULL)
+	{
+		std::ostringstream conversionStream;
+		conversionStream<<mapping.second;
+
+		Job *forwardedResponse = new Job(mapping.first, theResponsePackage, conversionStream.str());
+		mapping.first->sendPackageAndDelete(forwardedResponse, false);
+	}
 }

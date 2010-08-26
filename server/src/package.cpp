@@ -60,6 +60,7 @@ Package::Package(Package *thePackage) : type(Unknown), keyValueMap(NULL), valid(
 void Package::initialize()
 {
 	type = extractType(keyValueMap);
+	acknowledgementNeeded = false;
 	convertID();
 
 	switch(type)
@@ -75,7 +76,7 @@ void Package::initialize()
 		valid = isSet("request-type") && hasID();
 		break;
 	case Response:
-		valid = hasID() && isSet("answer");
+		valid = hasID();
 		break;
 	case Acknowledgement:
 		valid = hasID();

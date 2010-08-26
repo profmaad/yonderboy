@@ -82,11 +82,16 @@ void RendererController::handlePackage(Package *thePackage)
 		error = handleCommand(thePackage);
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, error));
 		break;
+	case Request:
+		handleRequest(thePackage);
+		break;
 	case Response:
 		break;
 	case ConnectionManagement:
 		break;
 	}
+
+	delete thePackage;
 }
 std::string RendererController::handleCommand(Package *thePackage)
 {
@@ -129,6 +134,26 @@ std::string RendererController::handleCommand(Package *thePackage)
 	}
 
 	return error;
+}	
+void RendererController::handleRequest(Package *thePackage)
+{
+	std::string request = thePackage->getValue("request-type");
+	WebKitWebView *view = WEBKIT_WEB_VIEW(backendWebView);
+
+	if(request == "search-in-page" && thePackage->hasValue("text"))
+	{
+		gboolean result = webkit_web_view_search_text(view, thePackage->getValue("text").c_str(), thePackage->isSet("case-sensitive"), !(thePackage->isSet("backwards")), thePackage->isSet("wrap-around"));
+		
+		if(result)
+		{
+			Package *response = constructPackage("response", "id", thePackage->getValue("id").c_str(), "text-found", "", NULL);
+			sendPackageAndDelete(response);
+		}
+		else
+		{			
+			sendPackageAndDelete(constructPackage("response", "id", thePackage->getValue("id").c_str(), NULL));
+		}
+	}
 }
 
 void RendererController::signalSocketClosed()

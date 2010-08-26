@@ -123,11 +123,18 @@ Job* PackageRouter::processPackage(AbstractHost *host, Package *thePackage)
 		if (acknowledgedJob) { server->jobManagerInstance()->jobDone(acknowledgedJob); }
 		delete thePackage;
 	}
+	else if(thePackage->getType() == Response)
+	{
+		LOG_DEBUG("got response "<<thePackage->getID()<<"@"<<host);
+
+		server->jobManagerInstance()->requestAnswered(host, thePackage);
+		delete thePackage;
+	}
 	else
 	{
 		result = new Job(host, thePackage);
 
-		if(thePackage->needsAcknowledgement()) { server->jobManagerInstance()->addJob(result); }
+		if(thePackage->needsAcknowledgement() && !thePackage->getType() == Request) { server->jobManagerInstance()->addJob(result); }
 		
 		LOG_INFO("received new job "<<result->getID()<<"@"<<host);
 
@@ -156,6 +163,10 @@ bool PackageRouter::isAllowed(ServerComponent receivingComponent, Package *thePa
 		{
 			return (allowedControllerCommands->count(thePackage->getValue("command")) > 0);
 		}
+		else if(thePackage->getType() == Request)
+		{
+			return (allowedControllerCommands->count(thePackage->getValue("request-type")) > 0);
+		}
 		else if(thePackage->getType() == Response) { return true; }
 		else { return false; }
 	}
@@ -170,6 +181,7 @@ bool PackageRouter::isAllowed(ServerComponent receivingComponent, Package *thePa
 			return (allowedRendererRequests->count(thePackage->getValue("request-type")) > 0);
 		}
 		else if(thePackage->getType() == StatusChange) { return true; }
+		else if(thePackage->getType() == Response) { return true; }
 		else { return false; }
 	}
 

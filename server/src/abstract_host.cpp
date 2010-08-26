@@ -200,7 +200,7 @@ void AbstractHost::sendPackage(Package *thePackage, bool withID)
 	}
 
 	std::string serializedData = thePackage->serialize();
-	if(withID && !thePackage->hasID() && !thePackage->getType() == Acknowledgement)
+	if(withID && !thePackage->hasID() && !thePackage->getType() == Acknowledgement && !thePackage->getType() == StatusChange)
 	{
 		serializedData += "id = ";
 		serializedData += getNextPackageID();
@@ -220,9 +220,16 @@ void AbstractHost::sendPackageAndDelete(Package *thePackage, bool withID)
 void AbstractHost::forwardJob(Job *theJob)
 {
 	Job *forwardedJob = new Job(this, theJob, getNextPackageID());
-	
-	server->jobManagerInstance()->addJob(forwardedJob);
-	server->jobManagerInstance()->addDependency(theJob, forwardedJob);
+
+	if(theJob->getType() == Request)
+	{
+		server->jobManagerInstance()->addRequestResponseMapping(theJob, forwardedJob);
+	}
+	else
+	{
+		server->jobManagerInstance()->addJob(forwardedJob);
+		server->jobManagerInstance()->addDependency(theJob, forwardedJob);
+	}
 
 	sendPackage(forwardedJob, false);
 }
