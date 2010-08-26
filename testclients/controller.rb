@@ -24,9 +24,12 @@ class CLIBrowserClient < EventMachine::Connection
   def receive_data(data)
     @receiveBuffer += data
 
-    if(@receiveBuffer =~ /\n\n$/)
-      handle_packet(parse_packet(@receiveBuffer.chomp))
-      @receiveBuffer = ""
+    loop do
+      index = @receiveBuffer.index("\n\n")
+      break if index == nil
+      
+      handle_packet(parse_packet(@receiveBuffer[0..index]))
+      @receiveBuffer = @receiveBuffer[index+2..@receiveBuffer.length]
     end
   end
 
