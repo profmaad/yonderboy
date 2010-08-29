@@ -37,13 +37,15 @@ AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([clock_gettime dup2 gettimeofday memset mkdir select socket strrchr uname])
 
-PKG_CHECK_MODULES([server_DEPS], [yaml-cpp >= 0.2.5])
-PKG_CHECK_MODULES([webkit_renderer_DEPS], [gtk+-2.0 >= 2.20 webkit-1.0 >= 1.2.0])
+PKG_CHECK_MODULES([YAML], [yaml-cpp >= 0.2.5])
+PKG_CHECK_MODULES([GTK2], [gtk+-2.0 >= 2.20])
+PKG_CHECK_MODULES([WEBKIT], [webkit-1.0 >= 1.2.0])
 
 DX_INIT_DOXYGEN(cli-browser, Doxyfile, doc)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile
 		server/src/Makefile
-		renderers/webkit-renderer/src/Makefile])
+		renderers/webkit-renderer/src/Makefile
+		viewers/tabbed-gtk-viewer/src/Makefile])
 AC_OUTPUT
