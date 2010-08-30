@@ -1,4 +1,4 @@
-SUBDIRS = server/src renderers/webkit-renderer/src
+SUBDIRS = server/src renderers/webkit-renderer/src viewers/tabbed-gtk-viewer/src
 
 include aminclude.am
 
