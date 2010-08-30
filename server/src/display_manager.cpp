@@ -239,6 +239,7 @@ Package* DisplayManager::constructViewConnectPackage(View *theView, RendererHost
 	kvMap->insert(std::make_pair("display-information-type", theRenderer->getDisplayInformationType()));
 	kvMap->insert(std::make_pair("display-information", theRenderer->getDisplayInformation()));
 	kvMap->insert(std::make_pair("view-id", theView->getID()));
+	kvMap->insert(std::make_pair("renderer-id", theRenderer->getID()));
 
 	result = new Package(kvMap);
 
