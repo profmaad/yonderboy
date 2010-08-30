@@ -22,6 +22,7 @@
 
 # include <string>
 # include <vector>
+# include <map>
 
 # include <gtk/gtk.h>
 
@@ -41,16 +42,27 @@ protected:
 
 private:
 	std::string handleCommand(Package *thePackage);
+	void handleStatusChange(Package *thePackage);
 
 	gint createNewTab();
+	GtkSocket* retrieveSocket(std::string viewID);
 
 	// Callbacks
 	void gtkDestroyCallback(GtkObject *object);
 
 	// GTK stuff
 	GtkWidget *mainWindow;
+	GtkWidget *mainVBox;
 	GtkWidget *tabBar;
 	std::vector<GtkWidget*> *tabs;
+	GtkWidget *statusBar;
+	guint statusBarContextRendererLoad;
+	guint statusBarContextRendererHover;
+	guint statusBarContextLocal;
+	guint statusBarContextServer;
+
+	// tabs
+	std::map<std::string, GtkSocket*> *socketByID;
 
 	// state
 	bool initialised;

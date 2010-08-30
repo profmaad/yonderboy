@@ -238,6 +238,7 @@ Package* DisplayManager::constructViewConnectPackage(View *theView, RendererHost
 	kvMap->insert(std::make_pair("command", "connect-to-renderer"));
 	kvMap->insert(std::make_pair("display-information-type", theRenderer->getDisplayInformationType()));
 	kvMap->insert(std::make_pair("display-information", theRenderer->getDisplayInformation()));
+	kvMap->insert(std::make_pair("view-id", theView->getID()));
 
 	result = new Package(kvMap);
 
@@ -264,6 +265,7 @@ Package* DisplayManager::constructViewDisconnectPackage(View *theView)
 
 	kvMap->insert(std::make_pair("type", "command"));
 	kvMap->insert(std::make_pair("command", "disconnect-from-renderer"));
+	kvMap->insert(std::make_pair("view-id", theView->getID()));
 
 	result = new Package(kvMap);
 
