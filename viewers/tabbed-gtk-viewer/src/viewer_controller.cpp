@@ -94,9 +94,13 @@ void ViewerController::handlePackage(Package *thePackage)
 		if(thePackage->getValue("id") == initID && !initialised)
 		{
 			initialised = true;
-			createNewTab();
-			createNewTab();
-			createNewTab();
+			createNewTab(true);
+			createNewTab(true);
+			createNewTab(true);
+		}
+		if(thePackage->hasValue("error"))
+		{
+			std::cerr<<"got negative ack for "<<thePackage->getID()<<": "<<thePackage->getValue("error")<<std::endl;
 		}
 		break;
 	case ConnectionManagement:
@@ -112,6 +116,8 @@ std::string ViewerController::handleCommand(Package *thePackage)
 
 	if(command == "connect-to-renderer" && thePackage->hasValue("display-information") && thePackage->hasValue("view-id"))
 	{
+		std::cerr<<"connecting to renderer "<<thePackage->getValue("renderer-id")<<" with view "<<thePackage->getValue("view-id")<<": "<<thePackage->getValue("display-information")<<std::endl;
+
 		GtkSocket *theSocket = retrieveSocket(thePackage->getValue("view-id"));
 		if(!theSocket){ return std::string("invalid"); }
 		
@@ -175,7 +181,7 @@ void ViewerController::gtkDestroyCallback(GtkObject *object)
 	gtk_main_quit();
 }
 
-gint ViewerController::createNewTab()
+gint ViewerController::createNewTab(bool createRenderer)
 {
 	gint result = -1;
 	if(!initialised) { return result; }
@@ -201,7 +207,14 @@ gint ViewerController::createNewTab()
 	viewIDConversionStream<<nextViewID;
 	nextViewID++;
 	
-	sendPackageAndDelete(constructPackage("connection-management", "command", "register-view", "id", getNextPackageID().c_str(), "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", displayInformationConversionStream.str().c_str(), "view-id", viewIDConversionStream.str().c_str(), "can-be-reassigned", "", NULL));
+	if(createRenderer)
+	{
+		sendPackageAndDelete(constructPackage("connection-management", "command", "register-view", "id", getNextPackageID().c_str(), "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", displayInformationConversionStream.str().c_str(), "view-id", viewIDConversionStream.str().c_str(), "can-be-reassigned", "", "create-renderer", "", NULL));
+	}
+	else
+	{
+		sendPackageAndDelete(constructPackage("connection-management", "command", "register-view", "id", getNextPackageID().c_str(), "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", displayInformationConversionStream.str().c_str(), "view-id", viewIDConversionStream.str().c_str(), "can-be-reassigned", "", NULL));
+	}
 
 	socketByID->insert(std::make_pair(viewIDConversionStream.str(), GTK_SOCKET(gtkSocket)));
 

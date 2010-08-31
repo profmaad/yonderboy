@@ -86,7 +86,7 @@ void AbstractHost::shutdownSocket()
 		state = Connected;
 		
 		strerror_r(errno,errorBuffer,128);
-		throw std::runtime_error("Host socket shutdown failed");
+     		throw std::runtime_error("Host socket shutdown failed");
 	}
 }
 void AbstractHost::closeSocket(bool notifySubclasses)

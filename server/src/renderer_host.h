@@ -26,13 +26,14 @@
 # include "abstract_host.h"
 
 class Job;
+class View;
 
 class RendererHost : public AbstractHost
 {
 public:
-	RendererHost(int hostSocket);
+	RendererHost(int hostSocket, View *viewToConnectTo = NULL);
 	~RendererHost();
-	static RendererHost* spawnRenderer(std::string binaryPath);
+	static RendererHost* spawnRenderer(std::string binaryPath, View *viewToConnectTo = NULL);
 
 	void doJob(Job *theJob);
 
@@ -47,6 +48,8 @@ private:
 	std::string displayInformationType;
 	std::string backendName;
 	std::string backendVersion;
+
+	View *viewToConnectTo;
 };
 
 # endif /*RENDERER_HOST_H*/

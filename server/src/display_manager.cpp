@@ -138,6 +138,8 @@ void DisplayManager::connect(View *theView, RendererHost *theRenderer, Job *conn
 	
 	rendererByView->insert(std::make_pair(theView, theRenderer));
 	viewByRenderer->insert(std::make_pair(theRenderer, theView));
+
+	theView->setAssigned(true);
 }
 void DisplayManager::doJob(Job *theJob)
 {

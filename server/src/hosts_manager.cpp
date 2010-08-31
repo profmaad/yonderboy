@@ -36,6 +36,7 @@
 # include "job_manager.h"
 # include "display_manager.h"
 # include "job.h"
+# include "view.h"
 
 # include "hosts_manager.h"
 
@@ -78,24 +79,31 @@ void HostsManager::doJob(Job *theJob)
 {
 	if(theJob->getValue("command") == "spawn-renderer")
 	{
-		RendererHost *newRenderer = NULL;
-		try
-		{
-			newRenderer = RendererHost::spawnRenderer(server->configurationManagerInstance()->retrieve("server", "renderer-binary", "/bin/false"));
+		createRenderer(server->configurationManagerInstance()->retrieve("server", "renderer-binary", "/bin/false"), NULL, theJob);
+	}
+}
 
-			if(newRenderer)
-			{
-				registerHost(newRenderer);
-				server->displayManagerInstance()->registerRenderer(newRenderer);
-				server->jobManagerInstance()->jobDone(theJob);
-				LOG_DEBUG("new renderer has id "<<newRenderer->getID());
-			}
-		}
-		catch(std::runtime_error e)
+RendererHost* HostsManager::createRenderer(std::string binary, View *viewToConnectTo, Job *theJob)
+{
+	RendererHost *newRenderer = NULL;
+	try
+	{
+		newRenderer = RendererHost::spawnRenderer(binary, viewToConnectTo); //TODO: check if binary is allowed
+
+		if(newRenderer)
 		{
-			server->jobManagerInstance()->jobFailed(theJob, e.what());
+			registerHost(newRenderer);
+			server->displayManagerInstance()->registerRenderer(newRenderer);
+			if(theJob) { server->jobManagerInstance()->jobDone(theJob); }
+			LOG_DEBUG("new renderer has id "<<newRenderer->getID());
 		}
 	}
+	catch(std::runtime_error e)
+	{
+		if(theJob) { server->jobManagerInstance()->jobFailed(theJob, e.what()); }
+	}
+
+	return newRenderer;
 }
 
 std::string HostsManager::registerHost(RendererHost *host)

@@ -30,6 +30,7 @@
 class AbstractHost;
 class RendererHost;
 class ViewerHost;
+class View;
 class ControllerHost;
 class Job;
 
@@ -40,6 +41,8 @@ public:
 	virtual ~HostsManager();
 
 	void doJob(Job *theJob);
+
+	RendererHost* createRenderer(std::string binary, View *viewToConnectTo = NULL, Job *theJob = NULL);
 
 	std::string registerHost(RendererHost *host);
 	std::string registerHost(ViewerHost *host);

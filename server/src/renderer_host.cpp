@@ -40,12 +40,14 @@
 # include "hosts_manager.h"
 # include "package_router.h"
 # include "job.h"
+# include "view.h"
 
 # include "renderer_host.h"
 
-RendererHost::RendererHost(int hostSocket) : AbstractHost(hostSocket)
+RendererHost::RendererHost(int hostSocket, View *viewToConnectTo) : AbstractHost(hostSocket)
 {
 	type = ServerComponentRendererHost;
+	this->viewToConnectTo = viewToConnectTo;
 
 	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
@@ -74,6 +76,12 @@ void RendererHost::handlePackage(Package* thePackage)
 			LOG_DEBUG(displayInformationType);
 			LOG_DEBUG(displayInformation);
 
+			if(viewToConnectTo)
+			{
+				server->displayManagerInstance()->connect(viewToConnectTo, this);
+				viewToConnectTo = NULL;
+			}
+
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
 			delete thePackage;
 			
@@ -96,7 +104,7 @@ void RendererHost::doJob(Job *theJob)
 //	}
 }
 
-RendererHost* RendererHost::spawnRenderer(std::string binaryPath)
+RendererHost* RendererHost::spawnRenderer(std::string binaryPath, View *viewToConnectTo)
 {
 	RendererHost *host = NULL;
 	int sockets[2] = { -1, -1 };
@@ -140,7 +148,7 @@ RendererHost* RendererHost::spawnRenderer(std::string binaryPath)
 
 		close(sockets[1]);
 		
-		host = new RendererHost(sockets[0]);
+		host = new RendererHost(sockets[0], viewToConnectTo);
 		return host;
 	}
 	else // error

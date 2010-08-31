@@ -37,6 +37,9 @@
 # include "hosts_manager.h"
 # include "view.h"
 # include "package_router.h"
+# include "configuration_manager.h"
+# include "display_manager.h"
+# include "renderer_host.h"
 
 # include "viewer_host.h"
 
@@ -99,13 +102,28 @@ void ViewerHost::handlePackage(Package* thePackage)
 	else if(state == Established && thePackage->getValue("command") == "register-view" && thePackage->isSet("view-id"))
 	{
 		View *theView = new View(this, thePackage);
+		std::string error;
+
 		if(theView->isValid())
 		{
 			views->insert(std::make_pair(thePackage->getValue("view-id"),theView));
-			
-			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
-			delete thePackage;
+
+			if(thePackage->isSet("create-renderer"))
+			{
+				RendererHost *theRenderer = server->hostsManagerInstance()->createRenderer(server->configurationManagerInstance()->retrieve("server", "renderer-binary", "/bin/false"), theView);
+			}
+			else
+			{
+				error = "failed";
+			}
 		}
+		else
+		{
+			error = "failed";
+		}
+
+		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, error));
+		delete thePackage;
 	}
 	else if(state == Established && thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
 	{

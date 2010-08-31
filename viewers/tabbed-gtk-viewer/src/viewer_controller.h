@@ -44,7 +44,7 @@ private:
 	std::string handleCommand(Package *thePackage);
 	void handleStatusChange(Package *thePackage);
 
-	gint createNewTab();
+	gint createNewTab(bool createRenderer);
 	GtkSocket* retrieveSocket(std::string viewID);
 
 	// Callbacks
