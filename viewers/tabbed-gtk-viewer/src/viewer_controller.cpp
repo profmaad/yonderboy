@@ -51,7 +51,8 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	mainWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	mainVBox = gtk_vbox_new(FALSE, 0);
 	tabBar = gtk_notebook_new();
-	tabs = new std::vector<GtkWidget*>();
+	gtk_notebook_set_scrollable(GTK_NOTEBOOK(tabBar), TRUE);
+	gtk_notebook_popup_enable(GTK_NOTEBOOK(tabBar));
 	statusBar = gtk_statusbar_new();
 	statusBarProgress = gtk_progress_bar_new();
 	statusBarContextLocal = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "local");
@@ -75,6 +76,8 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	// connect signals
 	g_signal_connect_swapped(mainWindow, "destroy", G_CALLBACK(&ViewerController::gtkDestroyCallback), this);
 	g_signal_connect_swapped(tabBar, "switch-page", G_CALLBACK(&ViewerController::tabBarSwitchPageCallback), this);
+	g_signal_connect_swapped(tabBar, "page-added", G_CALLBACK(&ViewerController::pageAddedCallback), this);
+	g_signal_connect_swapped(tabBar, "page-removed", G_CALLBACK(&ViewerController::pageRemovedCallback), this);
 
 	initID = getNextPackageID();
 	Package* initPackage = constructPackage("connection-management", "id", initID.c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "",  NULL);
@@ -103,6 +106,7 @@ void ViewerController::handlePackage(Package *thePackage)
 	{
 	case Command:
 		error = handleCommand(thePackage);
+		std::cerr<<"handleCommand.error: "<<error<<std::endl;
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, error));
 		break;
 	case StatusChange:
@@ -128,21 +132,21 @@ void ViewerController::handlePackage(Package *thePackage)
 std::string ViewerController::handleCommand(Package *thePackage)
 {
 	std::string command = thePackage->getValue("command");
-	std::string error = "unknown";
+	std::string error;
 
 	if(command == "connect-to-renderer" && thePackage->hasValue("display-information") && thePackage->hasValue("view-id") && thePackage->hasValue("renderer-id"))
 	{
 		std::cerr<<"connecting to renderer "<<thePackage->getValue("renderer-id")<<" with view "<<thePackage->getValue("view-id")<<": "<<thePackage->getValue("display-information")<<std::endl;
 
 		GtkSocket *theSocket = retrieveSocket(thePackage->getValue("view-id"));
-		if(!theSocket){ return std::string("invalid"); }
+		if(!(theSocket && GTK_IS_SOCKET(theSocket))){ return std::string("invalid"); }
 		
 		gtk_socket_add_id(theSocket, 0); // remove plug
 				  
 		std::istringstream conversionStream(thePackage->getValue("display-information"));
 		GdkNativeWindow plugID;
 		conversionStream>>plugID;
-		
+
 		gtk_socket_add_id(theSocket, plugID);
 
 		viewByRenderer->erase(thePackage->getValue("renderer-id"));
@@ -150,12 +154,18 @@ std::string ViewerController::handleCommand(Package *thePackage)
 	}
 	else if(command == "disconnect-from-renderer" && thePackage->hasValue("view-id") && thePackage->hasValue("renderer-id"))
 	{
+		std::cerr<<"disconnecting "<<thePackage->getValue("view-id")<<" from "<<thePackage->getValue("renderer-id")<<std::endl;
+
 		GtkSocket *theSocket = retrieveSocket(thePackage->getValue("view-id"));
 		if(!theSocket) { return std::string("invalid"); }
 
 		gtk_socket_add_id(theSocket, 0);
 
 		viewByRenderer->erase(thePackage->getValue("renderer-id"));
+	}
+	else
+	{
+		error = "unknown";
 	}
 
 	return error;
@@ -235,17 +245,18 @@ gint ViewerController::createNewTab(bool createRenderer)
 	if(!initialised) { return result; }
 
 	GtkWidget *gtkSocket = gtk_socket_new();
-	if(!gtkSocket) { return result; }
-	
-	tabs->push_back(gtkSocket);
-	gtk_widget_show(gtkSocket);
+	if(!(gtkSocket && GTK_IS_SOCKET(gtkSocket))) { return result; }
+
+	g_signal_connect_swapped(gtkSocket, "plug-added", G_CALLBACK(&ViewerController::plugAddedCallback), this); 
+	g_signal_connect_swapped(gtkSocket, "plug-removed", G_CALLBACK(&ViewerController::plugRemovedCallback), this);
+
 	result = gtk_notebook_append_page(GTK_NOTEBOOK(tabBar), gtkSocket, NULL);
 	if(result < 0)
 	{
-		tabs->erase(tabs->end()-1);
-		g_object_unref(gtkSocket);
+		std::cerr<<"failed to append page"<<std::endl;
 		return result;
 	}
+	gtk_widget_show(gtkSocket);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(tabBar), -1);
 
 	std::ostringstream displayInformationConversionStream;
@@ -254,6 +265,14 @@ gint ViewerController::createNewTab(bool createRenderer)
 	viewIDConversionStream<<"view";
 	viewIDConversionStream<<nextViewID;
 	nextViewID++;
+
+	socketByID->insert(std::make_pair(viewIDConversionStream.str(), GTK_SOCKET(gtkSocket)));
+	g_object_ref(G_OBJECT(gtkSocket));
+
+	gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), gtkSocket, gtk_label_new(viewIDConversionStream.str().c_str()));
+
+	// set status data on new tab
+	g_object_set_data_full(G_OBJECT(gtkSocket), "view-id", g_strdup(viewIDConversionStream.str().c_str()), (GDestroyNotify)g_free);	
 	
 	if(createRenderer)
 	{
@@ -264,13 +283,8 @@ gint ViewerController::createNewTab(bool createRenderer)
 		sendPackageAndDelete(constructPackage("connection-management", "command", "register-view", "id", getNextPackageID().c_str(), "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", displayInformationConversionStream.str().c_str(), "view-id", viewIDConversionStream.str().c_str(), "can-be-reassigned", "", NULL));
 	}
 
-	socketByID->insert(std::make_pair(viewIDConversionStream.str(), GTK_SOCKET(gtkSocket)));
+	std::cerr<<"created new tab "<<result<<std::endl;
 
-	gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), gtkSocket, gtk_label_new(viewIDConversionStream.str().c_str()));
-
-	// set status data on new tab
-	g_object_set_data_full(G_OBJECT(gtkSocket), "view-id", g_strdup(viewIDConversionStream.str().c_str()), (GDestroyNotify)g_free);
-	
 	return result;
 }
 void ViewerController::closeTab(guint pageNum)
@@ -338,7 +352,6 @@ void ViewerController::tabBarSwitchPageCallback(GtkNotebookPage *page, guint pag
 }
 void ViewerController::nextTabCallback()
 {
-	std::cerr<<"nextTabCallback()"<<std::endl;
 	if(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)) == gtk_notebook_get_n_pages(GTK_NOTEBOOK(tabBar))-1)
 	{
 		gtk_notebook_set_current_page(GTK_NOTEBOOK(tabBar), 0);
@@ -350,7 +363,6 @@ void ViewerController::nextTabCallback()
 }
 void ViewerController::previousTabCallback()
 {
-	std::cerr<<"previousTabCallback()"<<std::endl;
 	if(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)) == 0)
 	{
 		gtk_notebook_set_current_page(GTK_NOTEBOOK(tabBar), gtk_notebook_get_n_pages(GTK_NOTEBOOK(tabBar))-1);
@@ -366,5 +378,24 @@ void ViewerController::closeTabCallback()
 }
 void ViewerController::newTabCallback()
 {
-	createNewTab(true); //HC
+	int result = createNewTab(true); //HC
+}
+
+void ViewerController::pageAddedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook)
+{
+	std::cerr<<"page added: "<<child<<" @ "<<pageNum<<std::endl;
+}
+void ViewerController::pageRemovedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook)
+{
+	std::cerr<<"page removed: "<<child<<" @ "<<pageNum<<std::endl;
+}
+void ViewerController::plugAddedCallback(GtkSocket *socket)
+{
+	std::cerr<<"plug added to "<<socket<<": "<<gtk_socket_get_plug_window(GTK_SOCKET(socket))<<" ("<<g_type_name(G_OBJECT_TYPE(gtk_socket_get_plug_window(GTK_SOCKET(socket))))<<")"<<std::endl;
+}
+gboolean ViewerController::plugRemovedCallback(GtkSocket *socket)
+{
+	std::cerr<<"plug removed: "<<socket<<"|"<<gtk_socket_get_plug_window(GTK_SOCKET(socket))<<std::endl;
+
+	return true;
 }

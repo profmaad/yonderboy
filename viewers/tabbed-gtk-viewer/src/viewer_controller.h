@@ -64,11 +64,15 @@ private:
 	void closeTabCallback();
 	void newTabCallback();
 
+	void pageAddedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook);
+	void pageRemovedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook);
+	void plugAddedCallback(GtkSocket *socket);
+	gboolean plugRemovedCallback(GtkSocket *socket);
+
 	// GTK stuff
 	GtkWidget *mainWindow;
 	GtkWidget *mainVBox;
 	GtkWidget *tabBar;
-	std::vector<GtkWidget*> *tabs;
 	GtkWidget *statusBar;
 	GtkWidget *statusBarProgress;
 	guint statusBarContextLocal;
