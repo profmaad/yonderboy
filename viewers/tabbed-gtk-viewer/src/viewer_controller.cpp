@@ -223,9 +223,6 @@ gint ViewerController::createNewTab(bool createRenderer)
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), gtkSocket, gtk_label_new(viewIDConversionStream.str().c_str()));
 
 	// set status data on new tab
-	gdouble *progress = (gdouble*)g_malloc0(sizeof(gdouble));
-	*progress = 0.0;
-	g_object_set_data_full(G_OBJECT(gtkSocket), "load-progress", (gpointer)progress, (GDestroyNotify)g_free);
 	g_object_set_data_full(G_OBJECT(gtkSocket), "view-id", g_strdup(viewIDConversionStream.str().c_str()), (GDestroyNotify)g_free);
 	
 	return result;
