@@ -60,6 +60,12 @@ void printHelpMessage(const char *executable)
 
 int main(int argc, char** argv)
 {
+	gtk_init(&argc, &argv);
+	if(!g_thread_supported())
+	{
+		g_thread_init(NULL);
+	}
+
 	int socket = -1;
 
 	int option = -1;
@@ -107,12 +113,6 @@ int main(int argc, char** argv)
 	{
 		std::cerr<<"invalid socket given"<<std::endl;
 		exit(1);
-	}
-
-	gtk_init(&argc, &argv);
-	if(!g_thread_supported())
-	{
-		g_thread_init(NULL);
 	}
 
 	RendererController renderer(socket);
