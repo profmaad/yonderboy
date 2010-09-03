@@ -41,10 +41,13 @@ protected:
 	void signalSocketClosed();
 
 private:
+	void setupHotkeys();
+
 	std::string handleCommand(Package *thePackage);
 	void handleStatusChange(Package *thePackage);
 
 	gint createNewTab(bool createRenderer);
+	void closeTab(guint pageNum);
 	GtkSocket* retrieveSocket(std::string viewID);
 	gdouble getProgressFromTab(GtkWidget *tab);
 	void setProgressOnTab(GtkWidget *tab, gdouble progress);
@@ -56,6 +59,10 @@ private:
 	// Callbacks
 	void gtkDestroyCallback(GtkObject *object);
 	void tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook);
+	void nextTabCallback();
+	void previousTabCallback();
+	void closeTabCallback();
+	void newTabCallback();
 
 	// GTK stuff
 	GtkWidget *mainWindow;
@@ -67,6 +74,7 @@ private:
 	guint statusBarContextLocal;
 	guint statusBarContextServer;
 	guint statusBarContextTab;
+	GtkAccelGroup *globalHotkeys;
 
 	// mappings
 	std::map<std::string, GtkSocket*> *socketByID;

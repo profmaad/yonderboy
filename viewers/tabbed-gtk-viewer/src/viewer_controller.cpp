@@ -31,6 +31,8 @@
 # include <sys/socket.h>
 # include <unistd.h>
 
+# include <gdk/gdkkeysyms.h>
+
 # include "viewer_controller.h"
 
 # include "defaults.h"
@@ -55,6 +57,10 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	statusBarContextLocal = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "local");
 	statusBarContextServer = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "server");
 	statusBarContextTab = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "tab");
+
+	globalHotkeys = gtk_accel_group_new();
+	setupHotkeys();
+	gtk_window_add_accel_group(GTK_WINDOW(mainWindow), globalHotkeys);
 	
 	// arrange GUI
 	gtk_box_pack_end(GTK_BOX(statusBar), statusBarProgress, FALSE, FALSE, 0);
@@ -81,6 +87,14 @@ ViewerController::~ViewerController()
 	
 }
 
+void ViewerController::setupHotkeys()
+{
+	gtk_accel_group_connect(globalHotkeys, GDK_Right, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::nextTabCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_Left, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::previousTabCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_W, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::closeTabCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_T, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabCallback), this, NULL));
+}
+
 void ViewerController::handlePackage(Package *thePackage)
 {
 	std::string error;
@@ -98,9 +112,7 @@ void ViewerController::handlePackage(Package *thePackage)
 		if(thePackage->getValue("id") == initID && !initialised)
 		{
 			initialised = true;
-			createNewTab(true);
-			createNewTab(true);
-			createNewTab(true);
+			createNewTab(true); //HC
 		}
 		if(thePackage->hasValue("error"))
 		{
@@ -261,6 +273,10 @@ gint ViewerController::createNewTab(bool createRenderer)
 	
 	return result;
 }
+void ViewerController::closeTab(guint pageNum)
+{
+
+}
 GtkSocket* ViewerController::retrieveSocket(std::string viewID)
 {
 	std::map<std::string, GtkSocket*>::const_iterator iter = socketByID->find(viewID);
@@ -319,4 +335,36 @@ void ViewerController::updateStatusBar(guint currentPage)
 void ViewerController::tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook)
 {
 	updateStatusBar(pageNum);
+}
+void ViewerController::nextTabCallback()
+{
+	std::cerr<<"nextTabCallback()"<<std::endl;
+	if(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)) == gtk_notebook_get_n_pages(GTK_NOTEBOOK(tabBar))-1)
+	{
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(tabBar), 0);
+	}
+	else
+	{
+		gtk_notebook_next_page(GTK_NOTEBOOK(tabBar));
+	}
+}
+void ViewerController::previousTabCallback()
+{
+	std::cerr<<"previousTabCallback()"<<std::endl;
+	if(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)) == 0)
+	{
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(tabBar), gtk_notebook_get_n_pages(GTK_NOTEBOOK(tabBar))-1);
+	}
+	else
+	{
+		gtk_notebook_prev_page(GTK_NOTEBOOK(tabBar));
+	}
+}
+void ViewerController::closeTabCallback()
+{
+	closeTab(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)));
+}
+void ViewerController::newTabCallback()
+{
+	createNewTab(true); //HC
 }
