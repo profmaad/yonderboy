@@ -47,7 +47,7 @@ private:
 	void plugEmbeddedCallback(GtkPlug *plug);
 	void loadStatusCallback();
 	void progressCallback();
-	void hoveringLinkCallback(WebKitWebView *view, gchar *uri);
+	void hoveringLinkCallback(gchar *title, gchar *uri, WebKitWebView *view);
 
 	GtkWidget *backendPlug;
 	GtkWidget *backendScrolledWindow;

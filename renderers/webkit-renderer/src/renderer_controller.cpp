@@ -203,9 +203,13 @@ void RendererController::progressCallback()
 		lastProgress = progress;
 	}
 }
-void RendererController::hoveringLinkCallback(WebKitWebView *view, gchar *uri)
+void RendererController::hoveringLinkCallback(gchar *title, gchar *uri, WebKitWebView *view)
 {
-	if(uri)
+	if(uri && title)
+	{
+		sendPackageAndDelete(constructPackage("status-change", "status", "hovering-over-link", "uri", uri, "title", title, NULL));
+	}
+	else if(uri)
 	{
 		sendPackageAndDelete(constructPackage("status-change", "status", "hovering-over-link", "uri", uri, NULL));
 	}

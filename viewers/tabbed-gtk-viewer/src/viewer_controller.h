@@ -49,10 +49,13 @@ private:
 	gdouble getProgressFromTab(GtkWidget *tab);
 	void setProgressOnTab(GtkWidget *tab, gdouble progress);
 	const char* getStatusFromTab(GtkWidget *tab);
-	void setStatusOnTab(GtkWidget *tab, const char *status);
+	void setStatusOnTab(GtkWidget *tab, std::string status);
+
+	void updateStatusBar(guint currentPage);
 
 	// Callbacks
 	void gtkDestroyCallback(GtkObject *object);
+	void tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook);
 
 	// GTK stuff
 	GtkWidget *mainWindow;
@@ -65,8 +68,9 @@ private:
 	guint statusBarContextServer;
 	guint statusBarContextTab;
 
-	// tabs
+	// mappings
 	std::map<std::string, GtkSocket*> *socketByID;
+	std::map<std::string, std::string> *viewByRenderer;
 
 	// state
 	bool initialised;

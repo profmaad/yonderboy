@@ -269,6 +269,12 @@ Package* DisplayManager::constructViewDisconnectPackage(View *theView)
 	kvMap->insert(std::make_pair("type", "command"));
 	kvMap->insert(std::make_pair("command", "disconnect-from-renderer"));
 	kvMap->insert(std::make_pair("view-id", theView->getID()));
+	
+	std::map<View*, RendererHost*>::const_iterator iter = rendererByView->find(theView);
+	if(iter != rendererByView->end())
+	{
+		kvMap->insert(std::make_pair("renderer-id", iter->second->getID()));
+	}
 
 	result = new Package(kvMap);
 

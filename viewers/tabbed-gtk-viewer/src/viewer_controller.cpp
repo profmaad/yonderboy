@@ -43,6 +43,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 {
 	// create state
 	socketByID = new std::map<std::string, GtkSocket*>();
+	viewByRenderer = new std::map<std::string, std::string>();
 
 	// create basic GUI elements
 	mainWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -67,6 +68,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 
 	// connect signals
 	g_signal_connect_swapped(mainWindow, "destroy", G_CALLBACK(&ViewerController::gtkDestroyCallback), this);
+	g_signal_connect_swapped(tabBar, "switch-page", G_CALLBACK(&ViewerController::tabBarSwitchPageCallback), this);
 
 	initID = getNextPackageID();
 	Package* initPackage = constructPackage("connection-management", "id", initID.c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "",  NULL);
@@ -116,7 +118,7 @@ std::string ViewerController::handleCommand(Package *thePackage)
 	std::string command = thePackage->getValue("command");
 	std::string error = "unknown";
 
-	if(command == "connect-to-renderer" && thePackage->hasValue("display-information") && thePackage->hasValue("view-id"))
+	if(command == "connect-to-renderer" && thePackage->hasValue("display-information") && thePackage->hasValue("view-id") && thePackage->hasValue("renderer-id"))
 	{
 		std::cerr<<"connecting to renderer "<<thePackage->getValue("renderer-id")<<" with view "<<thePackage->getValue("view-id")<<": "<<thePackage->getValue("display-information")<<std::endl;
 
@@ -130,40 +132,72 @@ std::string ViewerController::handleCommand(Package *thePackage)
 		conversionStream>>plugID;
 		
 		gtk_socket_add_id(theSocket, plugID);
+
+		viewByRenderer->erase(thePackage->getValue("renderer-id"));
+		viewByRenderer->insert(std::make_pair(thePackage->getValue("renderer-id"), thePackage->getValue("view-id")));
 	}
-	else if(command == "disconnect-from-renderer" && thePackage->hasValue("view-id"))
+	else if(command == "disconnect-from-renderer" && thePackage->hasValue("view-id") && thePackage->hasValue("renderer-id"))
 	{
 		GtkSocket *theSocket = retrieveSocket(thePackage->getValue("view-id"));
 		if(!theSocket) { return std::string("invalid"); }
 
 		gtk_socket_add_id(theSocket, 0);
+
+		viewByRenderer->erase(thePackage->getValue("renderer-id"));
 	}
 
 	return error;
 }
 void ViewerController::handleStatusChange(Package *thePackage)
 {
+	if(!(thePackage->getValue("source-type") == "renderer" && thePackage->hasValue("source-id"))) { return; }
+
 	GtkStatusbar *bar = GTK_STATUSBAR(statusBar);
 	std::string status = thePackage->getValue("status");
+	std::string sourceID = thePackage->getValue("source-id");
+	GtkWidget *tab = NULL;
+	std::map<std::string, std::string>::const_iterator idIter = viewByRenderer->find(thePackage->getValue("source-id"));
+	if(idIter != viewByRenderer->end())
+	{
+		std::map<std::string, GtkSocket*>::const_iterator socketIter = socketByID->find(idIter->second);
+		if(socketIter != socketByID->end())
+		{
+			tab = (GtkWidget*)socketIter->second;
+		}
+		else { return; }
+	}
+	else { return; }       
 
 	if(status == "load-started")
 	{
+		setStatusOnTab(tab, std::string("started loading ")+thePackage->getValue("uri"));
 	}
 	else if(status == "load-finished")
 	{
+		setStatusOnTab(tab, std::string("done loading ")+thePackage->getValue("uri"));
 	}
 	else if(status == "load-failed")
 	{
+		setStatusOnTab(tab, std::string("loading failed"));
 	}
 	else if(status == "progress-changed")
 	{
+		gdouble progressDouble = 0.0;
+		std::istringstream conversionStream(thePackage->getValue("progress"));
+		conversionStream>>progressDouble;
+
+		setProgressOnTab(tab, progressDouble);
 	}
 	else if(status == "hovering-over-link")
 	{
+		setStatusOnTab(tab, thePackage->getValue("uri"));
 	}
-	else if(status == "not-hovering-over-link")
+	else if(status == "not-hovering-over-link")		
 	{
+		setStatusOnTab(tab, "");
 	}
+
+	if(tab == gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar))))	{ updateStatusBar(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar))); }
 }
 
 void ViewerController::signalSocketClosed()
@@ -253,9 +287,36 @@ const char* ViewerController::getStatusFromTab(GtkWidget *tab)
 {
 	return (const char*)g_object_get_data(G_OBJECT(tab), "status-message");
 }
-void ViewerController::setStatusOnTab(GtkWidget *tab, const char *status)
+void ViewerController::setStatusOnTab(GtkWidget *tab, std::string status)
 {
-	if(!status) { return; }
+	g_object_set_data_full(G_OBJECT(tab), "status-message", g_strdup(status.c_str()), (GDestroyNotify)g_free);
+}
 
-	g_object_set_data_full(G_OBJECT(tab), "status-message", g_strdup(status), (GDestroyNotify)g_free);
+void ViewerController::updateStatusBar(guint currentPage)
+{
+	GtkWidget *tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), currentPage);
+	gdouble progress = getProgressFromTab(tab);
+	const char* status = getStatusFromTab(tab);
+
+	gtk_statusbar_pop(GTK_STATUSBAR(statusBar), statusBarContextTab);
+
+	if(progress > 0 && progress < 1)
+	{
+		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(statusBarProgress), progress);
+		gtk_widget_show(statusBarProgress);
+	}
+	else
+	{
+		gtk_widget_hide(statusBarProgress);
+	}
+
+	if(status)
+	{
+		gtk_statusbar_push(GTK_STATUSBAR(statusBar), statusBarContextTab, status);
+	}
+}
+
+void ViewerController::tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook)
+{
+	updateStatusBar(pageNum);
 }

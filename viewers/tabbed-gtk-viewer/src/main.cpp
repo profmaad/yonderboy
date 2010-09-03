@@ -65,6 +65,14 @@ void printHelpMessage(const char *executable)
 
 int main(int argc, char** argv)
 {
+	// initialize gtk and glib threading
+	// we gotta do this first, because it modifies argc and argv
+	gtk_init(&argc, &argv);
+	if(!g_thread_supported())
+	{
+		g_thread_init(NULL);
+	}
+
 	int serverSocket = -1;
 	char *socketPath = NULL;
 	struct sockaddr_un socketAddress;
@@ -147,13 +155,6 @@ int main(int argc, char** argv)
 		# endif
 		close(serverSocket);
 		return 1;
-	}
-
-	// initialize gtk and glib threading
-	gtk_init(&argc, &argv);
-	if(!g_thread_supported())
-	{
-		g_thread_init(NULL);
 	}
 
 	ViewerController viewer(serverSocket);
