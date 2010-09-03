@@ -41,6 +41,7 @@ RendererController::RendererController(int socket) : ClientController(socket), b
 // initialize webkit backend (webview inside plug)
 	backendWebView = webkit_web_view_new();
 	backendScrolledWindow = gtk_scrolled_window_new(NULL,NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(backendScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	backendPlug = gtk_plug_new(0);
 	gtk_container_add(GTK_CONTAINER(backendScrolledWindow), backendWebView);
 	gtk_container_add(GTK_CONTAINER(backendPlug), backendScrolledWindow);

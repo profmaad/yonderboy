@@ -50,18 +50,20 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	tabBar = gtk_notebook_new();
 	tabs = new std::vector<GtkWidget*>();
 	statusBar = gtk_statusbar_new();
+	statusBarProgress = gtk_progress_bar_new();
 	statusBarContextLocal = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "local");
 	statusBarContextServer = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "server");
-	statusBarContextRendererLoad = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "renderer-load");
-	statusBarContextRendererHover = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "renderer-hover");
+	statusBarContextTab = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "tab");
 	
 	// arrange GUI
+	gtk_box_pack_end(GTK_BOX(statusBar), statusBarProgress, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(mainVBox), tabBar, TRUE, TRUE, 0);
 	gtk_box_pack_end(GTK_BOX(mainVBox), statusBar, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(mainWindow), mainVBox);
 
 	// show gui
 	gtk_widget_show_all(mainWindow);
+	gtk_widget_hide(statusBarProgress);
 
 	// connect signals
 	g_signal_connect_swapped(mainWindow, "destroy", G_CALLBACK(&ViewerController::gtkDestroyCallback), this);
@@ -219,6 +221,12 @@ gint ViewerController::createNewTab(bool createRenderer)
 	socketByID->insert(std::make_pair(viewIDConversionStream.str(), GTK_SOCKET(gtkSocket)));
 
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), gtkSocket, gtk_label_new(viewIDConversionStream.str().c_str()));
+
+	// set status data on new tab
+	gdouble *progress = (gdouble*)g_malloc0(sizeof(gdouble));
+	*progress = 0.0;
+	g_object_set_data_full(G_OBJECT(gtkSocket), "load-progress", (gpointer)progress, (GDestroyNotify)g_free);
+	g_object_set_data_full(G_OBJECT(gtkSocket), "view-id", g_strdup(viewIDConversionStream.str().c_str()), (GDestroyNotify)g_free);
 	
 	return result;
 }
@@ -231,4 +239,26 @@ GtkSocket* ViewerController::retrieveSocket(std::string viewID)
 	}
 
 	return NULL;
+}
+gdouble ViewerController::getProgressFromTab(GtkWidget *tab)
+{
+	gdouble *progress = (gdouble*)g_object_get_data(G_OBJECT(tab), "load-progress");
+	if(progress) { return *progress; }
+	else { return 0; }
+}
+void ViewerController::setProgressOnTab(GtkWidget *tab, gdouble progress)
+{
+	gdouble *progressPointer = (gdouble*)g_malloc0(sizeof(progress));
+	*progressPointer = progress;
+	g_object_set_data_full(G_OBJECT(tab), "load-progress", (gpointer)progressPointer, (GDestroyNotify)g_free);
+}
+const char* ViewerController::getStatusFromTab(GtkWidget *tab)
+{
+	return (const char*)g_object_get_data(G_OBJECT(tab), "status-message");
+}
+void ViewerController::setStatusOnTab(GtkWidget *tab, const char *status)
+{
+	if(!status) { return; }
+
+	g_object_set_data_full(G_OBJECT(tab), "status-message", g_strdup(status), (GDestroyNotify)g_free);
 }

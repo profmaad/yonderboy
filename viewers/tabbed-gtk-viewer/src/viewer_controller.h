@@ -46,6 +46,10 @@ private:
 
 	gint createNewTab(bool createRenderer);
 	GtkSocket* retrieveSocket(std::string viewID);
+	gdouble getProgressFromTab(GtkWidget *tab);
+	void setProgressOnTab(GtkWidget *tab, gdouble progress);
+	const char* getStatusFromTab(GtkWidget *tab);
+	void setStatusOnTab(GtkWidget *tab, const char *status);
 
 	// Callbacks
 	void gtkDestroyCallback(GtkObject *object);
@@ -56,10 +60,10 @@ private:
 	GtkWidget *tabBar;
 	std::vector<GtkWidget*> *tabs;
 	GtkWidget *statusBar;
-	guint statusBarContextRendererLoad;
-	guint statusBarContextRendererHover;
+	GtkWidget *statusBarProgress;
 	guint statusBarContextLocal;
 	guint statusBarContextServer;
+	guint statusBarContextTab;
 
 	// tabs
 	std::map<std::string, GtkSocket*> *socketByID;
