@@ -1,4 +1,4 @@
-//      controller.h
+//      command_parser.h
 //      
 //      Copyright 2010 Prof. MAAD <prof.maad@lambda-bb.de>
 //      
@@ -17,43 +17,49 @@
 //      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 //      MA 02110-1301, USA.
 
-# ifndef CONTROLLER_H
-# define CONTROLLER_H
+# ifndef COMMAND_PARSER_H
+# define COMMAND_PARSER_H
 
 # include <string>
 # include <map>
 
-# include <abstract_host.h>
-# include <ev_cpp.h>
+# include <yaml.h>
+# include <popt.h>
 
 class Package;
-class CommandParser;
 
-class Controller : public AbstractHost
+class CommandParser
 {
 public:
-	Controller(int serverSocket);
-	~Controller();
+	CommandParser(YAML::Node &node);
+	~CommandParser();
 
-protected:
-	void handlePackage(Package *thePackage);
-	void socketClosed();
+	Package* constructPackageFromLine(int argc, const char **argv, std::string packageID);
 
 private:
-	void quit();
+	void reset();
 
-	std::string handleCommand(Package *thePackage);
-	void handleStatusChange(Package *thePackage);
+	bool valid;
+	std::string command;
+	std::string description;
+	
+	poptOption *options;
 
-	static void readlineCallback(char *line);
-	void handleLine(char *line);
+	struct requiredParameter
+	{
+		std::string name;
+		std::string description;
+	};
+	std::vector<requiredParameter> *parameters;
 
-	CommandParser* retrieveCommandParser(std::string command);
-
-	void stdinCallback(ev::io &watcher, int revents);
-
-	ev::io *stdinWatcher;
-	std::map<std::string, CommandParser*> *commands;
+	std::map<std::string, int*> *boolOptionArguments;
+	std::map<std::string, char**> *stringOptionArguments;
+	char *rendererID;
+	bool rendererIDRequired;
+	char *viewerID;
+	bool viewerIDRequired;
+	char *viewID;
+	bool viewIDRequired;
 };
 
-# endif /*CONTROLLER_H*/
+# endif /*COMMAND_PARSER_H*/

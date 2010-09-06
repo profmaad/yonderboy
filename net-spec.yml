@@ -9,40 +9,40 @@ commands:
     target: renderer-host
     description: Tells the renderer to retrieve and render the given URI
     required:
-      - renderer-id: { type: renderer }
-      - uri: { type: string, description: The URI to load }
+      - { name: renderer-id, type: renderer }
+      - { name: uri, type: string, description: The URI to load }
 
   - command: go-back
     source: [ controller ]
     target: renderer-host
     description: Tells the renderer to go back one item in its history
     required:
-      - renderer-id: { type: renderer }
+      - { name: renderer-id, type: renderer }
 
   - command: go-forward
     source: [ controller ]
     target: renderer-host
     description: Tells the renderer to go forward one item in its history
     required:
-      - renderer-id: { type: renderer }
+      - { name: renderer-id, type: renderer }
 
   - command: reload-page
     source: [ controller ]
     target: renderer-host
     description: Tells the renderer to reload the currently displayed page
     required:
-      - renderer-id: { type: renderer }
+      - { name: renderer-id, type: renderer }
     optional:
-      - bypass-cache: { type: boolean, description: do not use the cache }
+      - { name: renderer-id, type: boolean, description: do not use the cache }
 
   - command: connect-view-to-renderer
     source: [ controller ]
     target: display-manager
     description: Hooks up a view to a renderer, so that the renderers results are shown in the view and can be controlled
     required:
-      - viewer-id: { type: viewer }
-      - view-id: { type: view }
-      - renderer-id: { type: renderer }
+      - { name: viewer-id, type: viewer }
+      - { name: view-id, type: view }
+      - { name: renderer-id, type: renderer }
 
   - command: quit-server
     source: [ controller ]
@@ -54,28 +54,28 @@ commands:
     target: renderer-host
     description: Tells the renderer to start a search in the currently loaded page
     required:
-      - renderer-id: { type: renderer }
-      - text: { type: string, description: the text to search for }
+      - { name: renderer-id, type: renderer }
+      - { name: text, type: string, description: the text to search for }
     optional:
-      - case-sensitive: { type: boolean, description: make the search case-sensitive }
-      - backwards: { type: boolean, description: search backwards through the page }
-      - wrap-around: { type: boolean, description: wrap the search at the end of the page }
+      - { name: case-sensitive, type: boolean, description: make the search case-sensitive }
+      - { name: backwards, type: boolean, description: search backwards through the page }
+      - { name: wrap-around, type: boolean, description: wrap the search at the end of the page }
     response:
       optional:
-      - text-found: { type: boolean, description: the text was found in the page }
+      - { name: text-found, type: boolean, description: the text was found in the page }
 
 signals:
   - status: load-started
     source: [ renderer ]
     description: The renderer started loading a resource
     required:
-      - uri: { type: string, description: the resource that started loading }
+      - { name: uri, type: string, description: the resource that started loading }
     
   - status: load-finished
     source: [ renderer ]
     description: The renderer finished loading a resource
     required:
-      - uri: { type: string, description: the resource that finished loading }
+      - { name: uri, type: string, description: the resource that finished loading }
 
   - status: load-failed
     source: [ renderer ]
@@ -85,15 +85,15 @@ signals:
     source: [ renderer ]
     description: The resource loading progress changed
     required:
-      - progress: { type: numeric, description: current progress in the range 0-1 }
+      - { name: progress, type: numeric, description: current progress in the range 0-1 }
 
   - status: hovering-over-link
     source: [ renderer ]
     description: The mouse cursor is currently hovering over a link
     required:
-      - uri: { type: string, description: the uri of the link }
+      - { name: uri, type: string, description: the uri of the link }
     optional:
-      - title: { type: string, description: the links title }
+      - { name: title, type: string, description: the links title }
 
   - status: not-hovering-over-link
     source: [ renderer ]

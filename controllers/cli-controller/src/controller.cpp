@@ -26,19 +26,23 @@
 # include <readline/readline.h>
 # include <readline/history.h>
 # include <popt.h>
+# include <yaml.h>
 
 # include <package.h>
 # include <package_factories.h>
 # include <ev_cpp.h>
 
 # include "defaults.h"
+# include "command_parser.h"
 
 # include "controller.h"
 
 extern Controller *controllerInstance;
 
-Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL)
+Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL)
 {
+	commands = new std::map<std::string, CommandParser*>();
+
 	// setup stdin read watcher and readline library
 	rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
 	
@@ -125,11 +129,39 @@ void Controller::handleLine(char *line)
 
 	int argc = 0;
 	const char **argv = NULL;
+	int result = -1;
 
-	// parse line into array
-	poptParseArgvString(line, &argc, &argv);
-	std::cerr<<"line contained "<<argc<<" parts"<<std::endl;
+	// parse line into argv structure
+	result = poptParseArgvString(line, &argc, &argv);
+	if(result < 0)
+	{
+		std::cerr<<"error parsing line: "<<poptStrerror(result);
+		return;
+	}
+	if(argc > 0)
+	{
+		CommandParser *parser = retrieveCommandParser(std::string(argv[0]));
+		if(parser)
+		{
+			Package *commandPackage = parser->constructPackageFromLine(argc,argv, getNextPackageID());
+			if(commandPackage)
+			{
+				sendPackageAndDelete(commandPackage);
+			}
+		}
+	}
 
 	free(argv);
-	free(line);	
+	free(line);
+}
+
+CommandParser* Controller::retrieveCommandParser(std::string command)
+{
+	std::map<std::string, CommandParser*>::iterator iter = commands->find(command);
+	if(iter != commands->end())
+	{
+		return iter->second;
+	}
+
+	return NULL;
 }
