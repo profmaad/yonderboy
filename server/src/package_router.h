@@ -55,7 +55,7 @@ private:
 	std::map<std::string, ServerComponent> *routingTable;
 
 	std::set<std::string> *allowedControllerCommands;
-	std::set<std::string> *allowedRendererRequests;
+	std::set<std::string> *allowedRendererCommands;
 
 	std::set<AbstractHost*> *statiReceiver;
 };

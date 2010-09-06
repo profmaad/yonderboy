@@ -43,11 +43,11 @@
 
 # include "package_router.h"
 
-PackageRouter::PackageRouter(std::string specFilename) : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererRequests(NULL)
+PackageRouter::PackageRouter(std::string specFilename) : routingTable(NULL), statiReceiver(NULL), allowedControllerCommands(NULL), allowedRendererCommands(NULL)
 {
 	routingTable = new std::map<std::string, ServerComponent>();
 	allowedControllerCommands = new std::set<std::string>();
-	allowedRendererRequests = new std::set<std::string>();
+	allowedRendererCommands = new std::set<std::string>();
 	statiReceiver = new std::set<AbstractHost*>();
 
 	std::ifstream specFile(specFilename.c_str());
@@ -61,32 +61,31 @@ PackageRouter::PackageRouter(std::string specFilename) : routingTable(NULL), sta
 			specParser.GetNextDocument(specDoc);
 			
 			// parse controller information
-			for(int i=0; i<specDoc["controller"].size(); i++)
+			for(int i=0; i<specDoc["commands"].size(); i++)
 			{
-				if(specDoc["controller"][i]["command"].GetType() == YAML::CT_SCALAR && specDoc["controller"][i]["target"].GetType() == YAML::CT_SCALAR)
+				if(specDoc["commands"][i]["command"].GetType() == YAML::CT_SCALAR && specDoc["commands"][i]["target"].GetType() == YAML::CT_SCALAR && specDoc["commands"][i]["source"].GetType() == YAML::CT_SEQUENCE)
 				{
 					// we got a valid command, lets add it
 					std::string command, target;
-					specDoc["controller"][i]["command"] >> command;
-					specDoc["controller"][i]["target"] >> target;
+					specDoc["commands"][i]["command"] >> command;
+					specDoc["commands"][i]["target"] >> target;
 						
 					routingTable->insert(std::make_pair(command, stringToServerComponent(target)));
-					allowedControllerCommands->insert(command);
-				}
-			}
-			// parse renderer information
-			for(int i=0; i<specDoc["renderer"].size(); i++)
-			{
-				if(specDoc["renderer"][i]["request"].GetType() == YAML::CT_SCALAR && specDoc["renderer"][i]["target"].GetType() == YAML::CT_SCALAR)
-				{
-					// we got a valid request, lets add it
-					std::string request, target;
-					specDoc["renderer"][i]["request"] >> request;
-					specDoc["renderer"][i]["target"] >> target;
-						
-					routingTable->insert(std::make_pair(request, stringToServerComponent(target)));
-					allowedRendererRequests->insert(request);
-					
+
+					for(int s=0; s<specDoc["commands"][i]["source"].size(); s++)
+					{
+						std::string source;
+						specDoc["commands"][i]["source"][s] >> source;
+
+						if(source == "controller")
+						{
+							allowedControllerCommands->insert(command);
+						}
+						else if(source == "renderer")
+						{
+							allowedRendererCommands->insert(command);
+						}
+					}
 				}
 			}
 		}
@@ -104,7 +103,7 @@ PackageRouter::~PackageRouter()
 {
 	delete routingTable;
 	delete allowedControllerCommands;
-	delete allowedRendererRequests;
+	delete allowedRendererCommands;
 	delete statiReceiver;
 }
 
@@ -164,7 +163,7 @@ bool PackageRouter::isAllowed(ServerComponent receivingComponent, Package *thePa
 
 	if(receivingComponent == ServerComponentControllerHost)
 	{
-		if(thePackage->getType() == Command)
+		if(thePackage->getType() == Command) 
 		{
 			return (allowedControllerCommands->count(thePackage->getValue("command")) > 0);
 		}
@@ -183,7 +182,7 @@ bool PackageRouter::isAllowed(ServerComponent receivingComponent, Package *thePa
 	{
 		if(thePackage->getType() == Request)
 		{
-			return (allowedRendererRequests->count(thePackage->getValue("request-type")) > 0);
+			return (allowedRendererCommands->count(thePackage->getValue("request-type")) > 0);
 		}
 		else if(thePackage->getType() == StatusChange) { return true; }
 		else if(thePackage->getType() == Response) { return true; }
