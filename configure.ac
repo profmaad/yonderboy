@@ -16,6 +16,7 @@ m4_include([m4/ax_prog_doxygen.m4])
 
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_cond_init])
+AC_CHECK_LIB([readline], [readline])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h inttypes.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/statfs.h sys/time.h unistd.h])
@@ -46,6 +47,7 @@ DX_INIT_DOXYGEN(cli-browser, Doxyfile, doc)
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile
 		server/src/Makefile
+		controllers/cli-controller/src/Makefile
 		renderers/webkit-renderer/src/Makefile
 		viewers/tabbed-gtk-viewer/src/Makefile])
 AC_OUTPUT
