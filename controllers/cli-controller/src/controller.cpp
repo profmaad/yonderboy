@@ -25,6 +25,7 @@
 
 # include <readline/readline.h>
 # include <readline/history.h>
+# include <popt.h>
 
 # include <package.h>
 # include <package_factories.h>
@@ -114,16 +115,21 @@ void Controller::readlineCallback(char *line)
 {
 	controllerInstance->handleLine(line);
 }
-void Controller::handleLine(char *rawLine)
+void Controller::handleLine(char *line)
 {
-	if(rawLine == NULL) // we got an EOF, that means we should quit
+	if(line == NULL) // we got an EOF, that means we should quit
 	{
 		quit();
 		return;
 	}
 
-	std::string line(rawLine);
-	free(rawLine);
+	int argc = 0;
+	const char **argv = NULL;
 
-	std::cerr<<"handleLine: "<<line<<std::endl;
+	// parse line into array
+	poptParseArgvString(line, &argc, &argv);
+	std::cerr<<"line contained "<<argc<<" parts"<<std::endl;
+
+	free(argv);
+	free(line);	
 }

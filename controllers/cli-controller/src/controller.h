@@ -44,7 +44,7 @@ private:
 	void handleStatusChange(Package *thePackage);
 
 	static void readlineCallback(char *line);
-	void handleLine(char *rawLine);
+	void handleLine(char *line);
 
 	void stdinCallback(ev::io &watcher, int revents);
 
