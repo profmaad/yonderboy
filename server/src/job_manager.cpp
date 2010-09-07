@@ -47,6 +47,7 @@ JobManager::~JobManager()
 	}
 
 	delete unfinishedJobs;
+	delete requestResponseMapping;
 }
 
 void JobManager::addJob(Job *theJob)

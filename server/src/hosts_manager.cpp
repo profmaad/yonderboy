@@ -97,6 +97,10 @@ RendererHost* HostsManager::createRenderer(std::string binary, View *viewToConne
 			if(theJob) { server->jobManagerInstance()->jobDone(theJob); }
 			LOG_DEBUG("new renderer has id "<<newRenderer->getID());
 		}
+		else
+		{
+			if(theJob) { server->jobManagerInstance()->jobFailed(theJob, "failed to spawn renderer"); }
+		}
 	}
 	catch(std::runtime_error e)
 	{

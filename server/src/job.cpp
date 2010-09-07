@@ -112,6 +112,6 @@ void Job::sendAcknowledgement()
 
 	if(acknowledgement)
 	{
-		host->sendPackage(acknowledgement);
+		host->sendPackageAndDelete(acknowledgement);
 	}
 }

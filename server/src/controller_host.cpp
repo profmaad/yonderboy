@@ -77,12 +77,12 @@ void ControllerHost::handlePackage(Package* thePackage)
 			state = Established;
 
 			LOG_INFO("connection successfully established, controller is "<<(interactive?"":"not ")<<"interactive, can"<<(handlesSynchronousRequests?"":"'t")<<" handle synchronous requests and can"<<(displaysStati?"":"'t")<<" display stati");
-
-			delete thePackage;
  		}
 	}
 	else
 	{
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
 	}
+
+	delete thePackage;
 }

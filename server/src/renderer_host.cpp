@@ -83,7 +83,6 @@ void RendererHost::handlePackage(Package* thePackage)
 			}
 
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
-			delete thePackage;
 			
 			state = Established;
 
@@ -94,6 +93,8 @@ void RendererHost::handlePackage(Package* thePackage)
 	{
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
 	}
+
+	delete thePackage;
 }
 
 void RendererHost::doJob(Job *theJob)

@@ -64,6 +64,7 @@ ConfigurationManager::~ConfigurationManager()
 	persistenceManager->releaseStorage("", configFileName);
 	persistenceManager->close();
 	delete persistenceManager;
+	delete entries;
 }
 
 void ConfigurationManager::doJob(Job *theJob)

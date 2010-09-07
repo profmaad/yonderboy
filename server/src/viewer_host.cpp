@@ -93,7 +93,6 @@ void ViewerHost::handlePackage(Package* thePackage)
 		server->packageRouterInstance()->addStatiReceiver(this);
 		
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
-		delete thePackage;
 		
 		state = Established;
 		
@@ -123,7 +122,6 @@ void ViewerHost::handlePackage(Package* thePackage)
 		}
 
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, error));
-		delete thePackage;
 	}
 	else if(state == Established && thePackage->getValue("command") == "unregister-view" && thePackage->isSet("view-id"))
 	{
@@ -131,14 +129,14 @@ void ViewerHost::handlePackage(Package* thePackage)
 		if(theView)
 		{
 			views->erase(thePackage->getValue("view-id"));
-			delete theView;
 			
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
-			delete thePackage;
 		}
 	}
 	else
 	{
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
 	}
+
+	delete thePackage;
 }
