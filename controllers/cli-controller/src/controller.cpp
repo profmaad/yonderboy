@@ -50,6 +50,7 @@ Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatc
 
 	// setup stdin read watcher and readline library
 	rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
+	using_history();
 	
 	stdinWatcher = new ev::io();
 	stdinWatcher->set<Controller, &Controller::stdinCallback>(this);
@@ -201,6 +202,8 @@ void Controller::handleLine(char *line)
 			std::cerr<<"unknown command: "<<argv[0]<<std::endl;
 		}
 	}
+
+	add_history(line);
 
 	free(argv);
 	free(line);
