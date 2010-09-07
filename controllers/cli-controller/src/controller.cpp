@@ -62,6 +62,12 @@ Controller::~Controller()
 	rl_callback_handler_remove();
 
 	delete stdinWatcher;
+
+	for(std::map<std::string, CommandParser*>::iterator iter = commands->begin(); iter != commands->end(); iter++)
+	{
+		delete iter->second;
+	}
+	delete commands;
 }
 void Controller::quit()
 {

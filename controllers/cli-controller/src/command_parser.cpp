@@ -211,6 +211,7 @@ CommandParser::~CommandParser()
 	delete boolOptionArguments;
 	for(std::map<std::string, char**>::iterator iter = stringOptionArguments->begin(); iter != stringOptionArguments->end(); iter++)
 	{
+		free(*(iter->second));
 		free(iter->second);
 	}
 	delete stringOptionArguments;
@@ -220,6 +221,8 @@ CommandParser::~CommandParser()
 	free(viewID);
 
 	delete parameters;
+
+	free(options);
 }
 void CommandParser::reset()
 {
@@ -267,7 +270,8 @@ Package* CommandParser::constructPackageFromLine(int argc, const char **argv, st
 
 	for(int i=0;i < parameters->size(); i++)
 	{
-		kvMap->insert(std::make_pair(parameters->at(i).name, poptGetArg(context)));
+		kvMap->insert(std::make_pair(parameters->at(i).name, poptPeekArg(context)));
+		free((void*)poptGetArg(context));
 	}
 
 	for(std::map<std::string, int*>::const_iterator iter = boolOptionArguments->begin(); iter != boolOptionArguments->end(); iter++)
