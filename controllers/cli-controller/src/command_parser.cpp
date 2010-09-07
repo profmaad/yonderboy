@@ -33,11 +33,12 @@
 
 # include "command_parser.h"
 
-CommandParser::CommandParser(YAML::Node &node) : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL)
+CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL), rendererIDRequired(false), viewerIDRequired(false), viewIDRequired(false), rendererID(NULL), viewerID(NULL), viewID(NULL)
 {
 	parameters = new std::vector<requiredParameter>();
 	boolOptionArguments = new std::map<std::string, int*>();
 	stringOptionArguments = new std::map<std::string, char**>();
+
 	reset();
 	
 	if(node["command"].GetType() != YAML::CT_SCALAR)
@@ -63,7 +64,7 @@ CommandParser::CommandParser(YAML::Node &node) : valid(false), parameters(NULL),
 					{
 						std::string name, type, description;
 						(*requiredNode)[i]["name"] >> name;
-						
+
 						if(const YAML::Node *typeNode = (*requiredNode)[i].FindValue("type"))
 						{
 							*typeNode >> type;
@@ -72,7 +73,7 @@ CommandParser::CommandParser(YAML::Node &node) : valid(false), parameters(NULL),
 						{
 							type = "string";
 						}
-						
+
 						if(const YAML::Node *descNode = (*requiredNode)[i].FindValue("description"))
 						{
 							*descNode >> description;
@@ -85,6 +86,7 @@ CommandParser::CommandParser(YAML::Node &node) : valid(false), parameters(NULL),
 							poptOption option = { "renderer", 'r', POPT_ARG_STRING, &rendererID, 0, "renderer to use", "renderer id"};
 							tempOptions.push_back(option);
 							rendererIDRequired = true;
+
 						}
 						else if(type == "viewer")
 						{
@@ -250,55 +252,57 @@ Package* CommandParser::constructPackageFromLine(int argc, const char **argv, st
 
 	// parse options into arg pointers
 	result = poptGetNextOpt(context); // since all options are directly handled through arg pointers, we only need to call this once
-	if(result < 0)
+	if(result < -1)
 	{
 		std::cerr<<poptBadOption(context, POPT_BADOPTION_NOALIAS)<<": "<<poptStrerror(result)<<std::endl;
 		return package;
 	}
 
 	// construct package from info in arg pointers
-	std::map<std::string, std::string> kvMap;
+	std::map<std::string, std::string> *kvMap = new std::map<std::string, std::string>();
 
-	kvMap.insert(std::make_pair("type", "command"));
-	kvMap.insert(std::make_pair("id", packageID));
-	kvMap.insert(std::make_pair("command", command));
+	kvMap->insert(std::make_pair("type", "command"));
+	kvMap->insert(std::make_pair("id", packageID));
+	kvMap->insert(std::make_pair("command", command));
 
 	for(int i=0;i < parameters->size(); i++)
 	{
-		kvMap.insert(std::make_pair(parameters->at(i).name, poptGetArg(context)));
+		kvMap->insert(std::make_pair(parameters->at(i).name, poptGetArg(context)));
 	}
 
 	for(std::map<std::string, int*>::const_iterator iter = boolOptionArguments->begin(); iter != boolOptionArguments->end(); iter++)
 	{
 		if(*(iter->second) != 0)
 		{
-			kvMap.insert(std::make_pair(iter->first, ""));
+			kvMap->insert(std::make_pair(iter->first, ""));
 		}
 	}
 	for(std::map<std::string, char**>::const_iterator iter = stringOptionArguments->begin(); iter != stringOptionArguments->end(); iter++)
 	{
 		if(*(iter->second))
 		{
-			kvMap.insert(std::make_pair(iter->first, *(iter->second)));
+			kvMap->insert(std::make_pair(iter->first, *(iter->second)));
 		}
 	}
 
 	if(rendererIDRequired && rendererID)
 	{
-		kvMap.insert(std::make_pair("renderer-id", rendererID));
+		kvMap->insert(std::make_pair("renderer-id", rendererID));
 	}
 	if(viewerIDRequired && viewerID)
 	{
-		kvMap.insert(std::make_pair("viewer-id", viewerID));
+		kvMap->insert(std::make_pair("viewer-id", viewerID));
 	}
 	if(viewIDRequired && viewID)
 	{
-		kvMap.insert(std::make_pair("view-id", viewID));
+		kvMap->insert(std::make_pair("view-id", viewID));
 	}
+
+	package = new Package(kvMap);
 
 	// clean up and free memory
 	poptFreeContext(context);
 	reset();
 
-	return new Package(&kvMap);
+	return package;
 }

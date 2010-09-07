@@ -40,6 +40,7 @@ protected:
 	void socketClosed();
 
 private:
+	void parseSpecFile(std::string file);
 	void quit();
 
 	std::string handleCommand(Package *thePackage);

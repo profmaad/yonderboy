@@ -33,7 +33,7 @@ commands:
     required:
       - { name: renderer-id, type: renderer }
     optional:
-      - { name: renderer-id, type: boolean, description: do not use the cache }
+      - { name: bypass-cache, type: boolean, description: do not use the cache }
 
   - command: connect-view-to-renderer
     source: [ controller ]

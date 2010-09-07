@@ -18,8 +18,12 @@
 //      MA 02110-1301, USA.
 
 # include <string>
+# include <map>
+# include <utility>
 # include <iostream>
+# include <fstream>
 
+# include <cstring>
 # include <cstdlib>
 # include <unistd.h>
 
@@ -42,6 +46,7 @@ extern Controller *controllerInstance;
 Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL)
 {
 	commands = new std::map<std::string, CommandParser*>();
+	parseSpecFile("/home/profmaad/.cli-browser/net-spec.yml"); //HC
 
 	// setup stdin read watcher and readline library
 	rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
@@ -63,6 +68,41 @@ void Controller::quit()
 	stdinWatcher->stop();
 
 	ev::get_default_loop().unloop(ev::ALL);
+}
+void Controller::parseSpecFile(std::string file)
+{
+	std::ifstream specFile(file.c_str());
+	
+	if(!specFile.fail())
+	{
+		YAML::Parser specParser(specFile);
+		YAML::Node specDoc;
+		specParser.GetNextDocument(specDoc);
+		
+		for(int i=0; i<specDoc["commands"].size(); i++)
+		{
+			if(specDoc["commands"][i]["command"].GetType() == YAML::CT_SCALAR && specDoc["commands"][i]["source"].GetType() == YAML::CT_SEQUENCE)
+			{
+				std::string command;
+				specDoc["commands"][i]["command"] >> command;
+				
+				// lets check whether this command is for us
+				for(int s=0; s<specDoc["commands"][i]["source"].size(); s++)
+				{
+					std::string source;
+					specDoc["commands"][i]["source"][s] >> source;
+					
+					if(source == "controller")
+					{
+						CommandParser *parser = new CommandParser(specDoc["commands"][i]);
+						commands->insert(std::make_pair(command, parser));
+					}
+				}
+			}
+		}
+	}		
+
+	specFile.close();
 }
 
 void Controller::handlePackage(Package *thePackage)
@@ -126,6 +166,7 @@ void Controller::handleLine(char *line)
 		quit();
 		return;
 	}
+	if(strlen(line) == 0) { return; }
 
 	int argc = 0;
 	const char **argv = NULL;
@@ -148,6 +189,10 @@ void Controller::handleLine(char *line)
 			{
 				sendPackageAndDelete(commandPackage);
 			}
+		}
+		else
+		{
+			std::cerr<<"unknown command: "<<argv[0]<<std::endl;
 		}
 	}
 

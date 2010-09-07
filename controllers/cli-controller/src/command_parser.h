@@ -31,7 +31,7 @@ class Package;
 class CommandParser
 {
 public:
-	CommandParser(YAML::Node &node);
+	CommandParser(const YAML::Node &node);
 	~CommandParser();
 
 	Package* constructPackageFromLine(int argc, const char **argv, std::string packageID);
