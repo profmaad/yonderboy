@@ -49,12 +49,21 @@ private:
 	static void readlineCallback(char *line);
 	void handleLine(char *line);
 
+	static char** completionCallback(const char *text, int start, int end);
+	char** generateCompletionMatches(const char *text, int start, int end);
+	static char* commandCompletionGeneratorWrapper(const char *text, int state);
+	char* commandCompletionGenerator(const char *text, int state);
+	static char* parametersCompletionGeneratorWrapper(const char *text, int state);
+	char* parametersCompletionGenerator(const char *text, int state);
+
 	CommandParser* retrieveCommandParser(std::string command);
 
 	void stdinCallback(ev::io &watcher, int revents);
 
 	ev::io *stdinWatcher;
+
 	std::map<std::string, CommandParser*> *commands;
+	std::map<std::string, CommandParser*>::const_iterator commandCompletionIterator;
 };
 
 # endif /*CONTROLLER_H*/

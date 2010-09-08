@@ -49,6 +49,7 @@ Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatc
 	parseSpecFile("/home/profmaad/.cli-browser/net-spec.yml"); //HC
 
 	// setup stdin read watcher and readline library
+	rl_attempted_completion_function = &Controller::completionCallback;
 	rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
 	using_history();
 	
@@ -207,6 +208,59 @@ void Controller::handleLine(char *line)
 
 	free(argv);
 	free(line);
+}
+
+char** Controller::completionCallback(const char *text, int start, int end)
+{
+	return controllerInstance->generateCompletionMatches(text, start, end);
+}
+char** Controller::generateCompletionMatches(const char *text, int start, int end)
+{
+	char **matches = NULL;
+
+	if(start == 0) // complete command
+	{
+		matches = rl_completion_matches(text, &Controller::commandCompletionGeneratorWrapper);
+	}
+	else
+	{
+		
+	}
+
+	rl_attempted_completion_over = 1;
+
+	return matches;
+}
+char* Controller::commandCompletionGeneratorWrapper(const char *text, int state)
+{
+	return controllerInstance->commandCompletionGenerator(text, state);
+}
+char* Controller::commandCompletionGenerator(const char *text, int state)
+{
+	if(state == 0)
+	{
+		commandCompletionIterator = commands->begin();
+	}
+
+	while(commandCompletionIterator != commands->end())
+	{
+		std::string command = commandCompletionIterator->first;
+		commandCompletionIterator++;
+
+		if(command.compare(0, strlen(text), text) == 0)
+		{
+			return strdup(command.c_str());
+		}
+	}
+
+	return NULL;
+}
+char* Controller::parametersCompletionGeneratorWrapper(const char *text, int state)
+{
+	return controllerInstance->parametersCompletionGenerator(text, state);
+}
+char* Controller::parametersCompletionGenerator(const char *text, int state)
+{
 }
 
 CommandParser* Controller::retrieveCommandParser(std::string command)
