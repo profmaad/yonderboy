@@ -45,6 +45,12 @@ extern Controller *controllerInstance;
 
 Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL)
 {
+	std::cout<<std::endl;
+	std::cout<<"      _ ._  _| _ ._ |_  _   "<<std::endl;
+	std::cout<<"   \\/(_)| |(_|(/_|  |_)(_)\\/"<<std::endl;
+	std::cout<<"   /                      / "<<std::endl;
+	std::cout<<std::endl;
+
 	commands = new std::map<std::string, CommandParser*>();
 	parseSpecFile("/home/profmaad/.cli-browser/net-spec.yml"); //HC
 
@@ -224,7 +230,7 @@ char** Controller::generateCompletionMatches(const char *text, int start, int en
 	}
 	else
 	{
-		
+		matches = rl_completion_matches(text, &Controller::parametersCompletionGeneratorWrapper);
 	}
 
 	rl_attempted_completion_over = 1;
@@ -261,6 +267,21 @@ char* Controller::parametersCompletionGeneratorWrapper(const char *text, int sta
 }
 char* Controller::parametersCompletionGenerator(const char *text, int state)
 {
+	// first we need to know which command is currently entered and get the appropriate CommandParser
+	int argc = 0;
+	const char **argv = NULL;
+	CommandParser *parser = NULL;
+	int result = -1;
+
+	result = poptParseArgvString(rl_line_buffer, &argc, &argv);
+	if(result < 0) { return NULL; } // line not parseable, so we can't do anything useful
+	else if(argc < 1) { free(argv); return NULL; } // no command entered, same problem
+
+	parser = retrieveCommandParser(std::string(argv[0]));
+	free(argv);
+	if(!parser) { return NULL; }
+
+	return parser->completionGenerator(text, state);
 }
 
 CommandParser* Controller::retrieveCommandParser(std::string command)

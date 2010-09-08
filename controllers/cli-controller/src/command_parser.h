@@ -35,6 +35,7 @@ public:
 	~CommandParser();
 
 	Package* constructPackageFromLine(int argc, const char **argv, std::string packageID);
+	char* completionGenerator(const char *text, int state);
 
 private:
 	void reset();
@@ -44,6 +45,7 @@ private:
 	std::string description;
 	
 	poptOption *options;
+	unsigned int optionsCount;
 
 	struct requiredParameter
 	{
@@ -60,6 +62,8 @@ private:
 	bool viewerIDRequired;
 	char *viewID;
 	bool viewIDRequired;
+
+	unsigned int generatorPosition;
 };
 
 # endif /*COMMAND_PARSER_H*/

@@ -24,6 +24,7 @@
 # include <utility>
 
 # include <cstdlib>
+# include <cstring>
 
 # include <yaml.h>
 # include <popt.h>
@@ -33,7 +34,7 @@
 
 # include "command_parser.h"
 
-CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL), rendererIDRequired(false), viewerIDRequired(false), viewIDRequired(false), rendererID(NULL), viewerID(NULL), viewID(NULL)
+CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL), rendererIDRequired(false), viewerIDRequired(false), viewIDRequired(false), rendererID(NULL), viewerID(NULL), viewID(NULL), optionsCount(0), generatorPosition(0)
 {
 	parameters = new std::vector<requiredParameter>();
 	boolOptionArguments = new std::map<std::string, int*>();
@@ -201,6 +202,7 @@ CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(
 		options[i] = tempOptions[i];
 	}
 	options[tempOptions.size()] = POPT_TABLEEND;
+	optionsCount = tempOptions.size();
 }
 CommandParser::~CommandParser()
 {
@@ -309,4 +311,41 @@ Package* CommandParser::constructPackageFromLine(int argc, const char **argv, st
 	reset();
 
 	return package;
+}
+char* CommandParser::completionGenerator(const char *text, int state)
+{
+	const char *comparisonText = NULL;
+
+	if(state == 0)
+	{
+		generatorPosition = 0;
+	}
+
+	if((strlen(text) > 0 && text[0] != '-') || (strlen(text) > 1 && text[1] != '-'))
+	{
+		return NULL;
+	}
+	else if(strlen(text) == 0) { comparisonText = text; }
+	else if(strlen(text) == 1) { comparisonText = &text[1]; }
+	else { comparisonText = &text[2]; }
+
+	while(generatorPosition < optionsCount)
+	{
+		poptOption option = options[generatorPosition];
+		std::string longOptionName = option.longName;
+		generatorPosition++;
+
+		if(longOptionName.compare(0, strlen(comparisonText), comparisonText) == 0)
+		{
+			char *completion = (char*)malloc(sizeof(char)*(longOptionName.length()+3)); //"--" + longOptionName + '\0'
+			completion[0] = '-';
+			completion[1] = '-';
+			strcpy(&completion[2], longOptionName.c_str());
+			completion[longOptionName.length()+2] = '\0';
+			return completion;
+			
+		}
+	}
+
+	return NULL;
 }
