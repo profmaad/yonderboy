@@ -44,6 +44,7 @@ AC_CHECK_FUNCS([clock_gettime dup2 gettimeofday memset mkdir select socket strrc
 PKG_CHECK_MODULES([YAML], [yaml-cpp >= 0.2.5])
 PKG_CHECK_MODULES([GTK2], [gtk+-2.0 >= 2.20])
 PKG_CHECK_MODULES([WEBKIT], [webkit-1.0 >= 1.2.0])
+PKG_CHECK_MODULES([VTE], [vte >= 0.23.5])
 
 DX_INIT_DOXYGEN(cli-browser, Doxyfile, doc)
 
