@@ -24,6 +24,7 @@
 # define PROJECT_VERSION "0 [devel build]"
 # define PROJECT_BRIEF_DESCRIPTION "an interactive cli-based controller with a readline interface"
 
-# define DISPLAY_INFORMATION_TYPE "XEMBED"
+# define NETSPEC_PATH "~/.cli-browser/net-spec.yml"
+# define PROMPT "yonderboy> "
 
 # endif

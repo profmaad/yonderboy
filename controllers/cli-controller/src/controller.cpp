@@ -43,7 +43,7 @@
 
 extern Controller *controllerInstance;
 
-Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(4223)
+Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(0), waitingForAck(false)
 {
 	std::cout<<std::endl;
 	std::cout<<"      _ ._  _| _ ._ |_  _   "<<std::endl;
@@ -52,18 +52,19 @@ Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatc
 	std::cout<<std::endl;
 
 	commands = new std::map<std::string, CommandParser*>();
-	parseSpecFile("/home/profmaad/.cli-browser/net-spec.yml"); //HC
+	parseSpecFile(NETSPEC_PATH); //HC
 
 	// setup stdin read watcher and readline library
 	rl_attempted_completion_function = &Controller::completionCallback;
-	rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
 	using_history();
 	
 	stdinWatcher = new ev::io();
 	stdinWatcher->set<Controller, &Controller::stdinCallback>(this);
-	stdinWatcher->start(STDIN_FILENO, ev::READ);
 
-	sendPackageAndDelete(constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "", "interactive", "", "can-handle-requests", "",  NULL));
+	Package *initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "", "interactive", "", "can-handle-requests", "",  NULL);
+	lastSendPackageID = initPackage->getID();
+	waitingForAck = true;
+	sendPackageAndDelete(initPackage);
 }
 Controller::~Controller()
 {
@@ -79,13 +80,26 @@ Controller::~Controller()
 }
 void Controller::quit()
 {
-	stdinWatcher->stop();
+	stopReadline();
+	std::cout<<std::endl;
 
 	ev::get_default_loop().unloop(ev::ALL);
 }
 void Controller::parseSpecFile(std::string file)
 {
-	std::ifstream specFile(file.c_str());
+	std::string expandedFilename;
+	if(file[0] == '~')
+	{
+		file.erase(0,1);
+		expandedFilename = std::string(getenv("HOME"));
+		expandedFilename += file;
+	}
+	else
+	{
+		expandedFilename = file;
+	}
+
+	std::ifstream specFile(expandedFilename.c_str());
 	
 	if(!specFile.fail())
 	{
@@ -114,11 +128,28 @@ void Controller::parseSpecFile(std::string file)
 				}
 			}
 		}
-	}		
+	}
+	else
+	{
+		std::cerr<<"failed to read net-spec file from '"<<expandedFilename<<"'"<<std::endl;
+		specFile.close();
+		quit();
+		return;
+	}
 
 	specFile.close();
 }
-
+void Controller::startReadline()
+{
+	rl_callback_handler_install(PROMPT, &Controller::readlineCallback);
+	stdinWatcher->start(STDIN_FILENO, ev::READ);	
+}
+void Controller::stopReadline()
+{
+	rl_callback_handler_remove();
+	stdinWatcher->stop();
+}
+		
 void Controller::handlePackage(Package *thePackage)
 {
 	std::string error;
@@ -137,10 +168,10 @@ void Controller::handlePackage(Package *thePackage)
 		{
 			std::cerr<<"failed: "<<thePackage->getValue("error")<<std::endl;
 		}
-		if(thePackage->getID() == lastSendPackageID)
+		if(waitingForAck && thePackage->getID() == lastSendPackageID)
 		{
-			rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
-			stdinWatcher->start(STDIN_FILENO, ev::READ);
+			waitingForAck = false;
+			startReadline();
 		}
 		break;
 	case ConnectionManagement:
@@ -207,8 +238,6 @@ void Controller::handleLine(char *line)
 			if(commandPackage)
 			{
 				lastSendPackageID = commandPackage->getID();
-				rl_callback_handler_remove();
-				stdinWatcher->stop();
 				sendPackageAndDelete(commandPackage);
 			}
 		}

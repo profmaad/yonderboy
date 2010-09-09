@@ -42,6 +42,8 @@ protected:
 private:
 	void parseSpecFile(std::string file);
 	void quit();
+	void startReadline();
+	void stopReadline();
 
 	std::string handleCommand(Package *thePackage);
 	void handleStatusChange(Package *thePackage);
@@ -66,6 +68,7 @@ private:
 	std::map<std::string, CommandParser*>::const_iterator commandCompletionIterator;
 
 	unsigned long long lastSendPackageID;
+	bool waitingForAck;
 };
 
 # endif /*CONTROLLER_H*/
