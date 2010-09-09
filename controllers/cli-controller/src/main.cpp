@@ -150,8 +150,6 @@ int main(int argc, char** argv)
 	strncpy(socketAddress.sun_path, socketPath, 107);
 	socketAddress.sun_path[107] = '\0';
 
-	std::cerr<<"DEBUG: "<<socketAddress.sun_path<<std::endl;
-	
 	if(connect(serverSocket, (sockaddr*)&socketAddress, sizeof(sockaddr_un)) < 0)
 	{
 		# ifdef STRERROR_R_CHAR_P

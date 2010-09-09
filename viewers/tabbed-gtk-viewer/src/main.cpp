@@ -35,8 +35,11 @@
 # include "config.h"
 
 # include <ev_cpp.h>
+# include <configuration_reader.h>
 
 # include "viewer_controller.h"
+
+ConfigurationReader *configuration;
 
 void printVersion(bool onOneLine)
 {
@@ -56,7 +59,7 @@ void printHelpMessage(const char *executable)
 	printVersion(true);
 	std::cout<<std::endl;
 	
-	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] <viewer socket path>"<<std::endl;
+	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] <config file>"<<std::endl;
 	
 	std::cout<<"options:"<<std::endl;
 	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
@@ -74,7 +77,8 @@ int main(int argc, char** argv)
 	}
 
 	int serverSocket = -1;
-	char *socketPath = NULL;
+	char *configFile = NULL;
+	const char *socketPath = NULL;
 	struct sockaddr_un socketAddress;
 	char errorBuffer[128] = {'\0'};
 
@@ -116,8 +120,18 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		socketPath = argv[1];
+		configFile = argv[1];
 	}
+
+	configuration = new ConfigurationReader(std::string(configFile));
+	if(!configuration || !configuration->isReady())
+	{
+		std::cerr<<"failed to read config"<<std::endl;
+		return 1;
+	}
+
+	socketPath = configuration->retrieveAsAbsolutePath("server", "viewer-socket").c_str();
+
 
 	if(strlen(socketPath) > 107)
 	{
@@ -160,6 +174,8 @@ int main(int argc, char** argv)
 	ViewerController viewer(serverSocket);
 
 	gtk_main();
+
+	delete configuration;
 
 	return 0;
 }

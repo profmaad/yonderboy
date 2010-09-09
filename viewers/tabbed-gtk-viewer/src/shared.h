@@ -26,5 +26,6 @@
 # include <abstract_host.cpp>
 # include <server_connection.cpp>
 # include <client_controller.cpp>
+# include <configuration_reader.cpp>
 
 # endif
