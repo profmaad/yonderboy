@@ -1,0 +1,10 @@
+#server.daemonize = true
+server.loglevel = debug
+server.working-dir = /home/profmaad/.cli-browser/
+#server.logfile = server.log
+
+server.controller-socket = controller.sock
+server.viewer-socket = viewer.sock
+server.renderer-binary = /home/profmaad/Workspace/cli-browser/renderers/webkit-renderer/src/webkit-renderer
+
+net.spec = net-spec.yml
