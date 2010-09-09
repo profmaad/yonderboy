@@ -64,6 +64,8 @@ private:
 
 	std::map<std::string, CommandParser*> *commands;
 	std::map<std::string, CommandParser*>::const_iterator commandCompletionIterator;
+
+	unsigned long long lastSendPackageID;
 };
 
 # endif /*CONTROLLER_H*/

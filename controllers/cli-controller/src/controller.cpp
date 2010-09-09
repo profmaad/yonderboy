@@ -43,7 +43,7 @@
 
 extern Controller *controllerInstance;
 
-Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL)
+Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(4223)
 {
 	std::cout<<std::endl;
 	std::cout<<"      _ ._  _| _ ._ |_  _   "<<std::endl;
@@ -135,7 +135,12 @@ void Controller::handlePackage(Package *thePackage)
 	case Acknowledgement:
 		if(thePackage->hasValue("error"))
 		{
-			std::cerr<<"got negative ack for "<<thePackage->getID()<<": "<<thePackage->getValue("error")<<std::endl;
+			std::cerr<<"failed: "<<thePackage->getValue("error")<<std::endl;
+		}
+		if(thePackage->getID() == lastSendPackageID)
+		{
+			rl_callback_handler_install("yonderboy> ", &Controller::readlineCallback); //HC
+			stdinWatcher->start(STDIN_FILENO, ev::READ);
 		}
 		break;
 	case ConnectionManagement:
@@ -201,6 +206,9 @@ void Controller::handleLine(char *line)
 			Package *commandPackage = parser->constructPackageFromLine(argc,argv, getNextPackageID());
 			if(commandPackage)
 			{
+				lastSendPackageID = commandPackage->getID();
+				rl_callback_handler_remove();
+				stdinWatcher->stop();
 				sendPackageAndDelete(commandPackage);
 			}
 		}
