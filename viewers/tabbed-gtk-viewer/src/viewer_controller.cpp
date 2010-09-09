@@ -96,6 +96,7 @@ void ViewerController::setupHotkeys()
 	gtk_accel_group_connect(globalHotkeys, GDK_Left, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::previousTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_W, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::closeTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_T, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabWithoutRendererCallback), this, NULL));
 }
 
 void ViewerController::handlePackage(Package *thePackage)
@@ -378,7 +379,11 @@ void ViewerController::closeTabCallback()
 }
 void ViewerController::newTabCallback()
 {
-	int result = createNewTab(true); //HC
+	createNewTab(true);
+}
+void ViewerController::newTabWithoutRendererCallback()
+{
+	createNewTab(false);
 }
 
 void ViewerController::pageAddedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook)
