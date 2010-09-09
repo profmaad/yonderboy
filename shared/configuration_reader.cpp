@@ -36,7 +36,7 @@ ConfigurationReader::ConfigurationReader(std::string configFile) : configFile(co
 {
 	entries = new EntriesMap();
 	ready = retrieveEntries();
-	workingDir = retrieve("server", "working-dir"); //HC
+	workingDir = retrieve("general", "working-dir"); //HC
 }
 ConfigurationReader::~ConfigurationReader()
 {

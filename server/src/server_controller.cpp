@@ -61,12 +61,12 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	displayManager = new DisplayManager();
 	hostsManager = new HostsManager();
 	jobManager = new JobManager();
-	packageRouter = new PackageRouter(configurationManager->retrieve("net", "spec", "net-spec.yml"));
+	packageRouter = new PackageRouter(configurationManager->retrieve("general", "net-spec", "net-spec.yml"));
 
 	metaDecisionMaker = new MetaDecisionMaker();
 	
-	controllerListener = new ControllerListener(configurationManager->retrieve("server", "controller-socket", "controller.sock"));
-	viewerListener = new ViewerListener(configurationManager->retrieve("server", "viewer-socket", "viewer.sock"));
+	controllerListener = new ControllerListener(configurationManager->retrieve("general", "controller-socket", "controller.sock"));
+	viewerListener = new ViewerListener(configurationManager->retrieve("general", "viewer-socket", "viewer.sock"));
 	
 	logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", LogLevelWarning);
 

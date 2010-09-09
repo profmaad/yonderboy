@@ -54,7 +54,7 @@ Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatc
 	std::cout<<std::endl;
 
 	commands = new std::map<std::string, CommandParser*>();
-	parseSpecFile(configuration->retrieveAsAbsolutePath("net","spec"));
+	parseSpecFile(configuration->retrieveAsAbsolutePath("general","net-spec"));
 
 	// setup stdin read watcher and readline library
 	rl_attempted_completion_function = &Controller::completionCallback;

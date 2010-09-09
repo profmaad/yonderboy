@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 	
 	ConfigurationManager *configurationManager = new ConfigurationManager(configFilePath);
 		forkDaemon = configurationManager->retrieveAsBool("server", "daemonize", false);
-		if(configurationManager->isSet("server", "working-dir")) { workingDir = configurationManager->retrieve("server", "working-dir", "~/.cli-browser/").c_str(); }
+		if(configurationManager->isSet("general", "working-dir")) { workingDir = configurationManager->retrieve("general", "working-dir", "~/.cli-browser/").c_str(); }
 		if(configurationManager->isSet("server", "logfile")) { logfilePath = configurationManager->retrieve("server", "logfile", "server.log").c_str(); }
 	delete configurationManager;
 	
