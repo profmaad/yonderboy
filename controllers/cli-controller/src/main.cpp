@@ -18,6 +18,7 @@
 //      MA 02110-1301, USA.
 
 # include <iostream>
+# include <string>
 
 # include <sys/types.h>
 # include <sys/socket.h>
@@ -34,9 +35,11 @@
 
 # include <ev_cpp.h>
 
+# include <configuration_reader.h>
 # include "controller.h"
 
-Controller *controllerInstance;
+Controller *controllerInstance = NULL;
+ConfigurationReader *configuration = NULL;
 
 void printVersion(bool onOneLine)
 {
@@ -56,7 +59,7 @@ void printHelpMessage(const char *executable)
 	printVersion(true);
 	std::cout<<std::endl;
 	
-	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] <controller socket path>"<<std::endl;
+	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] <config file>"<<std::endl;
 	
 	std::cout<<"options:"<<std::endl;
 	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
@@ -66,7 +69,8 @@ void printHelpMessage(const char *executable)
 int main(int argc, char** argv)
 {
 	int serverSocket = -1;
-	char *socketPath = NULL;
+	char *configFile = NULL;
+	const char *socketPath = NULL;
 	struct sockaddr_un socketAddress;
 	char errorBuffer[128] = {'\0'};
 
@@ -108,8 +112,17 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		socketPath = argv[1];
+		configFile = argv[1];
 	}
+
+	configuration = new ConfigurationReader(std::string(configFile));
+	if(!configuration || !configuration->isReady())
+	{
+		std::cerr<<"failed to read config"<<std::endl;
+		return 1;
+	}
+
+	socketPath = configuration->retrieveAsAbsolutePath("server", "controller-socket").c_str();
 
 	if(strlen(socketPath) > 107)
 	{
@@ -136,6 +149,8 @@ int main(int argc, char** argv)
 	socketAddress.sun_family = AF_UNIX;
 	strncpy(socketAddress.sun_path, socketPath, 107);
 	socketAddress.sun_path[107] = '\0';
+
+	std::cerr<<"DEBUG: "<<socketAddress.sun_path<<std::endl;
 	
 	if(connect(serverSocket, (sockaddr*)&socketAddress, sizeof(sockaddr_un)) < 0)
 	{
@@ -154,6 +169,7 @@ int main(int argc, char** argv)
 	ev::default_loop().loop();
 
 	delete controllerInstance;
+	delete configuration;
 
 	return 0;
 }

@@ -34,6 +34,7 @@
 
 # include <package.h>
 # include <package_factories.h>
+# include <configuration_reader.h>
 # include <ev_cpp.h>
 
 # include "defaults.h"
@@ -41,6 +42,7 @@
 
 # include "controller.h"
 
+extern ConfigurationReader *configuration;
 extern Controller *controllerInstance;
 
 Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(0), waitingForAck(false)
@@ -52,7 +54,7 @@ Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatc
 	std::cout<<std::endl;
 
 	commands = new std::map<std::string, CommandParser*>();
-	parseSpecFile(NETSPEC_PATH); //HC
+	parseSpecFile(configuration->retrieveAsAbsolutePath("net","spec"));
 
 	// setup stdin read watcher and readline library
 	rl_attempted_completion_function = &Controller::completionCallback;
