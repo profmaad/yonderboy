@@ -25,6 +25,7 @@
 # include <map>
 
 # include <gtk/gtk.h>
+# include <vte/vte.h>
 
 # include <client_controller.h>
 
@@ -80,6 +81,9 @@ private:
 	guint statusBarContextServer;
 	guint statusBarContextTab;
 	GtkAccelGroup *globalHotkeys;
+
+	// VTE stuff
+	GtkWidget *terminal;
 
 	// mappings
 	std::map<std::string, GtkSocket*> *socketByID;
