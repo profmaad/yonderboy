@@ -239,6 +239,8 @@ void Controller::handleLine(char *line)
 			Package *commandPackage = parser->constructPackageFromLine(argc,argv, getNextPackageID());
 			if(commandPackage)
 			{
+				stopReadline();
+				waitingForAck = true;
 				lastSendPackageID = commandPackage->getID();
 				sendPackageAndDelete(commandPackage);
 			}

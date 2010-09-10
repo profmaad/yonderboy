@@ -59,8 +59,8 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	statusBarContextServer = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "server");
 	statusBarContextTab = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "tab");
 
-	terminal = vte_terminal_new();
-	vte_terminal_set_size(VTE_TERMINAL(terminal), 80, 5);
+//	terminal = vte_terminal_new();
+//	vte_terminal_set_size(VTE_TERMINAL(terminal), 80, 5);
 
 	globalHotkeys = gtk_accel_group_new();
 	setupHotkeys();
@@ -69,7 +69,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	// arrange GUI
 	gtk_box_pack_end(GTK_BOX(statusBar), statusBarProgress, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(mainVBox), tabBar, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(mainVBox), terminal, FALSE, FALSE, 0);
+//	gtk_box_pack_start(GTK_BOX(mainVBox), terminal, FALSE, FALSE, 0);
 	gtk_box_pack_end(GTK_BOX(mainVBox), statusBar, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(mainWindow), mainVBox);
 

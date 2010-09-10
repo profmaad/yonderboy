@@ -257,17 +257,23 @@ void PackageRouter::routeJob(Job *theJob)
 		targetID = theJob->getValue("renderer-id");
 		rendererHost = server->hostsManagerInstance()->getRendererHost(targetID);
 		if(rendererHost) { rendererHost->doJob(theJob); }
+		else if(theJob->needsAcknowledgement() ){ server->jobManagerInstance()->jobFailed(theJob, "missing renderer id"); }
+		else { theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "missing renderer id")); }
 		break;
 	case ServerComponentViewerHost:
 		targetID = theJob->getValue("viewer-id");
 		viewerHost = server->hostsManagerInstance()->getViewerHost(targetID);
 		if(viewerHost) { viewerHost->doJob(theJob); }
+		else if(theJob->needsAcknowledgement() ){ server->jobManagerInstance()->jobFailed(theJob, "missing viewer id"); }
+		else { theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "missing viewer id")); }
 		break;
 	case ServerComponentControllerHost:
 		targetID = theJob->getValue("controller-id");
 		if(targetID.empty()) { controllerHost = server->hostsManagerInstance()->getMainController(); }
 		else { controllerHost = server->hostsManagerInstance()->getControllerHost(targetID); }
 		if(controllerHost) { controllerHost->doJob(theJob); }
+		else if(theJob->needsAcknowledgement() ){ server->jobManagerInstance()->jobFailed(theJob, "missing controller id"); }
+		else { theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "missing controller id")); }
 		break;
 	default:
 		LOG_WARNING("encountered package with invalid routing target: "<<iter->second);
