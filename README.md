@@ -1,2 +1,2 @@
 # Yonderboy
-## A modular browser framework
+## A modular browser
