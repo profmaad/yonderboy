@@ -50,6 +50,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	// create basic GUI elements
 	mainWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	mainVBox = gtk_vbox_new(FALSE, 0);
+	mainVPaned = gtk_vpaned_new();
 	tabBar = gtk_notebook_new();
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(tabBar), TRUE);
 	gtk_notebook_popup_enable(GTK_NOTEBOOK(tabBar));
@@ -59,8 +60,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	statusBarContextServer = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "server");
 	statusBarContextTab = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusBar), "tab");
 
-//	terminal = vte_terminal_new();
-//	vte_terminal_set_size(VTE_TERMINAL(terminal), 80, 5);
+	terminal = vte_terminal_new();
 
 	globalHotkeys = gtk_accel_group_new();
 	setupHotkeys();
@@ -68,10 +68,13 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	
 	// arrange GUI
 	gtk_box_pack_end(GTK_BOX(statusBar), statusBarProgress, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(mainVBox), tabBar, TRUE, TRUE, 0);
-//	gtk_box_pack_start(GTK_BOX(mainVBox), terminal, FALSE, FALSE, 0);
+	gtk_paned_pack1(GTK_PANED(mainVPaned), tabBar, TRUE, FALSE);
+	gtk_paned_pack2(GTK_PANED(mainVPaned), terminal, FALSE, TRUE);
+	gtk_box_pack_start(GTK_BOX(mainVBox), mainVPaned, TRUE, TRUE, 0);
 	gtk_box_pack_end(GTK_BOX(mainVBox), statusBar, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(mainWindow), mainVBox);
+
+	gtk_widget_set_size_request(terminal, -1, 100);
 
 	// show gui
 	gtk_widget_show_all(mainWindow);

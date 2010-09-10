@@ -74,6 +74,7 @@ private:
 	// GTK stuff
 	GtkWidget *mainWindow;
 	GtkWidget *mainVBox;
+	GtkWidget *mainVPaned;
 	GtkWidget *tabBar;
 	GtkWidget *statusBar;
 	GtkWidget *statusBarProgress;
