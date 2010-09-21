@@ -55,6 +55,9 @@ public:
 	bool isConnected(RendererHost *theRenderer);
 	bool areConnected(ViewerHost *theViewer, RendererHost *theRenderer);
 
+	RendererHost* rendererForView(View *theView);
+	View* viewForRenderer(RendererHost *theRenderer);
+
 private:
 	void disconnect(View *theView, RendererHost *theRenderer);
 

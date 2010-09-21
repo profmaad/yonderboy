@@ -119,7 +119,8 @@ void ServerConnection::signalCallback(ev::io &watcher, int revents)
 
 	if(bytesRead == 0)
 	{
-		shutdownHost();
+		if(state == Connected) { shutdownHost(); }
+		close(signalSocket);
 	}
 
 	pthread_mutex_lock(&toSendPackagesMutex);

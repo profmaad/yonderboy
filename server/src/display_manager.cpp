@@ -100,6 +100,8 @@ void DisplayManager::unregisterRenderer(std::string rendererID)
 	theRenderer = rendererIter->second;
 	disconnectRenderer(theRenderer);
 	renderers->erase(rendererIter);
+
+	LOG_INFO("renderer "<<theRenderer->getID()<<" unregistered");
 }
 void DisplayManager::unregisterView(View *theView)
 {
@@ -229,6 +231,27 @@ bool DisplayManager::areConnected(ViewerHost *theViewer, RendererHost *theRender
 	}
 
 	return false;
+}
+
+RendererHost* DisplayManager::rendererForView(View *theView)
+{
+	std::map<View*, RendererHost*>::iterator iter = rendererByView->find(theView);
+	if(iter != rendererByView->end())
+	{
+		return iter->second;
+	}
+	
+	return NULL;
+}
+View* DisplayManager::viewForRenderer(RendererHost *theRenderer)
+{
+	std::map<RendererHost*, View*>::iterator iter = viewByRenderer->find(theRenderer);
+	if(iter != viewByRenderer->end())
+	{
+		return iter->second;
+	}
+	
+	return NULL;
 }
 
 Package* DisplayManager::constructViewConnectPackage(View *theView, RendererHost *theRenderer)

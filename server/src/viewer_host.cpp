@@ -128,9 +128,17 @@ void ViewerHost::handlePackage(Package* thePackage)
 		View *theView = retrieveView(thePackage->getValue("view-id"));
 		if(theView)
 		{
+			if(!thePackage->isSet("keep-renderer"))
+			{
+				RendererHost *renderer = server->displayManagerInstance()->rendererForView(theView);
+				renderer->shutdownHost();
+			}
+
 			views->erase(thePackage->getValue("view-id"));
 			
 			sendPackageAndDelete(constructAcknowledgementPackage(thePackage));
+
+			delete theView;
 		}
 	}
 	else

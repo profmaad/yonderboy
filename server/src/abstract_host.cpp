@@ -119,8 +119,10 @@ void AbstractHost::readCallback(ev::io &watcher, int revents)
 	bytesRead = recv(hostSocket, (void*)receiveBuffer, 4096, 0);
 	if(bytesRead < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK))
 	{
-		strerror_r(errno,errorBuffer,128);
-		throw std::runtime_error("Host socket read failed: "+std::string(errorBuffer));
+//		strerror_r(errno,errorBuffer,128);
+//		throw std::runtime_error("Host socket read failed: "+std::string(errorBuffer));
+		throw std::runtime_error("Host socket read failed: "+std::string(strerror_r(errno,errorBuffer,128)));
+
 	}
 	else if (bytesRead == 0)
 	{
@@ -277,8 +279,9 @@ void AbstractHost::writeCallback(ev::io &watcher, int revents)
 		bytesWritten = send(hostSocket, buffer.c_str(), bufferSize, 0);
 		if(bytesWritten < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK) )
 		{
-			strerror_r(errno, errorBuffer, 128);
-			throw std::runtime_error("Host socket send failed: "+std::string(errorBuffer));
+//			errorBuffer = strerror_r(errno, errorBuffer, 128);
+//			throw std::runtime_error("Host socket send failed: "+std::string(errorBuffer));
+			throw std::runtime_error("Host socket send failed: "+std::string(strerror_r(errno,errorBuffer,128)));
 		}
 		else if(errno == EAGAIN || errno == EWOULDBLOCK) { break; }
 		

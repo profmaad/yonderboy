@@ -45,6 +45,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 {
 	// create state
 	socketByID = new std::map<std::string, GtkSocket*>();
+	idBySocket = new std::map<GtkSocket*, std::string>();
 	viewByRenderer = new std::map<std::string, std::string>();
 
 	// create basic GUI elements
@@ -102,6 +103,7 @@ void ViewerController::setupHotkeys()
 	gtk_accel_group_connect(globalHotkeys, GDK_Right, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::nextTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_Left, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::previousTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_W, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::closeTabCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_W, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::closeTabKeepRendererCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabWithoutRendererCallback), this, NULL));
 }
@@ -275,6 +277,7 @@ gint ViewerController::createNewTab(bool createRenderer)
 	nextViewID++;
 
 	socketByID->insert(std::make_pair(viewIDConversionStream.str(), GTK_SOCKET(gtkSocket)));
+	idBySocket->insert(std::make_pair(GTK_SOCKET(gtkSocket), viewIDConversionStream.str()));
 	g_object_ref(G_OBJECT(gtkSocket));
 
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), gtkSocket, gtk_label_new(viewIDConversionStream.str().c_str()));
@@ -295,9 +298,29 @@ gint ViewerController::createNewTab(bool createRenderer)
 
 	return result;
 }
-void ViewerController::closeTab(guint pageNum)
+void ViewerController::closeTab(guint pageNum, bool keepRenderer)
 {
+	std::string viewID;
+	GtkSocket *socket = GTK_SOCKET(gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), pageNum));
 
+	std::map<GtkSocket*, std::string>::const_iterator iter = idBySocket->find(socket);
+	if(iter != idBySocket->end())
+	{
+		viewID = iter->second;
+	}
+	else { return; }
+
+	if(keepRenderer)
+	{
+		sendPackageAndDelete(constructPackage("connection-management", "command", "unregister-view", "id", getNextPackageID().c_str(), "view-id", viewID.c_str(), "keep-renderer", ""));
+	}
+	else
+	{
+		sendPackageAndDelete(constructPackage("connection-management", "command", "unregister-view", "id", getNextPackageID().c_str(), "view-id", viewID.c_str()));
+	}
+
+	gtk_notebook_remove_page(GTK_NOTEBOOK(tabBar), pageNum);
+	g_object_unref(G_OBJECT(socket));
 }
 GtkSocket* ViewerController::retrieveSocket(std::string viewID)
 {
@@ -382,7 +405,11 @@ void ViewerController::previousTabCallback()
 }
 void ViewerController::closeTabCallback()
 {
-	closeTab(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)));
+	closeTab(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)), false);
+}
+void ViewerController::closeTabKeepRendererCallback()
+{
+	closeTab(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)), true);
 }
 void ViewerController::newTabCallback()
 {

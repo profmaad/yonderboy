@@ -48,7 +48,7 @@ private:
 	void handleStatusChange(Package *thePackage);
 
 	gint createNewTab(bool createRenderer);
-	void closeTab(guint pageNum);
+	void closeTab(guint pageNum, bool keepRenderer);
 	GtkSocket* retrieveSocket(std::string viewID);
 	gdouble getProgressFromTab(GtkWidget *tab);
 	void setProgressOnTab(GtkWidget *tab, gdouble progress);
@@ -63,6 +63,7 @@ private:
 	void nextTabCallback();
 	void previousTabCallback();
 	void closeTabCallback();
+	void closeTabKeepRendererCallback();
 	void newTabCallback();
 	void newTabWithoutRendererCallback();
 
@@ -88,6 +89,7 @@ private:
 
 	// mappings
 	std::map<std::string, GtkSocket*> *socketByID;
+	std::map<GtkSocket*, std::string> *idBySocket;
 	std::map<std::string, std::string> *viewByRenderer;
 
 	// state
