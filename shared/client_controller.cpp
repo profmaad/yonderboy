@@ -26,6 +26,7 @@
 # include <cstring>
 # include <sys/types.h>
 # include <sys/socket.h>
+# include <signal.h>
 # include <unistd.h>
 
 # include "client_controller.h"
@@ -44,7 +45,7 @@ ClientController::ClientController(int socket)
 ClientController::~ClientController()
 {
 	delete serverConnection;
-	pthread_join(serverConnectionThread, NULL);
+	pthread_cancel(serverConnectionThread);
 }
 
 void ClientController::setupServerConnection(int serverSocket)
