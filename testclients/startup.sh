@@ -2,14 +2,16 @@
 
 TERMINAL="urxvtc -e"
 
-SERVER="../server/src/server"
-CONTROLLER="ruby controller.rb"
-VIEWER="ruby viewer.rb"
+WORKDIR="/home/profmaad/Workspace/cli-browser/"
+SERVER="server/src/server"
+CONTROLLER="controllers/cli-controller/src/cli-controller"
+VIEWER="viewers/tabbed-gtk-viewer/src/tabbed-gtk-viewer"
+CONFIG="/home/profmaad/.cli-browser/config"
 
 #$TERMINAL $SERVER -c ~/.cli-browser/config &
-$TERMINAL gdb --args $SERVER -c ~/.cli-browser/config &
+$TERMINAL gdb --args $WORKDIR$SERVER -c $CONFIG &
 #sleep 5
 read
-$TERMINAL $CONTROLLER &
-$TERMINAL $VIEWER ~/.cli-browser/viewer.sock &
+$TERMINAL $WORKDIR$CONTROLLER $CONFIG &
+$TERMINAL $WORKDIR$VIEWER $CONFIG &
 
