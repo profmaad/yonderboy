@@ -56,10 +56,13 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 }
 AbstractHost::~AbstractHost()
 {
-	closeSocket(false);
+	if(state == Connected || state == Disconnecting)
+	{
+		closeSocket(false);
+	}
 
-//	delete writeWatcher;
-//	delete readWatcher;
+	delete writeWatcher;
+	delete readWatcher;
 }
 
 void AbstractHost::shutdownHost()
@@ -86,7 +89,7 @@ void AbstractHost::shutdownSocket()
 		state = Connected;
 		
 		strerror_r(errno,errorBuffer,128);
-     		throw std::runtime_error("___WEBKITRENDERER___Host socket shutdown failed");
+     		throw std::runtime_error("___SHARED___Host socket shutdown failed");
 	}
 }
 void AbstractHost::closeSocket(bool notifySubclasses)
@@ -112,8 +115,8 @@ void AbstractHost::readCallback(ev::io &watcher, int revents)
 	if(bytesRead < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK))
 	{
 //		strerror_r(errno,errorBuffer,128);
-//		throw std::runtime_error("___WEBKITRENDERER___Host socket read failed: "+std::string(errorBuffer));
-		throw std::runtime_error("___WEBKITRENDERER___Host socket read failed: "+std::string(strerror_r(errno,errorBuffer,128)));
+//		throw std::runtime_error("___SHARED___Host socket read failed: "+std::string(errorBuffer));
+		throw std::runtime_error("___SHARED___Host socket read failed: "+std::string(strerror_r(errno,errorBuffer,128)));
 	}
 	else if (bytesRead == 0)
 	{
@@ -171,6 +174,8 @@ void AbstractHost::processPackage()
 
 void AbstractHost::sendPackage(Package *thePackage, bool withID)
 {
+	if(state != Connected) { return; }
+
 	if( !thePackage || !(thePackage->isValid()) )
 	{
 		return;
@@ -235,8 +240,8 @@ void AbstractHost::writeCallback(ev::io &watcher, int revents)
 		if(bytesWritten < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK) )
 		{
 //			strerror_r(errno, errorBuffer, 128);
-//			throw std::runtime_error("___WEBKITRENDERER___Host socket send failed: "+std::string(errorBuffer));
-			throw std::runtime_error("___WEBKITRENDERER___Host socket send failed: "+std::string(strerror_r(errno, errorBuffer, 128)));
+//			throw std::runtime_error("___SHARED___Host socket send failed: "+std::string(errorBuffer));
+			throw std::runtime_error("___SHARED___Host socket send failed: "+std::string(strerror_r(errno, errorBuffer, 128)));
 		}
 		else if(errno == EAGAIN || errno == EWOULDBLOCK) { break; }
 		

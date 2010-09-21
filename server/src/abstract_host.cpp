@@ -62,8 +62,13 @@ AbstractHost::AbstractHost(int hostSocket) : hostSocket(-1), state(Uninitialized
 }
 AbstractHost::~AbstractHost()
 {
-//	delete writeWatcher;
-//	delete readWatcher;
+	if(ev::get_default_loop().depth() > 0)
+	{
+		writeWatcher->stop();
+		readWatcher->stop();
+		delete writeWatcher;
+		delete readWatcher;
+	}
 }
 
 void AbstractHost::shutdownHost()
@@ -196,6 +201,8 @@ void AbstractHost::processPackage()
 
 void AbstractHost::sendPackage(Package *thePackage, bool withID)
 {
+	if(state != Connected) { return; }
+
 	if( !thePackage || !(thePackage->isValid()) )
 	{
 		return;
@@ -221,6 +228,8 @@ void AbstractHost::sendPackageAndDelete(Package *thePackage, bool withID)
 }
 void AbstractHost::forwardJob(Job *theJob)
 {
+	if(state != Connected) { return; }
+
 	Job *forwardedJob = new Job(this, theJob, getNextPackageID());
 
 	if(theJob->getType() == Request)

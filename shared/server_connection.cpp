@@ -49,9 +49,8 @@ ServerConnection::~ServerConnection()
 	if(ev::get_default_loop().depth() > 0)
 	{
 		signalWatcher->stop();
+		delete signalWatcher;
 	}
-
-	ev::get_default_loop().unloop(ev::ALL);
 }
 void ServerConnection::setupSignalSocket()
 {

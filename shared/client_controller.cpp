@@ -81,6 +81,10 @@ void* ClientController::startServerConnection(void *args)
 	*(infos->serverConnection) = new ServerConnection(infos->serverSocket, infos->signalSocket);
 
 	ev::default_loop().loop();
+
+	std::cerr<<"___CLIENTCONTROLLER__startServerConnection(): past loop()"<<std::endl;
+
+	return NULL;
 }
 gboolean ClientController::signalCallback(GIOChannel *channel, GIOCondition condition, gpointer data)
 {
@@ -134,6 +138,7 @@ void ClientController::sendPackageAndDelete(Package *thePackage)
 }
 void ClientController::closeServerConnection()
 {
+	shutdown(signalSocket, SHUT_WR);
 	close(signalSocket);
 }
 

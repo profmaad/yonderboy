@@ -27,6 +27,7 @@
 
 # include <cerrno>
 # include <cstring>
+# include <cstdlib>
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <unistd.h>
