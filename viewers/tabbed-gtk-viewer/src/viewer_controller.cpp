@@ -32,6 +32,7 @@
 # include <sys/socket.h>
 # include <unistd.h>
 
+# include <popt.h>
 # include <gdk/gdkkeysyms.h>
 
 # include "viewer_controller.h"
@@ -41,6 +42,9 @@
 
 # include <package.h>
 # include <package_factories.h>
+# include <configuration_reader.h>
+
+extern ConfigurationReader *configuration;
 
 ViewerController::ViewerController(int socket) : ClientController(socket), initialised(false), nextViewID(0)
 {
@@ -94,6 +98,8 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	sendPackageAndDelete(initPackage);
 
 	gtk_statusbar_push(GTK_STATUSBAR(statusBar), statusBarContextLocal, "Welcome to tabbed-gtk-viewer on yonderboy 0.0");
+
+	setupVTE();
 }
 ViewerController::~ViewerController()
 {
@@ -108,6 +114,23 @@ void ViewerController::setupHotkeys()
 	gtk_accel_group_connect(globalHotkeys, GDK_W, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::closeTabKeepRendererCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabWithoutRendererCallback), this, NULL));
+}
+void ViewerController::setupVTE()
+{
+	int argc = 0;
+	const char **argv = NULL;
+	int result = -1;
+	
+	result = poptParseArgvString(configuration->retrieve("tabbed-gtk-viewer", "controller").c_str(), &argc, &argv);
+	if(result < 0)
+	{
+		std::cerr<<"error parsing tabbed-gtk-viewer.controller setting: "<<poptStrerror(result)<<std::endl;
+		return;
+	}
+	if(argc > 0)
+	{
+		vte_terminal_fork_command(VTE_TERMINAL(terminal), argv[0], (char**)argv, environ, configuration->retrieve("general", "working-dir").c_str(), TRUE, TRUE, TRUE);
+	}
 }
 
 void ViewerController::handlePackage(Package *thePackage)

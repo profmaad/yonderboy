@@ -43,6 +43,7 @@ protected:
 
 private:
 	void setupHotkeys();
+	void setupVTE();
 
 	std::string handleCommand(Package *thePackage);
 	void handleStatusChange(Package *thePackage);
