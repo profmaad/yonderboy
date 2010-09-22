@@ -55,7 +55,7 @@ ViewerHost::~ViewerHost()
 	for(std::map<std::string, View*>::const_iterator iter = views->begin(); iter != views->end(); ++iter)
 	{
 		RendererHost *renderer = server->displayManagerInstance()->rendererForView(iter->second);
-		renderer->shutdownHost();
+		if(renderer) { renderer->shutdownHost(); }
 		delete iter->second;
 	}
 	delete views;

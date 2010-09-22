@@ -198,16 +198,13 @@ void HostsManager::scheduleHostForDeletion(std::string id)
 
 void HostsManager::idleCallback(ev::idle &watcher, int revents)
 {
-	for(std::vector<AbstractHost*>::iterator iter = hostsScheduledForDeletion->begin(); iter != hostsScheduledForDeletion->end(); )
+	if(!hostsScheduledForDeletion->empty())
 	{
-		if((*iter) && (*iter)->getState() == Disconnected)
+		if(hostsScheduledForDeletion->front() && hostsScheduledForDeletion->front()->getState() == Disconnected)
 		{
-			delete (*iter);
-			iter = hostsScheduledForDeletion->erase(iter);
-		}
-		else
-		{
-			++iter;
+			AbstractHost *host = hostsScheduledForDeletion->front();
+			hostsScheduledForDeletion->erase(hostsScheduledForDeletion->begin());
+			delete host;
 		}
 	}
 

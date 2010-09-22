@@ -74,8 +74,6 @@ AbstractHost::~AbstractHost()
 void AbstractHost::shutdownHost()
 {
 	disconnect();
-
-	server->hostsManagerInstance()->scheduleHostForDeletion(id);
 }
 void AbstractHost::disconnect()
 {
