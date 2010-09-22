@@ -291,17 +291,20 @@ Package* CommandParser::constructPackageFromLine(int argc, const char **argv, st
 		}
 	}
 
-	if(rendererIDRequired && rendererID)
+	if(rendererIDRequired)
 	{
-		kvMap->insert(std::make_pair("renderer-id", rendererID));
+		if(rendererID) { kvMap->insert(std::make_pair("renderer-id", rendererID)); }
+		else { kvMap->insert(std::make_pair("renderer-id", "focused")); }
 	}
-	if(viewerIDRequired && viewerID)
+	if(viewerIDRequired)
 	{
-		kvMap->insert(std::make_pair("viewer-id", viewerID));
+		if(viewerID) { kvMap->insert(std::make_pair("viewer-id", viewerID)); }
+		else { kvMap->insert(std::make_pair("viewer-id", "focused")); }
 	}
-	if(viewIDRequired && viewID)
+	if(viewIDRequired)
 	{
-		kvMap->insert(std::make_pair("view-id", viewID));
+		if(viewID) { kvMap->insert(std::make_pair("view-id", viewID)); }
+		else { kvMap->insert(std::make_pair("view-id", "focused")); }
 	}
 
 	package = new Package(kvMap);
