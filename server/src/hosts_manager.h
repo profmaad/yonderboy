@@ -58,7 +58,7 @@ public:
 	RendererHost* getFocusedRenderer();
 
 	void scheduleHostForDeletion(std::string id);
-	void setFocus(View *theView) { LOG_DEBUG("focus changed: "<<theView); focusedView = theView; };
+	void setFocus(View *theView) { focusedView = theView; };
 
 private:
 	void idleCallback(ev::idle &watcher, int revents);

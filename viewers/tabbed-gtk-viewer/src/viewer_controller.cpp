@@ -298,6 +298,8 @@ gint ViewerController::createNewTab(bool createRenderer)
 
 	std::cerr<<"created new tab "<<result<<std::endl;
 
+	updateFocusInfo(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)));
+
 	return result;
 }
 void ViewerController::closeTab(guint pageNum, bool keepRenderer)
@@ -378,35 +380,31 @@ void ViewerController::updateStatusBar(guint currentPage)
 		gtk_statusbar_push(GTK_STATUSBAR(statusBar), statusBarContextTab, status);
 	}
 }
-
-void ViewerController::windowToplevelFocusCallback()
+void ViewerController::updateFocusInfo(guint currentPage)
 {
-	if(gtk_window_has_toplevel_focus(GTK_WINDOW(mainWindow)))
-	{
-		std::string viewID;
-		GtkSocket *socket = GTK_SOCKET(gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar))));
-		
-		std::map<GtkSocket*, std::string>::const_iterator iter = idBySocket->find(socket);
-		if(iter != idBySocket->end())
-		{
-			viewID = iter->second;
-			sendPackageAndDelete(constructPackage("connection-management", "command", "got-focus", "id", getNextPackageID().c_str(), "view-id", viewID.c_str()));
-		}
-	}
-}
-void ViewerController::tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook)
-{
-	updateStatusBar(pageNum);
-
 	std::string viewID;
-	GtkSocket *socket = GTK_SOCKET(gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), pageNum));
+	GtkSocket *socket = GTK_SOCKET(gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), currentPage));
+	if(!socket) { return; }
 	
 	std::map<GtkSocket*, std::string>::const_iterator iter = idBySocket->find(socket);
 	if(iter != idBySocket->end())
 	{
 		viewID = iter->second;
-		sendPackageAndDelete(constructPackage("connection-management", "command", "got-focus", "id", getNextPackageID().c_str(), "view-id", viewID.c_str()));
+		sendPackageAndDelete(constructPackage("connection-management", "command", "got-focus", "id", getNextPackageID().c_str(), "view-id", viewID.c_str(), NULL));
 	}
+}
+
+void ViewerController::windowToplevelFocusCallback()
+{
+	if(gtk_window_has_toplevel_focus(GTK_WINDOW(mainWindow)))
+	{
+		updateFocusInfo(gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar)));
+	}
+}
+void ViewerController::tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook)
+{
+	updateStatusBar(pageNum);
+	updateFocusInfo(pageNum);
 }
 void ViewerController::nextTabCallback()
 {

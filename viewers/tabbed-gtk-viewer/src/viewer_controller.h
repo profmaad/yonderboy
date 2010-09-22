@@ -56,6 +56,7 @@ private:
 	void setStatusOnTab(GtkWidget *tab, std::string status);
 
 	void updateStatusBar(guint currentPage);
+	void updateFocusInfo(guint currentPage);
 
 	// Callbacks
 	void gtkDestroyCallback(GtkObject *object);
