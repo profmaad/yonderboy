@@ -69,6 +69,8 @@ private:
 	void closeTabKeepRendererCallback();
 	void newTabCallback();
 	void newTabWithoutRendererCallback();
+	void focusTabCallback();
+	void focusVTECallback();
 
 	void pageAddedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook);
 	void pageRemovedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook);

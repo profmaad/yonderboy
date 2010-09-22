@@ -114,6 +114,8 @@ void ViewerController::setupHotkeys()
 	gtk_accel_group_connect(globalHotkeys, GDK_W, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::closeTabKeepRendererCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabCallback), this, NULL));
 	gtk_accel_group_connect(globalHotkeys, GDK_T, (GdkModifierType) (GDK_CONTROL_MASK | GDK_SHIFT_MASK), GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::newTabWithoutRendererCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_O, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::focusTabCallback), this, NULL));
+	gtk_accel_group_connect(globalHotkeys, GDK_P, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, g_cclosure_new_swap(GCallback(&ViewerController::focusVTECallback), this, NULL));
 }
 void ViewerController::setupVTE()
 {
@@ -466,6 +468,14 @@ void ViewerController::newTabCallback()
 void ViewerController::newTabWithoutRendererCallback()
 {
 	createNewTab(false);
+}
+void ViewerController::focusTabCallback()
+{
+	gtk_widget_grab_focus(tabBar);
+}
+void ViewerController::focusVTECallback()
+{
+	gtk_widget_grab_focus(terminal);
 }
 
 void ViewerController::pageAddedCallback(GtkWidget *child, guint pageNum, GtkNotebook *notebook)
