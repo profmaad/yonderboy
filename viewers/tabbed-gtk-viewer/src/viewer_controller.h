@@ -59,6 +59,7 @@ private:
 
 	// Callbacks
 	void gtkDestroyCallback(GtkObject *object);
+	void windowToplevelFocusCallback();
 	void tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook);
 	void nextTabCallback();
 	void previousTabCallback();

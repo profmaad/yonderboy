@@ -143,6 +143,12 @@ void ViewerHost::handlePackage(Package* thePackage)
 			delete theView;
 		}
 	}
+	else if(state == Established && thePackage->getValue("command") == "got-focus" && thePackage->isSet("view-id"))
+	{
+		View *theView = retrieveView(thePackage->getValue("view-id"));
+		
+		if(theView) { server->hostsManagerInstance()->setFocus(theView); }
+	}
 	else
 	{
 		sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));

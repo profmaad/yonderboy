@@ -84,6 +84,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 
 	// connect signals
 	g_signal_connect_swapped(mainWindow, "destroy", G_CALLBACK(&ViewerController::gtkDestroyCallback), this);
+	g_signal_connect_swapped(mainWindow, "notify::has-toplevel-focus", G_CALLBACK(&ViewerController::windowToplevelFocusCallback), this);
 	g_signal_connect_swapped(tabBar, "switch-page", G_CALLBACK(&ViewerController::tabBarSwitchPageCallback), this);
 	g_signal_connect_swapped(tabBar, "page-added", G_CALLBACK(&ViewerController::pageAddedCallback), this);
 	g_signal_connect_swapped(tabBar, "page-removed", G_CALLBACK(&ViewerController::pageRemovedCallback), this);
@@ -378,9 +379,34 @@ void ViewerController::updateStatusBar(guint currentPage)
 	}
 }
 
+void ViewerController::windowToplevelFocusCallback()
+{
+	if(gtk_window_has_toplevel_focus(GTK_WINDOW(mainWindow)))
+	{
+		std::string viewID;
+		GtkSocket *socket = GTK_SOCKET(gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), gtk_notebook_get_current_page(GTK_NOTEBOOK(tabBar))));
+		
+		std::map<GtkSocket*, std::string>::const_iterator iter = idBySocket->find(socket);
+		if(iter != idBySocket->end())
+		{
+			viewID = iter->second;
+			sendPackageAndDelete(constructPackage("connection-management", "command", "got-focus", "id", getNextPackageID().c_str(), "view-id", viewID.c_str()));
+		}
+	}
+}
 void ViewerController::tabBarSwitchPageCallback(GtkNotebookPage *page, guint pageNum, GtkNotebook *notebook)
 {
 	updateStatusBar(pageNum);
+
+	std::string viewID;
+	GtkSocket *socket = GTK_SOCKET(gtk_notebook_get_nth_page(GTK_NOTEBOOK(tabBar), pageNum));
+	
+	std::map<GtkSocket*, std::string>::const_iterator iter = idBySocket->find(socket);
+	if(iter != idBySocket->end())
+	{
+		viewID = iter->second;
+		sendPackageAndDelete(constructPackage("connection-management", "command", "got-focus", "id", getNextPackageID().c_str(), "view-id", viewID.c_str()));
+	}
 }
 void ViewerController::nextTabCallback()
 {

@@ -53,8 +53,12 @@ public:
 	ViewerHost* getViewerHost(std::string id);
 	ControllerHost* getControllerHost(std::string id);
 	ControllerHost* getMainController() { return getControllerHost(mainControllerID); }
+	View* getFocusedView() { return focusedView; }
+	ViewerHost* getFocusedViewer();
+	RendererHost* getFocusedRenderer();
 
 	void scheduleHostForDeletion(std::string id);
+	void setFocus(View *theView) { LOG_DEBUG("focus changed: "<<theView); focusedView = theView; };
 
 private:
 	void idleCallback(ev::idle &watcher, int revents);
@@ -67,6 +71,7 @@ private:
 
 	std::map<std::string, std::pair<ServerComponent, AbstractHost*> > *hosts;
 	std::string mainControllerID;
+	View *focusedView;
 
 	std::vector<AbstractHost*> *hostsScheduledForDeletion;
 

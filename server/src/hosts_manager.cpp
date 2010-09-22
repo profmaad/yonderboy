@@ -40,7 +40,7 @@
 
 # include "hosts_manager.h"
 
-HostsManager::HostsManager() : hosts(NULL), hostsScheduledForDeletion(NULL), idleTimer(NULL), nextRendererID(0), nextViewerID(0), nextControllerID(0), mainControllerID("")
+HostsManager::HostsManager() : hosts(NULL), hostsScheduledForDeletion(NULL), idleTimer(NULL), nextRendererID(0), nextViewerID(0), nextControllerID(0), mainControllerID(""), focusedView(NULL)
 {
 	hosts = new std::map<std::string, std::pair<ServerComponent, AbstractHost*> >();
 
@@ -178,6 +178,24 @@ ControllerHost* HostsManager::getControllerHost(std::string id)
 {
 	std::pair<ServerComponent, AbstractHost*> result = getHost(id);
 	if(result.second && result.first == ServerComponentControllerHost) { return static_cast<ControllerHost*>(result.second); }
+
+	return NULL;
+}
+ViewerHost* HostsManager::getFocusedViewer()
+{
+	if(focusedView)
+	{
+		return focusedView->getHost();
+	}
+	
+	return NULL;
+}
+RendererHost* HostsManager::getFocusedRenderer()
+{
+	if(focusedView)
+	{
+		return server->displayManagerInstance()->rendererForView(focusedView);
+	}
 
 	return NULL;
 }
