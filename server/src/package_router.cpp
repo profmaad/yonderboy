@@ -255,14 +255,28 @@ void PackageRouter::routeJob(Job *theJob)
 		break;
 	case ServerComponentRendererHost:
 		targetID = theJob->getValue("renderer-id");
-		rendererHost = server->hostsManagerInstance()->getRendererHost(targetID);
+		if(targetID == "focused")
+		{
+			rendererHost = server->hostsManagerInstance()->getFocusedRenderer();
+		}
+		else
+		{
+			rendererHost = server->hostsManagerInstance()->getRendererHost(targetID);
+		}
 		if(rendererHost) { rendererHost->doJob(theJob); }
 		else if(theJob->needsAcknowledgement() ){ server->jobManagerInstance()->jobFailed(theJob, "missing renderer id"); }
 		else { theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "missing renderer id")); }
 		break;
 	case ServerComponentViewerHost:
 		targetID = theJob->getValue("viewer-id");
-		viewerHost = server->hostsManagerInstance()->getViewerHost(targetID);
+		if(targetID == "focused")
+		{
+			viewerHost = server->hostsManagerInstance()->getFocusedViewer();
+		}
+		else
+		{
+			viewerHost = server->hostsManagerInstance()->getViewerHost(targetID);
+		}
 		if(viewerHost) { viewerHost->doJob(theJob); }
 		else if(theJob->needsAcknowledgement() ){ server->jobManagerInstance()->jobFailed(theJob, "missing viewer id"); }
 		else { theJob->getHost()->sendPackageAndDelete(constructAcknowledgementPackage(theJob, "missing viewer id")); }

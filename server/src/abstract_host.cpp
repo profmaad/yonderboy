@@ -199,7 +199,7 @@ void AbstractHost::processPackage()
 
 void AbstractHost::sendPackage(Package *thePackage, bool withID)
 {
-	if(state != Connected) { return; }
+	if(state != Connected && state != Established) { return; }
 
 	if( !thePackage || !(thePackage->isValid()) )
 	{
@@ -226,7 +226,7 @@ void AbstractHost::sendPackageAndDelete(Package *thePackage, bool withID)
 }
 void AbstractHost::forwardJob(Job *theJob)
 {
-	if(state != Connected) { return; }
+	if(state != Connected && state != Established) { return; }
 
 	Job *forwardedJob = new Job(this, theJob, getNextPackageID());
 

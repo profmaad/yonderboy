@@ -174,7 +174,7 @@ void AbstractHost::processPackage()
 
 void AbstractHost::sendPackage(Package *thePackage, bool withID)
 {
-	if(state != Connected) { return; }
+	if(state != Connected && state != Established) { return; }
 
 	if( !thePackage || !(thePackage->isValid()) )
 	{

@@ -151,12 +151,24 @@ void DisplayManager::doJob(Job *theJob)
 	if(theJob->getType() == Command && theJob->getValue("command") == "connect-view-to-renderer" && theJob->isSet("view-id") && theJob->isSet("renderer-id") && theJob->isSet("viewer-id"))
 	{
 		ViewerHost *viewerHost = server->hostsManagerInstance()->getViewerHost(theJob->getValue("viewer-id"));
-		std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getValue("view-id"), viewerHost));
+		View *view = NULL;
+		if(theJob->getValue("view-id") == "focused")
+		{
+			view = server->hostsManagerInstance()->getFocusedView();
+		}
+		else
+		{
+			std::map<std::pair<std::string, ViewerHost*>, View*>::const_iterator viewIter = views->find(std::make_pair(theJob->getValue("view-id"), viewerHost));
+			if(viewIter != views->end())
+			{
+				view = viewIter->second;
+			}
+		}
 		std::map<std::string, RendererHost*>::const_iterator rendererIter = renderers->find(theJob->getValue("renderer-id"));
 
-		if(viewIter != views->end() && rendererIter != renderers->end())
+		if(view && rendererIter != renderers->end())
 		{
-			connect(viewIter->second, rendererIter->second, theJob);
+			connect(view, rendererIter->second, theJob);
 		}
 		else
 		{
