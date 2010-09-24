@@ -25,5 +25,6 @@
 # include <package_factories.cpp>
 # include <abstract_host.cpp>
 # include <configuration_reader.cpp>
+# include <configuration_finder.cpp>
 
 # endif

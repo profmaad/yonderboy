@@ -19,6 +19,7 @@
 
 # include <iostream>
 # include <string>
+# include <stdexcept>
 
 # include <sys/types.h>
 # include <sys/socket.h>
@@ -36,6 +37,7 @@
 # include <ev_cpp.h>
 
 # include <configuration_reader.h>
+# include <configuration_finder.h>
 # include "controller.h"
 
 Controller *controllerInstance = NULL;
@@ -59,60 +61,68 @@ void printHelpMessage(const char *executable)
 	printVersion(true);
 	std::cout<<std::endl;
 	
-	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] <config file>"<<std::endl;
+	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] [-c/--config <file>]"<<std::endl;
 	
 	std::cout<<"options:"<<std::endl;
 	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
 	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
+	std::cout<<" -c/--config <file>\tconfig file to use"<<std::endl;
 }
 
 int main(int argc, char** argv)
 {
 	int serverSocket = -1;
-	char *configFile = NULL;
+	const char *configFile = NULL;
 	const char *socketPath = NULL;
 	struct sockaddr_un socketAddress;
 	char errorBuffer[128] = {'\0'};
 
 	int option = -1;
 	struct option longOptions[] = {
+		{"config", required_argument, NULL, 'c'},
 		{"help", no_argument, NULL, 'h'},
 		{"version", no_argument, NULL, 'v'},
 		{NULL, 0, NULL, 0}
 	};
 	
 	opterr = 0;
-	while( (option = getopt_long(argc, argv, ":hv", longOptions, NULL)) != -1 )
+	while( (option = getopt_long(argc, argv, ":c:hv", longOptions, NULL)) != -1 )
 	{
 		switch(option)
 		{
-			case '?':
-				std::cerr<<"unknown option '"<<optopt<<"' encountered, ignoring"<<std::endl;
-				break;
-			case ':':
-				std::cerr<<"missing argument for option '"<<optopt<<"'"<<std::endl;
-				printHelpMessage(argv[0]);
-				exit(1);
-				break;
-			case 'v':
-				printVersion(false);
-				exit(0);
-				break;
-			case 'h':
-			default:
-				printHelpMessage(argv[0]);
-				exit(0);
+		case '?':
+			std::cerr<<"unknown option '"<<optopt<<"' encountered, ignoring"<<std::endl;
+			break;
+		case ':':
+			std::cerr<<"missing argument for option '"<<optopt<<"'"<<std::endl;
+			printHelpMessage(argv[0]);
+			exit(1);
+			break;
+		case 'c':
+			configFile = optarg;
+			break;
+		case 'v':
+			printVersion(false);
+			exit(0);
+			break;
+		case 'h':
+		default:
+			printHelpMessage(argv[0]);
+		        exit(EXIT_SUCCESS);
 		}
 	}
 
-	if(argc < 2)
+	if(!configFile)
 	{
-		printHelpMessage(argv[0]);
-		return 1;
-	}
-	else
-	{
-		configFile = argv[1];
+		try
+                {
+                        configFile = findConfigurationFile().c_str();
+                }
+                catch(std::runtime_error &e)
+                {
+                        std::cerr<<"Error occured: "<<e.what()<<std::endl;
+                        exit(EXIT_FAILURE);
+                }
 	}
 
 	configuration = new ConfigurationReader(std::string(configFile));
