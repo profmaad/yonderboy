@@ -21,6 +21,7 @@
 # include <iomanip>
 # include <streambuf>
 # include <fstream>
+# include <stdexcept>
 
 # include <cerrno>
 # include <unistd.h>
@@ -34,6 +35,7 @@
 
 # include "server_controller.h"
 # include "configuration_manager.h"
+# include "configuration_finder.h"
 
 ServerController *server = NULL;
 
@@ -73,12 +75,12 @@ void printHelpMessage(const char *executable)
 	printVersion(true);
 	std::cout<<std::endl;
 	
-	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] -c/--config <file>"<<std::endl;
+	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] [-c/--config <file>]"<<std::endl;
 	
 	std::cout<<"options:"<<std::endl;
 	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
 	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
-	std::cout<<" -c/--config <file>\tfilename of the config-file"<<std::endl;
+	std::cout<<" -c/--config <file>\tconfig file to use"<<std::endl;
 }
 void printVersion(bool onOneLine)
 {
@@ -134,7 +136,7 @@ pid_t daemonize()
 int main(int argc, char** argv)
 {
 	// extract command line options
-	char *configFilePath = NULL;
+	const char *configFilePath = NULL;
 	int option = -1;
 	struct option longOptions[] = {
 		{"config", required_argument, NULL, 'c'},
@@ -171,9 +173,15 @@ int main(int argc, char** argv)
 	}
 	if(!configFilePath)
 	{
-		printHelpMessage(argv[0]);
-		std::cerr<<std::endl<<"missing required argument '-c/--config <file>'"<<std::endl;
-		exit(EXIT_FAILURE);
+		try
+		{
+			configFilePath = findConfigurationFile().c_str();
+		}
+		catch(std::runtime_error &e)
+		{
+			std::cerr<<"Error occured: "<<e.what()<<std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 	
 	std::streambuf * const originalCLogStreambuf = std::clog.rdbuf();
