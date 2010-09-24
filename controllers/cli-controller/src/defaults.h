@@ -24,7 +24,6 @@
 # define PROJECT_VERSION "0 [devel build]"
 # define PROJECT_BRIEF_DESCRIPTION "an interactive cli-based controller with a readline interface"
 
-# define DEFAULT_CONFIG "~/.cli-browser/config"
 # define PROMPT "yonderboy> "
 
 # endif
