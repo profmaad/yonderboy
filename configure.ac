@@ -1,4 +1,4 @@
-AC_INIT([cli-browser],[0.0],[himself@prof-maad.org])
+AC_INIT([yonderboy],[0.0],[himself@prof-maad.org])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 #AC_PROG_CC(clang)
