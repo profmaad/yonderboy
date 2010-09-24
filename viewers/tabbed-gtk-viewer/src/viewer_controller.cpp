@@ -131,7 +131,7 @@ void ViewerController::setupVTE()
 	}
 	if(argc > 0)
 	{
-		vte_terminal_fork_command(VTE_TERMINAL(terminal), argv[0], (char**)argv, environ, configuration->retrieve("general", "working-dir").c_str(), TRUE, TRUE, TRUE);
+		vte_terminal_fork_command(VTE_TERMINAL(terminal), argv[0], (char**)argv, environ, configuration->retrieveAsPath("general", "working-dir").c_str(), TRUE, TRUE, TRUE);
 	}
 }
 

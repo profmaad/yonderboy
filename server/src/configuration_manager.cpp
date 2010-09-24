@@ -61,7 +61,7 @@ ConfigurationManager::ConfigurationManager(std::string configFile) : persistence
 	entries = new EntriesMap();
 	retrieveEntries();
 	
-	workingDir = retrieve("general", "working-dir"); //HC
+	workingDir = retrieveAsPath("general", "working-dir"); //HC
 }
 ConfigurationManager::~ConfigurationManager()
 {
@@ -124,6 +124,8 @@ std::string ConfigurationManager::retrieveAsPath(std::string namespaceName, std:
 		expansionResult = wordexp(iter->second.c_str(), &expansion, WRDE_NOCMD);
 		if(expansionResult == 0 && expansion.we_wordc > 0)
 		{
+			result.clear();
+
 			for(int i=0;i<expansion.we_wordc;i++)
 			{
 				result += expansion.we_wordv[i];

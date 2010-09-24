@@ -1,4 +1,4 @@
-general.working-dir = /home/profmaad/.cli-browser/
+general.working-dir = ~/.config/yonderboy/
 general.controller-socket = controller.sock
 general.viewer-socket = viewer.sock
 general.net-spec = net-spec.yml
@@ -9,4 +9,4 @@ server.loglevel = debug
 
 server.renderer-binary = /home/profmaad/Workspace/cli-browser/renderers/webkit-renderer/src/webkit-renderer
 
-tabbed-gtk-viewer.controller = /home/profmaad/Workspace/cli-browser/controllers/cli-controller/src/cli-controller /home/profmaad/.cli-browser/config
+tabbed-gtk-viewer.controller = /home/profmaad/Workspace/cli-browser/controllers/cli-controller/src/cli-controller

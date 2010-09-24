@@ -136,7 +136,7 @@ pid_t daemonize()
 int main(int argc, char** argv)
 {
 	// extract command line options
-	const char *configFilePath = NULL;
+	std::string configFilePath;
 	int option = -1;
 	struct option longOptions[] = {
 		{"config", required_argument, NULL, 'c'},
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 				exit(EXIT_FAILURE);
 				break;
 			case 'c':
-				configFilePath = optarg;
+				if(optarg) { configFilePath = std::string(optarg); }
 				break;
 			case 'v':
 				printVersion();
@@ -171,11 +171,11 @@ int main(int argc, char** argv)
 				exit(EXIT_SUCCESS);
 		}
 	}
-	if(!configFilePath)
+	if(configFilePath.empty())
 	{
 		try
 		{
-			configFilePath = findConfigurationFile().c_str();
+			configFilePath = findConfigurationFile();
 		}
 		catch(std::runtime_error &e)
 		{
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
 	
 	ConfigurationManager *configurationManager = new ConfigurationManager(configFilePath);
 		forkDaemon = configurationManager->retrieveAsBool("server", "daemonize", false);
-		if(configurationManager->isSet("general", "working-dir")) { workingDir = configurationManager->retrieve("general", "working-dir", "~/.cli-browser/").c_str(); }
+		if(configurationManager->isSet("general", "working-dir")) { workingDir = configurationManager->retrieveAsPath("general", "working-dir", "~/.config/yonderboy/").c_str(); } //HC
 		if(configurationManager->isSet("server", "logfile")) { logfilePath = configurationManager->retrieve("server", "logfile", "server.log").c_str(); }
 	delete configurationManager;
 	
@@ -224,7 +224,7 @@ int main(int argc, char** argv)
 		}
 	}
 	
-	LOG_INFO("successfully forked into background with pid "<<daemonPid)
+	LOG_INFO("successfully forked into background with pid "<<daemonPid);
 	
 	server = new ServerController(configFilePath);
 

@@ -47,7 +47,7 @@
 
 # include "server_controller.h"
 
-ServerController::ServerController(const char *configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized), displayManager(NULL), hostsManager(NULL), metaDecisionMaker(NULL), jobManager(NULL), packageRouter(NULL)
+ServerController::ServerController(std::string configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized), displayManager(NULL), hostsManager(NULL), metaDecisionMaker(NULL), jobManager(NULL), packageRouter(NULL)
 {
 	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
@@ -55,7 +55,7 @@ ServerController::ServerController(const char *configFile) : signalPipeWatcher(N
 	setupSignalWatching();
 	
 	
-	configFilePath = std::string(configFile);
+	configFilePath = configFile;
 	configurationManager = new ConfigurationManager(configFilePath);
 
 	displayManager = new DisplayManager();

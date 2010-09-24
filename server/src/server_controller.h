@@ -20,6 +20,8 @@
 # ifndef SERVER_CONTROLLER_H
 # define SERVER_CONTROLLER_H
 
+# include <string>
+
 # include <csignal>
 
 # include <pthread.h>
@@ -43,7 +45,7 @@ class MetaDecisionMaker;
 class ServerController
 {
 public:
-	ServerController(const char *configFile);  // static initialization phase
+	ServerController(std::string configFile);  // static initialization phase
 	~ServerController();
 
 	void start(); // runtime phase - once this is called, we are not supposed to quit until explicitely told so
