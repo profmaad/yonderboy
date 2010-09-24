@@ -22,6 +22,7 @@ server_SOURCES = main.cpp macros.h log.h defaults.h \
 		persistent_storage.h \
 		file_persistence_manager.h file_persistence_manager.cpp \
 		configuration_manager.h configuration_manager.cpp \
+		configuration_finder.h configuration_finder.cpp \
 		view.h view.cpp \
 		display_manager.h display_manager.cpp \
 		job.h job.cpp \

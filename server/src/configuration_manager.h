@@ -50,6 +50,7 @@ public:
 	long long retrieveAsLongLong(std::string namespaceName, std::string identifier, long long defaultValue = 0);
 	double retrieveAsDouble(std::string namespaceName, std::string identifier, double defaultValue = 0.0);
 	LogLevel retrieveAsLogLevel(std::string namespaceName, std::string identifier, LogLevel defaultValue = DEFAULT_LOG_LEVEL);
+	std::string retrieveAsAbsolutePath(std::string namespaceName, std::string identifier, std::string defaultValue = "");
 	
 	static bool valueAsBool(std::string value, bool defaultValue);
 	static long long valueAsLongLong(std::string value, long long defaultValue);
@@ -70,6 +71,7 @@ private:
 	PersistentKeyValueStorage *storage;
 	
 	EntriesMap *entries; 
+	std::string workingDir;
 };
 
 # endif /*CONFIGURATION_MANAGER_H*/

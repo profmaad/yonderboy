@@ -58,6 +58,8 @@ ConfigurationManager::ConfigurationManager(std::string configFile) : persistence
 	
 	entries = new EntriesMap();
 	retrieveEntries();
+	
+	workingDir = retrieve("general", "working-dir"); //HC
 }
 ConfigurationManager::~ConfigurationManager()
 {
@@ -106,6 +108,19 @@ std::string ConfigurationManager::retrieve(std::string namespaceName, std::strin
 	}
 	
 	return result;
+}
+std::string ConfigurationManager::retrieveAsAbsolutePath(std::string namespaceName, std::string identifier, std::string defaultValue)
+{
+	std::string result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		result = workingDir;
+		result += iter->second;
+	}
+	
+	return result;	
 }
 bool ConfigurationManager::retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue)
 {
