@@ -24,6 +24,8 @@
 # include <stdexcept>
 # include <sstream>
 
+# include <wordexp.h>
+
 # include "macros.h"
 # include "log.h"
 
@@ -121,6 +123,30 @@ std::string ConfigurationManager::retrieveAsAbsolutePath(std::string namespaceNa
 	}
 	
 	return result;	
+}
+std::string ConfigurationManager::retrieveShellExpanded(std::string namespaceName, std::string identifier, std::string defaultValue)
+{
+	std::string result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		wordexp_t expansion;
+		int expansionResult = 0;	
+
+		expansionResult = wordexp(iter->second.c_str(), &expansion, WRDE_NOCMD);
+		if(expansionResult == 0 && expansion.we_wordc > 0)
+		{
+			for(int i=0;i<expansion.we_wordc;i++)
+			{
+				result += expansion.we_wordv[i];
+			}
+		}
+
+		wordfree(&expansion);
+	}
+
+	return result;
 }
 bool ConfigurationManager::retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue)
 {

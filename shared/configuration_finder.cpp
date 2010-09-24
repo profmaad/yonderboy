@@ -43,12 +43,16 @@ std::string findConfigurationFile()
 
 		result = wordexp(options[i], &expansion, (WRDE_NOCMD | WRDE_UNDEF));
 		if(result != 0) { continue; }
-		if(expansion.we_wordc < 1) { continue; }
+		if(expansion.we_wordc < 1) { wordfree(&expansion); continue; }
 
 		result = access(expansion.we_wordv[0], R_OK);
-		if(result < 0) { continue; }
+		if(result < 0) { wordfree(&expansion); continue; }
 
-		return std::string(expansion.we_wordv[0]);
+		std::string configFile = std::string(expansion.we_wordv[0]);
+
+		wordfree(&expansion);
+
+		return configFile;
 	}
 
 	// if we reach this, we didn't find a config file
