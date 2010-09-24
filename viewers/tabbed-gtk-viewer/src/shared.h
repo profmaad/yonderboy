@@ -27,5 +27,6 @@
 # include <server_connection.cpp>
 # include <client_controller.cpp>
 # include <configuration_reader.cpp>
+# include <configuration_finder.cpp>
 
 # endif
