@@ -1,2 +1,2 @@
-# Yonderboy
-## A modular browser
+# yonderboy
+## a modular browser
