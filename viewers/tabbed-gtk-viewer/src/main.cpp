@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	socketPath = configuration->retrieveAsAbsolutePath("general", "viewer-socket").c_str();
+	socketPath = configuration->retrieveAsPath("general", "viewer-socket").c_str();
 
 
 	if(strlen(socketPath) > 107)

@@ -42,8 +42,7 @@ public:
 	bool retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue = false);
 	long long retrieveAsLongLong(std::string namespaceName, std::string identifier, long long defaultValue = 0);
 	double retrieveAsDouble(std::string namespaceName, std::string identifier, double defaultValue = 0.0);
-	std::string retrieveAsAbsolutePath(std::string namespaceName, std::string identifier, std::string defaultValue = "");
-	std::string retrieveShellExpanded(std::string namespaceName, std::string identifier, std::string defaultValue = "");
+	std::string retrieveAsPath(std::string namespaceName, std::string identifier, std::string defaultValue = "");
 	
 	static bool valueAsBool(std::string value, bool defaultValue);
 	static long long valueAsLongLong(std::string value, long long defaultValue);

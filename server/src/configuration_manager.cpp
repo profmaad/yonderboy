@@ -111,20 +111,7 @@ std::string ConfigurationManager::retrieve(std::string namespaceName, std::strin
 	
 	return result;
 }
-std::string ConfigurationManager::retrieveAsAbsolutePath(std::string namespaceName, std::string identifier, std::string defaultValue)
-{
-	std::string result = defaultValue;
-	
-	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
-	if(iter != entries->end())
-	{
-		result = workingDir;
-		result += iter->second;
-	}
-	
-	return result;	
-}
-std::string ConfigurationManager::retrieveShellExpanded(std::string namespaceName, std::string identifier, std::string defaultValue)
+std::string ConfigurationManager::retrieveAsPath(std::string namespaceName, std::string identifier, std::string defaultValue)
 {
 	std::string result = defaultValue;
 	
@@ -144,6 +131,11 @@ std::string ConfigurationManager::retrieveShellExpanded(std::string namespaceNam
 		}
 
 		wordfree(&expansion);
+
+		if(result[0] != '/') // relative path, need to prefix with workingDir
+		{
+			result = workingDir + result;
+		}
 	}
 
 	return result;

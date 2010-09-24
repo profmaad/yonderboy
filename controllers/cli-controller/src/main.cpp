@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	socketPath = configuration->retrieveAsAbsolutePath("general", "controller-socket").c_str();
+	socketPath = configuration->retrieveAsPath("general", "controller-socket").c_str();
 
 	if(strlen(socketPath) > 107)
 	{
