@@ -26,6 +26,8 @@
 # include <fstream>
 # include <iostream>
 
+# include <wordexp.h>
+
 # include "macros.h"
 
 # include "package.h"
@@ -118,6 +120,30 @@ std::string ConfigurationReader::retrieveAsAbsolutePath(std::string namespaceNam
 	}
 	
 	return result;	
+}
+std::string ConfigurationReader::retrieveShellExpanded(std::string namespaceName, std::string identifier, std::string defaultValue)
+{
+	std::string result = defaultValue;
+	
+	EntriesMap::const_iterator iter = entries->find(std::make_pair(namespaceName, identifier));
+	if(iter != entries->end())
+	{
+		wordexp_t expansion;
+		int expansionResult = 0;	
+
+		expansionResult = wordexp(iter->second.c_str(), &expansion, WRDE_NOCMD);
+		if(expansionResult == 0 && expansion.we_wordc > 0)
+		{
+			for(int i=0;i<expansion.we_wordc;i++)
+			{
+				result += expansion.we_wordv[i];
+			}
+		}
+
+		wordfree(&expansion);
+	}
+
+	return result;
 }
 bool ConfigurationReader::retrieveAsBool(std::string namespaceName, std::string identifier, bool defaultValue)
 {
