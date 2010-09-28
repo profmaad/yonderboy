@@ -36,8 +36,10 @@
 # include "server_controller.h"
 # include "configuration_manager.h"
 # include "configuration_finder.h"
+# include "macros.h"
 
 ServerController *server = NULL;
+LogLevel logLevel = DEFAULT_LOG_LEVEL;
 
 void switchFileDescriptorToDevNull(int fileDescriptor, int mode);
 void changeToWorkingDirectory(const char* workingDir);
@@ -197,6 +199,7 @@ int main(int argc, char** argv)
 		forkDaemon = configurationManager->retrieveAsBool("server", "daemonize", false);
 		if(configurationManager->isSet("general", "working-dir")) { workingDir = configurationManager->retrieveAsPath("general", "working-dir", "~/.config/yonderboy/").c_str(); } //HC
 		if(configurationManager->isSet("server", "logfile")) { logfilePath = configurationManager->retrieve("server", "logfile", "server.log").c_str(); }
+		if(configurationManager->isSet("server", "loglevel")) { logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", DEFAULT_LOG_LEVEL); }
 	delete configurationManager;
 	
 	if(forkDaemon)

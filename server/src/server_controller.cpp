@@ -49,12 +49,10 @@
 
 ServerController::ServerController(std::string configFile) : signalPipeWatcher(NULL), signalPipe(-1), controllerListener(NULL), viewerListener(NULL), configurationManager(NULL), state(ServerStateUninitialized), displayManager(NULL), hostsManager(NULL), metaDecisionMaker(NULL), jobManager(NULL), packageRouter(NULL)
 {
-	logLevel = DEFAULT_LOG_LEVEL;
 	state = ServerStateInitializing;
 	
 	setupSignalWatching();
-	
-	
+		
 	configFilePath = configFile;
 	configurationManager = new ConfigurationManager(configFilePath);
 
@@ -68,8 +66,6 @@ ServerController::ServerController(std::string configFile) : signalPipeWatcher(N
 	controllerListener = new ControllerListener(configurationManager->retrieve("general", "controller-socket", "controller.sock"));
 	viewerListener = new ViewerListener(configurationManager->retrieve("general", "viewer-socket", "viewer.sock"));
 	
-	logLevel = configurationManager->retrieveAsLogLevel("server", "loglevel", LogLevelWarning);
-
 	state = ServerStateInitialized;
 }
 ServerController::~ServerController()

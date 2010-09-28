@@ -56,7 +56,6 @@ public:
 	// queries
 	bool allowedToBlock();
 	ServerState getState() { return state; };
-	LogLevel getLogLevel() { return logLevel; };
 
 	DisplayManager* displayManagerInstance() { return displayManager; }
 	HostsManager* hostsManagerInstance() { return hostsManager; }
@@ -93,7 +92,6 @@ private:
 	int signalPipe;
 	
 	ServerState state;
-	LogLevel logLevel;
 };
 
 # endif /*SERVER_CONTROLLER_H*/

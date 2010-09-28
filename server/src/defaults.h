@@ -24,6 +24,6 @@
 # define PROJECT_VERSION "0 [devel build]"
 # define PROJECT_BRIEF_DESCRIPTION "a modular browser"
 
-# define DEFAULT_LOG_LEVEL LogLevelDebug
+# define DEFAULT_LOG_LEVEL LogLevelWarning
 
 # endif /*DEFAULTS_H*/
