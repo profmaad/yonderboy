@@ -37,7 +37,7 @@ public:
 
 	void doJob(Job *theJob);
 	
-	void createView();
+	void createView(std::string initialURI);
 
 protected:
 	void handlePackage(Package *thePackage);

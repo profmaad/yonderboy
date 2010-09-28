@@ -40,14 +40,16 @@
 # include "hosts_manager.h"
 # include "package_router.h"
 # include "job.h"
+# include "viewer_host.h"
 # include "view.h"
 
 # include "renderer_host.h"
 
-RendererHost::RendererHost(int hostSocket, View *viewToConnectTo) : AbstractHost(hostSocket)
+RendererHost::RendererHost(int hostSocket, View *viewToConnectTo, std::string initialURI) : AbstractHost(hostSocket)
 {
 	type = ServerComponentRendererHost;
 	this->viewToConnectTo = viewToConnectTo;
+	this->initialURI = initialURI;
 
 	LOG_DEBUG("initialized with socket "<<hostSocket);
 }
@@ -87,6 +89,26 @@ void RendererHost::handlePackage(Package* thePackage)
 			state = Established;
 
 			LOG_INFO("connection successfully established");
+
+			if(!initialURI.empty())
+			{
+				sendPackageAndDelete(constructPackage("command", "command", "open-uri", "uri", initialURI.c_str(), NULL));
+			}
+		}
+		else
+		{
+			sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
+		}
+	}
+	if(state == Established)
+	{
+		if(thePackage->getValue("command") == "new-renderer-requested" && thePackage->hasValue("uri"))
+		{
+			View *theView = server->displayManagerInstance()->viewForRenderer(this);
+			if(theView && theView->getHost())
+			{
+				theView->getHost()->createView(thePackage->getValue("uri"));
+			}
 		}
 		else
 		{
@@ -109,7 +131,7 @@ void RendererHost::doJob(Job *theJob)
 //	}
 }
 
-RendererHost* RendererHost::spawnRenderer(std::string binaryPath, View *viewToConnectTo)
+RendererHost* RendererHost::spawnRenderer(std::string binaryPath, View *viewToConnectTo, std::string initialURI)
 {
 	RendererHost *host = NULL;
 	int sockets[2] = { -1, -1 };
@@ -153,7 +175,7 @@ RendererHost* RendererHost::spawnRenderer(std::string binaryPath, View *viewToCo
 
 		close(sockets[1]);
 		
-		host = new RendererHost(sockets[0], viewToConnectTo);
+		host = new RendererHost(sockets[0], viewToConnectTo, initialURI);
 		return host;
 	}
 	else // error

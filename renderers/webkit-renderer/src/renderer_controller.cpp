@@ -226,7 +226,7 @@ gboolean RendererController::navigationPolicyDecisionCallback(WebKitWebFrame *fr
 	{
 		std::cerr<<"___WEBKITRENDERER__OPEN NEW TAB FOR: "<<webkit_network_request_get_uri(request)<<std::endl;
 
-		sendPackageAndDelete(constructPackage("connection-management", "command", "new-renderer-requested", "uri", webkit_network_request_get_uri(request), NULL));
+		sendPackageAndDelete(constructPackage("connection-management", "command", "new-renderer-requested", "id", getNextPackageID().c_str(), "uri", webkit_network_request_get_uri(request), NULL));
 
 		webkit_web_policy_decision_ignore(policyDecision);
 		

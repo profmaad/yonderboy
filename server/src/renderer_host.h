@@ -31,9 +31,9 @@ class View;
 class RendererHost : public AbstractHost
 {
 public:
-	RendererHost(int hostSocket, View *viewToConnectTo = NULL);
+	RendererHost(int hostSocket, View *viewToConnectTo = NULL, std::string initialURI = std::string());
 	~RendererHost();
-	static RendererHost* spawnRenderer(std::string binaryPath, View *viewToConnectTo = NULL);
+	static RendererHost* spawnRenderer(std::string binaryPath, View *viewToConnectTo = NULL, std::string initialURI = std::string());
 
 	void doJob(Job *theJob);
 
@@ -50,6 +50,7 @@ private:
 	std::string backendVersion;
 
 	View *viewToConnectTo;
+	std::string initialURI;
 };
 
 # endif /*RENDERER_HOST_H*/

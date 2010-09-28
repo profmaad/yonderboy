@@ -79,11 +79,11 @@ View* ViewerHost::retrieveView(std::string viewID)
 void ViewerHost::doJob(Job *theJob)
 {
 }
-void ViewerHost::createView()
+void ViewerHost::createView(std::string initialURI)
 {
 	if(!canHaveMultipleViews) { return; }
 
-	sendPackageAndDelete(constructPackage("connection-management", "command", "create-view", NULL));
+	sendPackageAndDelete(constructPackage("command", "command", "create-view", "id", getNextPackageID().c_str(), "initial-uri", initialURI.c_str(), NULL));
 }
 
 void ViewerHost::handlePackage(Package* thePackage)
@@ -118,7 +118,7 @@ void ViewerHost::handlePackage(Package* thePackage)
 
 			if(thePackage->isSet("create-renderer"))
 			{
-				RendererHost *theRenderer = server->hostsManagerInstance()->createRenderer(server->configurationManagerInstance()->retrieve("server", "renderer-binary", "/bin/false"), theView);
+				RendererHost *theRenderer = server->hostsManagerInstance()->createRenderer(server->configurationManagerInstance()->retrieve("server", "renderer-binary", "/bin/false"), theView, NULL, thePackage->getValue("initial-uri"));
 			}
 			else
 			{

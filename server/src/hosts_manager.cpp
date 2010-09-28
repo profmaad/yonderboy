@@ -83,12 +83,12 @@ void HostsManager::doJob(Job *theJob)
 	}
 }
 
-RendererHost* HostsManager::createRenderer(std::string binary, View *viewToConnectTo, Job *theJob)
+RendererHost* HostsManager::createRenderer(std::string binary, View *viewToConnectTo, Job *theJob, std::string initialURI)
 {
 	RendererHost *newRenderer = NULL;
 	try
 	{
-		newRenderer = RendererHost::spawnRenderer(binary, viewToConnectTo); //TODO: check if binary is allowed
+		newRenderer = RendererHost::spawnRenderer(binary, viewToConnectTo, initialURI); //TODO: check if binary is allowed
 
 		if(newRenderer)
 		{

@@ -48,7 +48,7 @@ private:
 	std::string handleCommand(Package *thePackage);
 	void handleStatusChange(Package *thePackage);
 
-	gint createNewTab(bool createRenderer);
+	gint createNewTab(bool createRenderer, std::string initialURI = std::string());
 	void closeTab(guint pageNum, bool keepRenderer);
 	GtkSocket* retrieveSocket(std::string viewID);
 	gdouble getProgressFromTab(GtkWidget *tab);

@@ -199,10 +199,12 @@ std::string& Package::trimString(std::string &line)
 	// left trim
 	lastPosition = line.find_first_not_of(" \t\n\r\f\v");
 	if(lastPosition != std::string::npos) { line.erase(0,lastPosition); }
+	else { line.clear(); }
 
 	// right trim
 	lastPosition = line.find_last_not_of(" \t\n\r\f\v");
 	if(lastPosition != std::string::npos) { line.erase(lastPosition+1); }
+	else { line.clear(); }
 
 	return line;
 }

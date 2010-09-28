@@ -200,6 +200,10 @@ std::string ViewerController::handleCommand(Package *thePackage)
 
 		viewByRenderer->erase(thePackage->getValue("renderer-id"));
 	}
+	else if(command == "create-view")
+	{
+		createNewTab(true, thePackage->getValue("initial-uri"));
+	}
 	else
 	{
 		error = "unknown";
@@ -276,7 +280,7 @@ void ViewerController::gtkDestroyCallback(GtkObject *object)
 	gtk_main_quit();
 }
 
-gint ViewerController::createNewTab(bool createRenderer)
+gint ViewerController::createNewTab(bool createRenderer, std::string initialURI)
 {
 	gint result = -1;
 	if(!initialised) { return result; }
@@ -314,7 +318,7 @@ gint ViewerController::createNewTab(bool createRenderer)
 	
 	if(createRenderer)
 	{
-		sendPackageAndDelete(constructPackage("connection-management", "command", "register-view", "id", getNextPackageID().c_str(), "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", displayInformationConversionStream.str().c_str(), "view-id", viewIDConversionStream.str().c_str(), "can-be-reassigned", "", "create-renderer", "", NULL));
+		sendPackageAndDelete(constructPackage("connection-management", "command", "register-view", "id", getNextPackageID().c_str(), "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", displayInformationConversionStream.str().c_str(), "view-id", viewIDConversionStream.str().c_str(), "can-be-reassigned", "", "create-renderer", "", "initial-uri", initialURI.c_str(), NULL));
 	}
 	else
 	{

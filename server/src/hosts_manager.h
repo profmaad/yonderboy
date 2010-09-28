@@ -42,7 +42,7 @@ public:
 
 	void doJob(Job *theJob);
 
-	RendererHost* createRenderer(std::string binary, View *viewToConnectTo = NULL, Job *theJob = NULL);
+	RendererHost* createRenderer(std::string binary, View *viewToConnectTo = NULL, Job *theJob = NULL, std::string initialURI = std::string());
 
 	std::string registerHost(RendererHost *host);
 	std::string registerHost(ViewerHost *host);
