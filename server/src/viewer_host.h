@@ -45,6 +45,7 @@ private:
 
 	bool displaysStati;
 	bool displaysPopups;
+	bool canHaveMultipleViews;
 
 	std::map<std::string, View*> *views;
 };

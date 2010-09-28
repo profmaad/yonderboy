@@ -88,6 +88,10 @@ void RendererHost::handlePackage(Package* thePackage)
 
 			LOG_INFO("connection successfully established");
 		}
+		else
+		{
+			sendPackageAndDelete(constructAcknowledgementPackage(thePackage, "invalid"));
+		}
 	}
 	else
 	{

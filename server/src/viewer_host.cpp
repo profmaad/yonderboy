@@ -43,7 +43,7 @@
 
 # include "viewer_host.h"
 
-ViewerHost::ViewerHost(int hostSocket) : AbstractHost(hostSocket), views(NULL)
+ViewerHost::ViewerHost(int hostSocket) : AbstractHost(hostSocket), views(NULL), displaysStati(false), displaysPopups(false), canHaveMultipleViews(false)
 {
 	type = ServerComponentViewerHost;
 	views = new std::map<std::string, View*>();
@@ -79,6 +79,12 @@ View* ViewerHost::retrieveView(std::string viewID)
 void ViewerHost::doJob(Job *theJob)
 {
 }
+View* ViewerHost::createView()
+{
+	if(!canHaveMultipleViews) { return NULL; }
+
+	sendPackageAndDelete(constructPackage("connection-management", "command", "create-view", NULL));
+}
 
 void ViewerHost::handlePackage(Package* thePackage)
 {
@@ -89,6 +95,7 @@ void ViewerHost::handlePackage(Package* thePackage)
 	{
 		displaysStati = thePackage->isSet("can-display-stati");
 		displaysPopups = thePackage->isSet("can-display-popups");
+		canHaveMultipleViews = thePackage->isSet("can-have-multiple-views");
 		clientName = thePackage->getValue("client-name");
 		clientVersion = thePackage->getValue("client-version");
 		

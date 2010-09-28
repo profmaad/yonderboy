@@ -52,6 +52,7 @@ RendererController::RendererController(int socket) : ClientController(socket), b
 	g_signal_connect_swapped(backendWebView, "notify::load-status", G_CALLBACK(&RendererController::loadStatusCallback),this);
 	g_signal_connect_swapped(backendWebView, "notify::progress", G_CALLBACK(&RendererController::progressCallback),this);
 	g_signal_connect_swapped(backendWebView, "hovering-over-link", G_CALLBACK(&RendererController::hoveringLinkCallback),this);
+	g_signal_connect_swapped(backendWebView, "navigation-policy-decision-requested", G_CALLBACK(&RendererController::navigationPolicyDecisionCallback),this);
 
 	// show everything
 	gtk_widget_show_all(backendPlug);
@@ -217,4 +218,20 @@ void RendererController::hoveringLinkCallback(gchar *title, gchar *uri, WebKitWe
 	{
 		sendPackageAndDelete(constructPackage("status-change", "status", "not-hovering-over-link", NULL));
 	}
+}
+gboolean RendererController::navigationPolicyDecisionCallback(WebKitWebFrame *frame, WebKitNetworkRequest *request, WebKitWebNavigationAction *navigationAction, WebKitWebPolicyDecision *policyDecision, WebKitWebView *view)
+{
+	if(webkit_web_navigation_action_get_reason(navigationAction) !=  WEBKIT_WEB_NAVIGATION_REASON_LINK_CLICKED) { return false; }
+	if(webkit_web_navigation_action_get_button(navigationAction) == 2 || (webkit_web_navigation_action_get_button(navigationAction) == 1 && webkit_web_navigation_action_get_modifier_state(navigationAction) == GDK_CONTROL_MASK))
+	{
+		std::cerr<<"___WEBKITRENDERER__OPEN NEW TAB FOR: "<<webkit_network_request_get_uri(request)<<std::endl;
+
+		sendPackageAndDelete(constructPackage("connection-management", "command", "new-renderer-requested", "uri", webkit_network_request_get_uri(request), NULL));
+
+		webkit_web_policy_decision_ignore(policyDecision);
+		
+		return true;
+	}
+
+	return false;
 }

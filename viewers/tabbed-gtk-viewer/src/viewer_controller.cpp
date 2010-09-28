@@ -94,7 +94,7 @@ ViewerController::ViewerController(int socket) : ClientController(socket), initi
 	g_signal_connect_swapped(tabBar, "page-removed", G_CALLBACK(&ViewerController::pageRemovedCallback), this);
 
 	initID = getNextPackageID();
-	Package* initPackage = constructPackage("connection-management", "id", initID.c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "",  NULL);
+	Package* initPackage = constructPackage("connection-management", "id", initID.c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "", "can-have-multiple-views", "",  NULL);
 	sendPackageAndDelete(initPackage);
 
 	gtk_statusbar_push(GTK_STATUSBAR(statusBar), statusBarContextLocal, "Welcome to tabbed-gtk-viewer on yonderboy 0.0");

@@ -48,6 +48,7 @@ private:
 	void loadStatusCallback();
 	void progressCallback();
 	void hoveringLinkCallback(gchar *title, gchar *uri, WebKitWebView *view);
+	gboolean navigationPolicyDecisionCallback(WebKitWebFrame *frame, WebKitNetworkRequest *request, WebKitWebNavigationAction *navigationAction, WebKitWebPolicyDecision *policyDecision, WebKitWebView *view);
 
 	GtkWidget *backendPlug;
 	GtkWidget *backendScrolledWindow;
