@@ -36,6 +36,8 @@ public:
 	~ViewerHost();
 
 	void doJob(Job *theJob);
+	
+	void createView();
 
 protected:
 	void handlePackage(Package *thePackage);

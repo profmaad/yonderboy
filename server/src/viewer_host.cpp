@@ -79,9 +79,9 @@ View* ViewerHost::retrieveView(std::string viewID)
 void ViewerHost::doJob(Job *theJob)
 {
 }
-View* ViewerHost::createView()
+void ViewerHost::createView()
 {
-	if(!canHaveMultipleViews) { return NULL; }
+	if(!canHaveMultipleViews) { return; }
 
 	sendPackageAndDelete(constructPackage("connection-management", "command", "create-view", NULL));
 }
