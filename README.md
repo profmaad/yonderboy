@@ -23,7 +23,6 @@ both components in a system-agnostic way.
 
 ## TODO
 
- * create new tab functionality
  * session management
  * bookmark management
  * history keeping
