@@ -296,7 +296,7 @@ char* Controller::commandCompletionGenerator(const char *text, int state)
 
 		if(command.compare(0, strlen(text), text) == 0)
 		{
-			return strdup(command.c_str());
+			return strndup(command.c_str(), command.size());
 		}
 	}
 

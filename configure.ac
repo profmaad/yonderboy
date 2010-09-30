@@ -14,6 +14,12 @@ AC_PROG_CXXCPP
 m4_include([libev/libev.m4])
 m4_include([m4/ax_prog_doxygen.m4])
 
+# Check for programs
+AC_PROG_AWK
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+
 # Checks for libraries.
 libs_backup=$LIBS
 AC_CHECK_LIB([pthread], [pthread_cond_init], [])
@@ -37,9 +43,10 @@ AC_TYPE_UINT64_T
 # Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([clock_gettime dup2 gettimeofday memset mkdir select socket strrchr uname])
+AC_CHECK_FUNCS([clock_gettime dup2 gettimeofday memset mkdir select socket strndup strrchr uname])
 
 PKG_CHECK_MODULES([YAML], [yaml-cpp >= 0.2.5])
 PKG_CHECK_MODULES([GTK2], [gtk+-2.0 >= 2.20])
