@@ -45,8 +45,10 @@
 extern ConfigurationReader *configuration;
 extern Controller *controllerInstance;
 
-Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(0), waitingForAck(false)
+Controller::Controller(int serverSocket, bool displayStati) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(0), waitingForAck(false)
 {
+	this->displayStati = displayStati;
+
 	std::cout<<std::endl;
 	std::cout<<"      _ ._  _| _ ._ |_  _   "<<std::endl;
 	std::cout<<"   \\/(_)| |(_|(/_|  |_)(_)\\/"<<std::endl;
@@ -63,7 +65,15 @@ Controller::Controller(int serverSocket) : AbstractHost(serverSocket), stdinWatc
 	stdinWatcher = new ev::io();
 	stdinWatcher->set<Controller, &Controller::stdinCallback>(this);
 
-	Package *initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "", "interactive", "", "can-handle-requests", "",  NULL);
+	Package *initPackage;
+	if(displayStati)
+	{
+		initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "can-display-stati", "", "interactive", "", "can-handle-requests", "",  NULL);
+	}
+	else
+	{
+		initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "interactive", "", "can-handle-requests", "",  NULL);
+	}
 	lastSendPackageID = initPackage->getID();
 	waitingForAck = true;
 	sendPackageAndDelete(initPackage);
@@ -193,7 +203,7 @@ void Controller::handleStatusChange(Package *thePackage)
 {
 	std::string status = thePackage->getValue("status");
 
-	std::cout<<"status change > "<<status<<std::endl;
+	if(displayStati) { std::cout<<"status change > "<<status<<std::endl; }
 }
 void Controller::socketClosed()
 {

@@ -32,7 +32,7 @@ class CommandParser;
 class Controller : public AbstractHost
 {
 public:
-	Controller(int serverSocket);
+	Controller(int serverSocket, bool diplayStati);
 	~Controller();
 
 protected:
@@ -69,6 +69,8 @@ private:
 
 	unsigned long long lastSendPackageID;
 	bool waitingForAck;
+	
+	bool displayStati;
 };
 
 # endif /*CONTROLLER_H*/

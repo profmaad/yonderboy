@@ -61,9 +61,11 @@ void printHelpMessage(const char *executable)
 	printVersion(true);
 	std::cout<<std::endl;
 	
-	std::cout<<"usage: "<<executable<<" [-h/--help] [-v/--version] [-c/--config <file>]"<<std::endl;
+	std::cout<<"usage: "<<executable<<" [-s] [-h/--help] [-v/--version] [-c/--config <file>]"<<std::endl;
 	
 	std::cout<<"options:"<<std::endl;
+	std::cout<<" -s/--no-stati\t\tdo not display status changes"<<std::endl;
+	std::cout<<std::endl;
 	std::cout<<" -h/--help\t\tshow this help and exit"<<std::endl;
 	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
 	std::cout<<" -c/--config <file>\tconfig file to use"<<std::endl;
@@ -74,11 +76,13 @@ int main(int argc, char** argv)
 	int serverSocket = -1;
 	const char *configFile = NULL;
 	const char *socketPath = NULL;
+	bool displayStati = true; //HC
 	struct sockaddr_un socketAddress;
 	char errorBuffer[128] = {'\0'};
 
 	int option = -1;
 	struct option longOptions[] = {
+		{"no-stati", no_argument, NULL, 's'},
 		{"config", required_argument, NULL, 'c'},
 		{"help", no_argument, NULL, 'h'},
 		{"version", no_argument, NULL, 'v'},
@@ -86,7 +90,7 @@ int main(int argc, char** argv)
 	};
 	
 	opterr = 0;
-	while( (option = getopt_long(argc, argv, ":c:hv", longOptions, NULL)) != -1 )
+	while( (option = getopt_long(argc, argv, ":sc:hv", longOptions, NULL)) != -1 )
 	{
 		switch(option)
 		{
@@ -97,6 +101,9 @@ int main(int argc, char** argv)
 			std::cerr<<"missing argument for option '"<<optopt<<"'"<<std::endl;
 			printHelpMessage(argv[0]);
 			exit(1);
+			break;
+		case 's':
+			displayStati = false;
 			break;
 		case 'c':
 			configFile = optarg;
@@ -172,7 +179,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	controllerInstance = new Controller(serverSocket);
+	controllerInstance = new Controller(serverSocket, displayStati);
 
 	ev::default_loop().loop();
 

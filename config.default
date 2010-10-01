@@ -9,4 +9,4 @@ server.loglevel = debug
 
 server.renderer-binary = /home/profmaad/Workspace/cli-browser/renderers/webkit-renderer/src/webkit-renderer
 
-tabbed-gtk-viewer.controller = /home/profmaad/Workspace/cli-browser/controllers/cli-controller/src/cli-controller
+tabbed-gtk-viewer.controller = /home/profmaad/Workspace/cli-browser/controllers/cli-controller/src/cli-controller -s
