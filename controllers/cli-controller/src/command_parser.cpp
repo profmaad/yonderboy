@@ -25,6 +25,7 @@
 
 # include <cstdlib>
 # include <cstring>
+# include <stdio.h>
 
 # include <yaml.h>
 # include <popt.h>
@@ -34,7 +35,7 @@
 
 # include "command_parser.h"
 
-CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL), rendererIDRequired(false), viewerIDRequired(false), viewIDRequired(false), rendererID(NULL), viewerID(NULL), viewID(NULL), optionsCount(0), generatorPosition(0)
+CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL), rendererIDRequired(false), viewerIDRequired(false), viewIDRequired(false), rendererID(NULL), viewerID(NULL), viewID(NULL), optionsCount(0), generatorPosition(0), options(NULL)
 {
 	parameters = new std::vector<requiredParameter>();
 	boolOptionArguments = new std::map<std::string, int*>();
@@ -204,6 +205,14 @@ CommandParser::CommandParser(const YAML::Node &node) : valid(false), parameters(
 	options[tempOptions.size()] = POPT_TABLEEND;
 	optionsCount = tempOptions.size();
 }
+CommandParser::CommandParser() : valid(false), parameters(NULL), boolOptionArguments(NULL), stringOptionArguments(NULL), rendererIDRequired(false), viewerIDRequired(false), viewIDRequired(false), rendererID(NULL), viewerID(NULL), viewID(NULL), optionsCount(0), generatorPosition(0), options(NULL)
+{
+	parameters = new std::vector<requiredParameter>();
+	boolOptionArguments = new std::map<std::string, int*>();
+	stringOptionArguments = new std::map<std::string, char**>();
+
+	reset();
+}
 CommandParser::~CommandParser()
 {
 	for(std::map<std::string, int*>::iterator iter = boolOptionArguments->begin(); iter != boolOptionArguments->end(); iter++)
@@ -272,7 +281,14 @@ Package* CommandParser::constructPackageFromLine(int argc, const char **argv, st
 
 	for(int i=0;i < parameters->size(); i++)
 	{
-		kvMap->insert(std::make_pair(parameters->at(i).name, poptPeekArg(context)));
+		if(poptPeekArg(context) != NULL ) {kvMap->insert(std::make_pair(parameters->at(i).name, poptPeekArg(context))); }
+		else
+		{
+			std::cerr<<"missing required parameters"<<std::endl;
+			poptFreeContext(context);
+			reset();
+			return NULL;
+		}
 		free((void*)poptGetArg(context));
 	}
 
@@ -351,4 +367,10 @@ char* CommandParser::completionGenerator(const char *text, int state)
 	}
 
 	return NULL;
+}
+void CommandParser::printParameterHelp()
+{
+	poptContext context = poptGetContext("yonderboy-cli-controller", 0, NULL, options, 0);
+	poptPrintHelp(context, stdout, 0);
+	poptFreeContext(context);
 }

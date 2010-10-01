@@ -21,6 +21,7 @@
 # include <map>
 # include <utility>
 # include <iostream>
+# include <iomanip>
 # include <fstream>
 
 # include <cstring>
@@ -39,13 +40,14 @@
 
 # include "defaults.h"
 # include "command_parser.h"
+# include "help_command_parser.h"
 
 # include "controller.h"
 
 extern ConfigurationReader *configuration;
 extern Controller *controllerInstance;
 
-Controller::Controller(int serverSocket, bool displayStati) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(0), waitingForAck(false)
+Controller::Controller(int serverSocket, bool displayStati) : AbstractHost(serverSocket), stdinWatcher(NULL), commands(NULL), lastSendPackageID(0), waitingForAck(false), maxCommandNameLength(0)
 {
 	this->displayStati = displayStati;
 
@@ -57,6 +59,8 @@ Controller::Controller(int serverSocket, bool displayStati) : AbstractHost(serve
 
 	commands = new std::map<std::string, CommandParser*>();
 	parseSpecFile(configuration->retrieveAsPath("general","net-spec"));
+	if(maxCommandNameLength<4) { maxCommandNameLength = 4; } // for the case where the "help" command is the longest
+	commands->insert(std::make_pair("help", new HelpCommandParser(commands, maxCommandNameLength)));
 
 	// setup stdin read watcher and readline library
 	rl_attempted_completion_function = &Controller::completionCallback;
@@ -136,6 +140,11 @@ void Controller::parseSpecFile(std::string file)
 					{
 						CommandParser *parser = new CommandParser(specDoc["commands"][i]);
 						commands->insert(std::make_pair(command, parser));
+
+						if(parser->getCommand().length() > maxCommandNameLength)
+						{
+							maxCommandNameLength = parser->getCommand().length();
+						}
 					}
 				}
 			}

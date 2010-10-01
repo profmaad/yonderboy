@@ -50,6 +50,7 @@ private:
 
 	static void readlineCallback(char *line);
 	void handleLine(char *line);
+	void printCommandHelp(int argc, const char **argv);
 
 	static char** completionCallback(const char *text, int start, int end);
 	char** generateCompletionMatches(const char *text, int start, int end);
@@ -71,6 +72,7 @@ private:
 	bool waitingForAck;
 	
 	bool displayStati;
+	unsigned int maxCommandNameLength;
 };
 
 # endif /*CONTROLLER_H*/

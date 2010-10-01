@@ -32,12 +32,17 @@ class CommandParser
 {
 public:
 	CommandParser(const YAML::Node &node);
+	CommandParser();
 	~CommandParser();
 
-	Package* constructPackageFromLine(int argc, const char **argv, std::string packageID);
-	char* completionGenerator(const char *text, int state);
+	virtual Package* constructPackageFromLine(int argc, const char **argv, std::string packageID);
+	virtual char* completionGenerator(const char *text, int state);
 
-private:
+	std::string getCommand() { return command; }
+	std::string getDescription() { return description; }
+	virtual void printParameterHelp();
+
+protected:
 	void reset();
 
 	bool valid;
