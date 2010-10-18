@@ -27,11 +27,11 @@
 
 Package::Package(std::string serializedData) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false), id(0), hasValidID(false)
 {
-	keyValueMap = constructKeyValueMap(serializedData);
+	keyValueMap = constructKeyValueMap(serializedData, json);
 	
 	initialize();
 }
-Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false), id(0), hasValidID(false)
+Package::Package(std::map<std::string, std::string> *kvMap, std::string json) : type(Unknown), keyValueMap(NULL), valid(false), acknowledgementNeeded(false), id(0), hasValidID(false)
 {
 	if(!kvMap)
 	{
@@ -41,6 +41,7 @@ Package::Package(std::map<std::string, std::string> *kvMap) : type(Unknown), key
 	{
 		keyValueMap = kvMap;
 	}
+	this->json = json;
 
 	initialize();
 }
@@ -51,6 +52,7 @@ Package::Package(Package *thePackage) : type(Unknown), keyValueMap(NULL), valid(
 	acknowledgementNeeded = thePackage->acknowledgementNeeded;
 	id = thePackage->getID();
 	hasValidID = thePackage->hasID();
+	json = thePackage->getJSON();
 
 	keyValueMap = new std::map<std::string, std::string>(*(thePackage->keyValueMap));
 
@@ -135,11 +137,16 @@ std::string Package::serialize() const
 		result += iter->second;
 		result += '\n';
 	}
+	if(hasJSON())
+	{
+		result += json;
+		result += '\n';
+	}
 
 	return result;
 }
 
-std::map<std::string, std::string>* Package::constructKeyValueMap(std::string &serializedData)
+std::map<std::string, std::string>* Package::constructKeyValueMap(std::string &serializedData, std::string &json)
 {
 	std::map<std::string,std::string> *result = new std::map<std::string, std::string>();
 	std::string line;
@@ -150,6 +157,12 @@ std::map<std::string, std::string>* Package::constructKeyValueMap(std::string &s
 	{
 		line = serializedData.substr(0,lastNewline);
 		serializedData.erase(0,lastNewline+1);
+
+		if(line[0] == '{' && line[line.length()-1] == '}')
+		{
+			json = line;
+			continue;
+		}		
 
 		separatorPosition = line.find("=");
 

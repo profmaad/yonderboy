@@ -29,7 +29,7 @@ class Package
 {
 public:
 	explicit Package(std::string serializatedData);
-	Package(std::map<std::string, std::string> *kvMap);
+	Package(std::map<std::string, std::string> *kvMap, std::string json = "");
 	Package(Package *thePackage);
 	virtual ~Package();
 
@@ -42,6 +42,8 @@ public:
 	std::string getValue(std::string key) const;
 	bool isSet(std::string key) const;
 	bool hasValue(std::string key) const;
+	std::string getJSON() const { return json; };
+	bool hasJSON() const { return !json.empty(); };
 
 	std::string serialize() const;
 	
@@ -49,11 +51,12 @@ public:
 
 protected:
 	std::map<std::string, std::string> *keyValueMap;
+	std::string json;
 	void convertID();
 
 private:
 	void initialize();
-	std::map<std::string, std::string>* constructKeyValueMap(std::string &serializedData);
+	std::map<std::string, std::string>* constructKeyValueMap(std::string &serializedData, std::string &json);
 	PackageType extractType(std::map<std::string, std::string> *keyValueMap);
 
 	PackageType type;
