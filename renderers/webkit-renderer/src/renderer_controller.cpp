@@ -181,7 +181,10 @@ void RendererController::loadStatusCallback()
 		statusPackage = constructPackage("status-change", "status", "load-started", "uri", webkit_web_view_get_uri(WEBKIT_WEB_VIEW(backendWebView)), NULL);
 		break;
 	case WEBKIT_LOAD_FINISHED:
-		statusPackage = constructPackage("status-change", "status", "load-finished", "uri", webkit_web_view_get_uri(WEBKIT_WEB_VIEW(backendWebView)), NULL);
+		statusPackage = constructPackage("status-change", "status", "load-finished", "uri", webkit_web_view_get_uri(WEBKIT_WEB_VIEW(backendWebView)), "title", webkit_web_view_get_title(WEBKIT_WEB_VIEW(backendWebView)), NULL);
+
+		std::cerr<<"___WEBKITRENDERER___html for loaded page:"<<std::endl;
+		std::cerr<<webkit_web_data_source_get_data(webkit_web_frame_get_data_source(webkit_web_view_get_main_frame(WEBKIT_WEB_VIEW(backendWebView))))->str<<std::endl;
 		break;
 	case WEBKIT_LOAD_FAILED:
 		statusPackage = constructPackage("status-change", "status", "load-failed", NULL);

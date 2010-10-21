@@ -238,10 +238,13 @@ void ViewerController::handleStatusChange(Package *thePackage)
 	else if(status == "load-finished")
 	{
 		setStatusOnTab(tab, std::string("done loading ")+thePackage->getValue("uri"));
+		setTitleOnTab(tab, thePackage->getValue("title"));
+		setProgressOnTab(tab, (gdouble)1);
 	}
 	else if(status == "load-failed")
 	{
 		setStatusOnTab(tab, std::string("loading failed"));
+		setProgressOnTab(tab, (gdouble)0);
 	}
 	else if(status == "progress-changed")
 	{
@@ -384,6 +387,24 @@ const char* ViewerController::getStatusFromTab(GtkWidget *tab)
 void ViewerController::setStatusOnTab(GtkWidget *tab, std::string status)
 {
 	g_object_set_data_full(G_OBJECT(tab), "status-message", g_strdup(status.c_str()), (GDestroyNotify)g_free);
+}
+const char* ViewerController::getTitleFromTab(GtkWidget *tab)
+{
+	return (const char*)g_object_get_data(G_OBJECT(tab), "title");
+}
+void ViewerController::setTitleOnTab(GtkWidget *tab, std::string title)
+{
+	if(!title.empty())
+	{
+		g_object_set_data_full(G_OBJECT(tab), "title", g_strdup(title.c_str()), (GDestroyNotify)g_free);
+		gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), tab, gtk_label_new(title.c_str()));
+	}
+	else
+	{
+		const char *viewID = (const char*)g_object_get_data(G_OBJECT(tab), "view-id");
+		g_object_set_data_full(G_OBJECT(tab), "title", g_strdup(viewID), (GDestroyNotify)g_free);
+		gtk_notebook_set_tab_label(GTK_NOTEBOOK(tabBar), tab, gtk_label_new(viewID));
+	}
 }
 
 void ViewerController::updateStatusBar(guint currentPage)

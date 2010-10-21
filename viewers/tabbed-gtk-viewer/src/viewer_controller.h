@@ -55,6 +55,8 @@ private:
 	void setProgressOnTab(GtkWidget *tab, gdouble progress);
 	const char* getStatusFromTab(GtkWidget *tab);
 	void setStatusOnTab(GtkWidget *tab, std::string status);
+	const char* getTitleFromTab(GtkWidget *tab);
+	void setTitleOnTab(GtkWidget *tab, std::string title);
 
 	void updateStatusBar(guint currentPage);
 	void updateFocusInfo(guint currentPage);
