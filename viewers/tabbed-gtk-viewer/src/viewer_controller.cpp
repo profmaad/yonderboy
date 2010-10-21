@@ -244,6 +244,7 @@ void ViewerController::handleStatusChange(Package *thePackage)
 	else if(status == "load-failed")
 	{
 		setStatusOnTab(tab, std::string("loading failed"));
+		setTitleOnTab(tab, "");
 		setProgressOnTab(tab, (gdouble)0);
 	}
 	else if(status == "progress-changed")
