@@ -1,8 +1,8 @@
 AM_CXXFLAGS = -I../../libev/ $(YAML_CFLAGS)
-server_LDADD = -lpthread $(YAML_LIBS)
+yonderboyd_LDADD = -lpthread $(YAML_LIBS)
 
-bin_PROGRAMS = server
-server_SOURCES = main.cpp macros.h log.h defaults.h \
+bin_PROGRAMS = yonderboyd
+yonderboyd_SOURCES = main.cpp macros.h log.h defaults.h \
 		ev_cpp.h ev_cpp.cpp \
 		ipc_listener.h ipc_listener.cpp \
 		abstract_host.h abstract_host.cpp \

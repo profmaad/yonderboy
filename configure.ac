@@ -57,7 +57,7 @@ DX_INIT_DOXYGEN(cli-browser, Doxyfile, doc)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile
-		server/src/Makefile
+		daemon/src/Makefile
 		controllers/cli-controller/src/Makefile
 		renderers/webkit-renderer/src/Makefile
 		viewers/tabbed-gtk-viewer/src/Makefile])
