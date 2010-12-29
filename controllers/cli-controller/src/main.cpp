@@ -71,7 +71,7 @@ void printHelpMessage(const char *executable)
 	std::cout<<" -c/--config <file>\tconfig file to use"<<std::endl;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	int serverSocket = -1;
 	const char *configFile = NULL;
