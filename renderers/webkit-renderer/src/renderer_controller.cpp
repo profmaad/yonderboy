@@ -64,7 +64,7 @@ RendererController::RendererController(int socket) : ClientController(socket), b
 	std::stringstream conversionStream;
 	conversionStream<<gtk_plug_get_id(GTK_PLUG(backendPlug));
 	
-	Package* initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "backend-name", BACKEND_NAME, "backend-version", BACKEND_VERSION, "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", conversionStream.str().c_str(), NULL);
+	Package *initPackage = constructPackage("connection-management", "id", getNextPackageID().c_str(), "command", "initialize", "client-name", PROJECT_NAME, "client-version", PROJECT_VERSION, "backend-name", BACKEND_NAME, "backend-version", BACKEND_VERSION, "display-information-type", DISPLAY_INFORMATION_TYPE, "display-information", conversionStream.str().c_str(), NULL);
 	sendPackageAndDelete(initPackage);
 }
 RendererController::~RendererController()

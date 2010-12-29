@@ -58,7 +58,7 @@ void printHelpMessage(const char *executable)
 	std::cout<<" -v/--version\t\tshow version and exit"<<std::endl;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	gtk_init(&argc, &argv);
 	if(!g_thread_supported())

@@ -70,7 +70,7 @@ void printHelpMessage(const char *executable)
         std::cout<<" -c/--config <file>\tconfig file to use"<<std::endl;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	// initialize gtk and glib threading
 	// we gotta do this first, because it modifies argc and argv
