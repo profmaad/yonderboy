@@ -49,8 +49,8 @@ private:
 
 	static ServerComponent stringToServerComponent(std::string string);
 
-	void addArrayToRoutingTable(ServerComponent component, const char* array[]);
-	std::set<std::string>* constructSetFromArray(const char* array[]);
+	void addArrayToRoutingTable(ServerComponent component, const char *array[]);
+	std::set<std::string>* constructSetFromArray(const char *array[]);
 
 	std::map<std::string, ServerComponent> *routingTable;
 

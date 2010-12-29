@@ -318,7 +318,7 @@ void PackageRouter::deliverStatusChange(AbstractHost *source, Package *thePackag
 	delete statusChange;
 }
 
-void PackageRouter::addArrayToRoutingTable(ServerComponent component, const char* array[])
+void PackageRouter::addArrayToRoutingTable(ServerComponent component, const char *array[])
 {
 	int index = 0;
 	
@@ -329,7 +329,7 @@ void PackageRouter::addArrayToRoutingTable(ServerComponent component, const char
 		index++;
 	}		
 }
-std::set<std::string>* PackageRouter::constructSetFromArray(const char* array[])
+std::set<std::string>* PackageRouter::constructSetFromArray(const char *array[])
 {
 	std::set<std::string> *result = new std::set<std::string>();
 	int index = 0;

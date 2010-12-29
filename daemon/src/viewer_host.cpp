@@ -86,7 +86,7 @@ void ViewerHost::createView(std::string initialURI)
 	sendPackageAndDelete(constructPackage("command", "command", "create-view", "id", getNextPackageID().c_str(), "initial-uri", initialURI.c_str(), NULL));
 }
 
-void ViewerHost::handlePackage(Package* thePackage)
+void ViewerHost::handlePackage(Package *thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 

@@ -66,7 +66,7 @@ public:
 
 private:
 	void signalPipeCallback(ev::io &watcher, int revents);
-	static void* waitForSignals(void* arg);
+	static void* waitForSignals(void *arg);
 	void setupSignalWatching();
 
 	ControllerListener *controllerListener;

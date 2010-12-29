@@ -42,7 +42,7 @@ ServerController *server = NULL;
 LogLevel logLevel = DEFAULT_LOG_LEVEL;
 
 void switchFileDescriptorToDevNull(int fileDescriptor, int mode);
-void changeToWorkingDirectory(const char* workingDir);
+void changeToWorkingDirectory(const char *workingDir);
 void printHelpMessage(const char *executable);
 void printVersion(bool onOneLine = false);
 
@@ -58,7 +58,7 @@ void switchFileDescriptorToDevNull(int fileDescriptor, int mode)
 		close(newFileDescriptor);
 	}
 }
-void changeToWorkingDirectory(const char* workingDir)
+void changeToWorkingDirectory(const char *workingDir)
 {
 	int result = -1;
 	char errorBuffer[128] = { '\0' };
@@ -135,7 +135,7 @@ pid_t daemonize()
 	return getpid();
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	// extract command line options
 	std::string configFilePath;

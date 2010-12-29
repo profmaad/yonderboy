@@ -77,7 +77,7 @@ void DisplayManager::registerRenderer(RendererHost *theRenderer)
 	}
 }
 
-void DisplayManager::unregisterView(std::string viewID, ViewerHost* host)
+void DisplayManager::unregisterView(std::string viewID, ViewerHost *host)
 {
 	View *theView = NULL;
 

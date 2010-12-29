@@ -29,7 +29,7 @@
 # include "abstract_persistence_manager.h"
 # include "persistent_storage.h"
 
-void* AbstractPersistenceManager::syncRecordsStartMethod(void* persistenceManagerPointer)
+void* AbstractPersistenceManager::syncRecordsStartMethod(void *persistenceManagerPointer)
 {
 	AbstractPersistenceManager *persistenceManager = static_cast<AbstractPersistenceManager*>(persistenceManagerPointer);
 

@@ -60,7 +60,7 @@ RendererHost::~RendererHost()
 	LOG_DEBUG("shutting down renderer host");
 }
 
-void RendererHost::handlePackage(Package* thePackage)
+void RendererHost::handlePackage(Package *thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 	if(state == Connected)

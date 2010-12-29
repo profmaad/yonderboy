@@ -140,7 +140,7 @@ void ServerController::setupSignalWatching()
 	pthread_create(&signalThread, NULL, waitForSignals, static_cast<void*>(infos));
 	pthread_detach(signalThread);
 }
-void* ServerController::waitForSignals(void* arg)
+void* ServerController::waitForSignals(void *arg)
 {
 	if(!arg) { return NULL; }
 	

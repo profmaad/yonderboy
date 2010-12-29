@@ -295,7 +295,7 @@ void AbstractPersistenceManager::recordsChanged(void *storage, StorageType type)
 		pthread_mutex_unlock(&changedStoragesMutex);
 	}
 }
-bool AbstractPersistenceManager::storageHasChanges(void* storage)
+bool AbstractPersistenceManager::storageHasChanges(void *storage)
 {
 	if(currentlySyncingStorage == storage) { return true; }
 	

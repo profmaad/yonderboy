@@ -55,7 +55,7 @@ void ControllerHost::doJob(Job *theJob)
 {
 }
 
-void ControllerHost::handlePackage(Package* thePackage)
+void ControllerHost::handlePackage(Package *thePackage)
 {
 	LOG_INFO("received package of type "<<thePackage->getType());
 

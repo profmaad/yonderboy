@@ -84,12 +84,12 @@ private:
 	PersistentKeyValueStorage* getKeyValueStorage(std::string group, std::string id);
 	PersistentTableStorage* getTableStorage(std::string group, std::string id);
 	
-	bool storageHasChanges(PersistentListStorage* storage) { return storageHasChanges(static_cast<void*>(storage)); }
-	bool storageHasChanges(PersistentKeyValueStorage* storage) { return storageHasChanges(static_cast<void*>(storage)); }
-	bool storageHasChanges(PersistentTableStorage* storage) { return storageHasChanges(static_cast<void*>(storage)); }
-	bool storageHasChanges(void* storage);
+	bool storageHasChanges(PersistentListStorage *storage) { return storageHasChanges(static_cast<void*>(storage)); }
+	bool storageHasChanges(PersistentKeyValueStorage *storage) { return storageHasChanges(static_cast<void*>(storage)); }
+	bool storageHasChanges(PersistentTableStorage *storage) { return storageHasChanges(static_cast<void*>(storage)); }
+	bool storageHasChanges(void *storage);
 	
-	static void* syncRecordsStartMethod(void* persistenceManagerPointer);
+	static void* syncRecordsStartMethod(void *persistenceManagerPointer);
 	void* syncRecords();
 	
 	std::map<std::string, std::map<std::string, PersistentListStorage*> > *listStorages;

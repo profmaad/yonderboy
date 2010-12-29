@@ -81,7 +81,7 @@ private:
 	};
 	
 	std::fstream* openFile(std::string path);
-	void closeFile(FileInformation* file, bool runCompaction = true);
+	void closeFile(FileInformation *file, bool runCompaction = true);
 	bool createGroupDirectory(std::string group);
 	
 	std::string constructPath(std::string group, std::string id);

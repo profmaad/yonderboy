@@ -95,7 +95,7 @@ std::fstream* FilePersistenceManager::openFile(std::string path)
 	
 	return result;
 }
-void FilePersistenceManager::closeFile(FileInformation* file, bool runCompaction)
+void FilePersistenceManager::closeFile(FileInformation *file, bool runCompaction)
 {
 	pthread_mutex_lock(&file->streamMutex);
 	file->stream->close();
