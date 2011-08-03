@@ -31,7 +31,7 @@ std::string findConfigurationFile()
 {
 	// setup files to look at
 	// it is somewhat dumb to reinit this every time this function gets called
-	// well, guess we shouldn't call it to often then ;-)
+	// well, guess we shouldn't call it too often then ;-)
 
 	const char *options[] = { "$XDG_CONFIG_HOME/yonderboy/config", "$HOME/.config/yonderboy/config", "$HOME/.yonderboyrc", "/etc/yonderboy/config" }; //HC
 	unsigned int optionsCount = 4; //HC
